@@ -17,3 +17,16 @@ type VIPUser struct {
 	Info string `json:"info"`
 	Stat int    `json:"stat"`
 }
+
+// User get user info
+func (s *Service) User() (user *User, err error) {
+	body, err := s.reqUser()
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &user); err != nil {
+		return
+	}
+	return
+}

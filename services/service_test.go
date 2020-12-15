@@ -1,0 +1,62 @@
+package services
+
+import (
+	"fmt"
+	"os"
+	"testing"
+)
+
+var service *Service
+
+func TestMain(m *testing.M) {
+	gat, isid, sid, acwTc, iget, token, guardDeviceID := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpZ2V0Z2V0LmNvbSIsImV4cCI6MTYwODMwMjY4OSwiaWF0IjoxNjA3ODcwNjg5LCJpc3MiOiJEREdXIEpXVCBNSURETEVXQVJFIiwibmJmIjoxNjA3ODcwNjg5LCJzdWIiOiIxNzk1MDMyNCIsImRldmljZV9pZCI6IjUzOGMzYzliYzk3MjI3ZmIzMTI5MGQ5ZjU0YWQ4N2NkIiwiZGV2aWNlX3R5cGUiOiJpZ2V0d2ViIn0.Vo_sORYNqr46IfnjwJyGpvQI8JeNIvt2cMjSos3awWkWwa9PiA8T6mARvH1GCfyX7EK6K5rNSnP9JBLWL-jFWQ", "538c3c9bc97227fb31290d9f54ad87cd", "1ekdk2rsmmivs75orohjpkk6g2o49vpo", "276082a916078690867185436edc12a1ca467545eedeab821efac43d6b6918", "eyJzZWNyZXQiOiJYQndxVndSaTV1RENkejE5X2dtVEFYX1UiLCJfZXhwaXJlIjoxNjA4NDcxMjAyNjEwLCJfbWF4QWdlIjo2MDQ4MDAwMDB9", "alkcIlpm-1j-rusU7g3wL1TnF0QrL-oLPhIg", "1epe8s675vg8Gg5c5dGvhQcgDfe9PD5FdKTkZc7"
+	service = NewService(gat, isid, sid, acwTc, iget, token, guardDeviceID)
+	exitCode := m.Run()
+	// 退出
+	os.Exit(exitCode)
+}
+func TestGet(t *testing.T) {
+	fmt.Println(dedaoCommURL.String())
+}
+
+func TestNewService(t *testing.T) {
+	resp, _ := service.client.Request("GET", "/api/pc/user/info")
+	defer resp.Body.Close()
+
+	var user User
+
+	handleJSONParse(resp.Body, &user)
+	fmt.Println(user)
+}
+
+func TestUser(t *testing.T) {
+	result, err := service.User()
+	if err != nil {
+		fmt.Printf("%#v \n", err)
+	}
+	fmt.Printf("%#v \n", result)
+}
+
+func TestCourseType(t *testing.T) {
+	result, err := service.CourseType()
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestCourseList(t *testing.T) {
+	result, err := service.CourseList("bauhinia", "study", 1, 10)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestArticleDetail(t *testing.T) {
+	result, err := service.ArticleDetail()
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}

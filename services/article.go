@@ -19,3 +19,16 @@ type Article struct {
 	IDStr       string `json:"IdStr"`
 	AppIDStr    string `json:"AppIdStr"`
 }
+
+// ArticleDetail get detail article
+func (s *Service) ArticleDetail() (detail *ArticleDetail, err error) {
+	body, err := s.reqArticleDetail()
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &detail); err != nil {
+		return
+	}
+	return
+}

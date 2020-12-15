@@ -41,7 +41,7 @@ func NewClient(baseURL string) *HTTPClient {
 	c := &HTTPClient{
 		BaseURL: baseURL,
 		Header:  make(map[string]string),
-		Data:    nil,
+		Data:    make(map[string]string),
 		Client:  createHTTPClient(),
 	}
 	c.ResetCookieJar()
@@ -148,7 +148,7 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 			return nil, fmt.Errorf("request.Req: unknow post type: %s", h.Data)
 		}
 	}
-
+	fmt.Println(requrl)
 	req, err := http.NewRequest(method, requrl, obody)
 	if err != nil {
 		return nil, err
