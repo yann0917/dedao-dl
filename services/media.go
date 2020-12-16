@@ -1,11 +1,13 @@
 package services
 
+// MediaBaseInfo media info
 type MediaBaseInfo struct {
 	MediaType     int    `json:"media_type"`
 	SourceID      string `json:"source_id"`
 	SecurityToken string `json:"security_token"`
 }
 
+// Audio audio
 type Audio struct {
 	AliasID        string `json:"alias_id"`
 	Extrainfo      string `json:"extrainfo"`
@@ -46,4 +48,22 @@ type Audio struct {
 	IndexImg       string `json:"index_img"`
 	Reader         string `json:"reader"`
 	ReaderName     string `json:"reader_name"`
+}
+
+// AudioList audio baseic info list
+type AudioList struct {
+	List []Audio `json:"list"`
+}
+
+// AudioByAlias get article audio info
+func (s *Service) AudioByAlias(ID string) (list *AudioList, err error) {
+	body, err := s.reqAudioByAlias(ID)
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &list); err != nil {
+		return
+	}
+	return
 }

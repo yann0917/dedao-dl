@@ -62,6 +62,24 @@ func TestCourseInfo(t *testing.T) {
 	fmt.Printf("result:=%v \n", result)
 }
 
+func TestArticleList(t *testing.T) {
+	ID := "OY8PNZj5EavJq1aHO9Jn1eqGDdlgw7"
+	result, err := service.ArticleList(ID)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestAudioByAlias(t *testing.T) {
+	ID := "zDWMvqA3d2k94LZ9KQ0RVjnxyapBePZ7"
+	result, err := service.AudioByAlias(ID)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
 func TestArticleDetail(t *testing.T) {
 	token := "KWn/CP3W2txbAhtG26cVSr0YwlF3n7LCqzYAOHpyWw3+ft2hqSH+BqlOZTnBur2gXU0ByFmUQmz0tYVxepbdpTy81Gk="
 	sign := "b23a426b357d1b83"

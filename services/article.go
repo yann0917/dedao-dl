@@ -24,6 +24,7 @@ type Article struct {
 type ArticleIntro struct {
 	ArticleInfo
 	MediaBaseInfo []MediaBaseInfo `json:"media_base_info"`
+	Aduio         Audio           `json:"audio"`
 }
 
 // ArticleInfo article info
@@ -77,7 +78,29 @@ type ArticleInfo struct {
 	VideoStatus    int      `json:"video_status"`
 }
 
-// ArticleDetail get detail article
+// ArticleList clasee article list
+type ArticleList struct {
+	List    []ArticleIntro `json:"article_list"`
+	ClassID int            `json:"class_id"`
+	Ptype   int            `json:"ptype"`
+	PID     int            `json:"pid"`
+	Reverse bool           `json:"reverse"`
+}
+
+// ArticleList get class article list
+func (s *Service) ArticleList(ID string) (list *ArticleList, err error) {
+	body, err := s.reqArticleList(ID)
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &list); err != nil {
+		return
+	}
+	return
+}
+
+// ArticleDetail get article detail
 func (s *Service) ArticleDetail(token, sign, appID string) (detail *ArticleDetail, err error) {
 	body, err := s.reqArticleDetail(token, sign, appID)
 	defer body.Close()
