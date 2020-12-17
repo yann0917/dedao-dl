@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -163,4 +164,19 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 		}
 	}
 	return h.Client.Do(req)
+}
+
+// HTTPGet http get request
+func HTTPGet(uri string) (body []byte, err error) {
+	client := NewClient(uri)
+	resp, err := client.Request("GET", "")
+	defer resp.Body.Close()
+	if err != nil {
+
+	}
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+
+	}
+	return
 }
