@@ -19,7 +19,7 @@ var userInfo = `{
 `
 var generateCmd = &cobra.Command{
 	Use:   "generate",
-	Short: "use `dedao-dl generate` to generate dedao.json",
+	Short: "use `dedao-dl generate` to generate config file dedao.json",
 	Long: `use dedao-dl generate to generate dedao.json:
 	{
 		"user":{

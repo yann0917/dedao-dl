@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/yann0917/dedao-dl/request"
 	"github.com/yann0917/dedao-dl/utils"
@@ -50,44 +51,56 @@ type Service struct {
 	client *request.HTTPClient
 }
 
+// CookieOptions dedao cookie options
+type CookieOptions struct {
+	GAT           string `json:"gat"`
+	ISID          string `json:"isid"`
+	GuardDeviceID string `json:"guard_device_id"`
+	SID           string `json:"sid"`
+	AcwTc         string `json:"acw_tc"`
+	Iget          string `json:"iget"`
+	Token         string `json:"token"`
+	CookieStr     string `json:"cookieStr"`
+}
+
 //NewService new service
-func NewService(gat, isid, sid, acwTc, iget, token, guardDeviceID string) *Service {
+func NewService(co *CookieOptions) *Service {
 	client := request.NewClient(baseURL)
 	client.ResetCookieJar()
 	cookies := []*http.Cookie{}
 	cookies = append(cookies, &http.Cookie{
 		Name:   "GAT",
-		Value:  gat,
+		Value:  co.GAT,
 		Domain: "." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "ISID",
-		Value:  isid,
+		Value:  co.ISID,
 		Domain: "." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "_guard_device_id",
-		Value:  guardDeviceID,
+		Value:  co.GuardDeviceID,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "_sid",
-		Value:  sid,
+		Value:  co.SID,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "acw_tc",
-		Value:  acwTc,
+		Value:  co.AcwTc,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "iget",
-		Value:  iget,
+		Value:  co.Iget,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	cookies = append(cookies, &http.Cookie{
 		Name:   "token",
-		Value:  token,
+		Value:  co.Token,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	client.Client.Jar.SetCookies(dedaoCommURL, cookies)
@@ -148,4 +161,14 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 	}
 
 	return nil
+}
+
+func ConvertToStruct(cookie string, v interface{}) {
+	// acw_tc=276082a816081829041486406ed1f67b1eb7e3def22b62e685c4da04716ed5; token=MLLWIsC8-AFL8N_Cwyei_h8XoeArL-576FbE; iget=eyJzZWNyZXQiOiJYQndxVndSaTV1RENkejE5X2dtVEFYX1UiLCJfZXhwaXJlIjoxNjA4NDcxMjAyNjEwLCJfbWF4QWdlIjo2MDQ4MDAwMDB9; _guard_device_id=1epe8s675vg8Gg5c5dGvhQcgDfe9PD5FdKTkZc7; GAT=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpZ2V0Z2V0LmNvbSIsImV4cCI6MTYwODMwMjY4OSwiaWF0IjoxNjA3ODcwNjg5LCJpc3MiOiJEREdXIEpXVCBNSURETEVXQVJFIiwibmJmIjoxNjA3ODcwNjg5LCJzdWIiOiIxNzk1MDMyNCIsImRldmljZV9pZCI6IjUzOGMzYzliYzk3MjI3ZmIzMTI5MGQ5ZjU0YWQ4N2NkIiwiZGV2aWNlX3R5cGUiOiJpZ2V0d2ViIn0.Vo_sORYNqr46IfnjwJyGpvQI8JeNIvt2cMjSos3awWkWwa9PiA8T6mARvH1GCfyX7EK6K5rNSnP9JBLWL-jFWQ; _sid=1ekdk2rsmmivs75orohjpkk6g2o49vpo; ISID=538c3c9bc97227fb31290d9f54ad87cd
+	list := strings.Split(cookie, "; ")
+	for _, v := range list {
+		item := strings.Split(v, "=")
+		fmt.Println(item)
+	}
+
 }

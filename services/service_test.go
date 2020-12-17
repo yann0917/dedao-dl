@@ -3,14 +3,26 @@ package services
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/go-rod/rod"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 var service *Service
 
 func TestMain(m *testing.M) {
-	gat, isid, sid, acwTc, iget, token, guardDeviceID := "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpZ2V0Z2V0LmNvbSIsImV4cCI6MTYwODMwMjY4OSwiaWF0IjoxNjA3ODcwNjg5LCJpc3MiOiJEREdXIEpXVCBNSURETEVXQVJFIiwibmJmIjoxNjA3ODcwNjg5LCJzdWIiOiIxNzk1MDMyNCIsImRldmljZV9pZCI6IjUzOGMzYzliYzk3MjI3ZmIzMTI5MGQ5ZjU0YWQ4N2NkIiwiZGV2aWNlX3R5cGUiOiJpZ2V0d2ViIn0.Vo_sORYNqr46IfnjwJyGpvQI8JeNIvt2cMjSos3awWkWwa9PiA8T6mARvH1GCfyX7EK6K5rNSnP9JBLWL-jFWQ", "538c3c9bc97227fb31290d9f54ad87cd", "1ekdk2rsmmivs75orohjpkk6g2o49vpo", "276082a916078690867185436edc12a1ca467545eedeab821efac43d6b6918", "eyJzZWNyZXQiOiJYQndxVndSaTV1RENkejE5X2dtVEFYX1UiLCJfZXhwaXJlIjoxNjA4NDcxMjAyNjEwLCJfbWF4QWdlIjo2MDQ4MDAwMDB9", "alkcIlpm-1j-rusU7g3wL1TnF0QrL-oLPhIg", "1epe8s675vg8Gg5c5dGvhQcgDfe9PD5FdKTkZc7"
-	service = NewService(gat, isid, sid, acwTc, iget, token, guardDeviceID)
+	co := &CookieOptions{
+		GAT:           "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpZ2V0Z2V0LmNvbSIsImV4cCI6MTYwODMwMjY4OSwiaWF0IjoxNjA3ODcwNjg5LCJpc3MiOiJEREdXIEpXVCBNSURETEVXQVJFIiwibmJmIjoxNjA3ODcwNjg5LCJzdWIiOiIxNzk1MDMyNCIsImRldmljZV9pZCI6IjUzOGMzYzliYzk3MjI3ZmIzMTI5MGQ5ZjU0YWQ4N2NkIiwiZGV2aWNlX3R5cGUiOiJpZ2V0d2ViIn0.Vo_sORYNqr46IfnjwJyGpvQI8JeNIvt2cMjSos3awWkWwa9PiA8T6mARvH1GCfyX7EK6K5rNSnP9JBLWL-jFWQ",
+		ISID:          "538c3c9bc97227fb31290d9f54ad87cd",
+		SID:           "1ekdk2rsmmivs75orohjpkk6g2o49vpo",
+		AcwTc:         "276082a916078690867185436edc12a1ca467545eedeab821efac43d6b6918",
+		Iget:          "eyJzZWNyZXQiOiJYQndxVndSaTV1RENkejE5X2dtVEFYX1UiLCJfZXhwaXJlIjoxNjA4NDcxMjAyNjEwLCJfbWF4QWdlIjo2MDQ4MDAwMDB9",
+		Token:         "alkcIlpm-1j-rusU7g3wL1TnF0QrL-oLPhIg",
+		GuardDeviceID: "1epe8s675vg8Gg5c5dGvhQcgDfe9PD5FdKTkZc7",
+	}
+	service = NewService(co)
 	exitCode := m.Run()
 	// 退出
 	os.Exit(exitCode)
@@ -89,4 +101,16 @@ func TestArticleDetail(t *testing.T) {
 		fmt.Printf("err:=%#v \n", err)
 	}
 	fmt.Printf("result:=%v \n", result)
+}
+
+func TestConvertToStruct(t *testing.T) {
+	rod.Try(func() {
+		c := utils.Get("https://www.dedao.cn")
+		if !strings.Contains(c, "ISID=") {
+			t.Error("cookie should contain the ISID")
+		}
+		var cookie CookieOptions
+		ConvertToStruct(c, &cookie)
+		t.Log(c)
+	})
 }

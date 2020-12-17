@@ -82,7 +82,7 @@ func (data *Data) PrintInfo() {
 
 		if len(p.Streams) > 0 {
 			for _, stream := range p.Streams {
-				value = append(value, fmt.Sprintf("%.2fMB", float64(stream.Size)/1024/1024))
+				value = append(value, fmt.Sprintf("%.2fMB (%d Bytes)\n", float64(stream.Size)/(1024*1024), stream.Size))
 			}
 		} else {
 			for range data.Data[0].Streams {

@@ -9,6 +9,28 @@ import (
 	"github.com/yann0917/dedao-dl/utils"
 )
 
+// Options defines options used in downloading.
+type Options struct {
+	InfoOnly       bool
+	Stream         string
+	Refer          string
+	OutputPath     string
+	OutputName     string
+	FileNameLength int
+	Caption        bool
+
+	MultiThread  bool
+	ThreadNumber int
+	RetryTimes   int
+	ChunkSizeMB  int
+}
+
+// Downloader is the default downloader.
+type Downloader struct {
+	bar    *pb.ProgressBar
+	option Options
+}
+
 func progressBar(size int, prefix string) *pb.ProgressBar {
 	bar := pb.New(size).
 		Set(pb.Bytes, true).
@@ -16,6 +38,14 @@ func progressBar(size int, prefix string) *pb.ProgressBar {
 		SetMaxWidth(1000)
 
 	return bar
+}
+
+// New returns a new Downloader implementation.
+func New(option Options) *Downloader {
+	downloader := &Downloader{
+		option: option,
+	}
+	return downloader
 }
 
 //PrintToPDF print to pdf
