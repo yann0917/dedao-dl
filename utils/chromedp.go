@@ -10,6 +10,7 @@ import (
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"github.com/chromedp/chromedp/device"
 )
@@ -34,47 +35,47 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 			enableLifeCycleEvents(),
 			setCookies(cookies),
 			navigateAndWaitFor(`https://www.dedao.cn/article/`+aid, "networkIdle"),
-			// chromedp.ActionFunc(func(ctx context.Context) error {
-			// 	s := `
-			// 		document.querySelector('.iconfont').parentElement.parentElement.style.display='none';
-			// 		var bottom = document.querySelector('.bottom-wrapper');
-			// 		if(bottom){
-			// 			bottom.parentElement.style.display='none'
-			// 		}
-			// 		[...document.querySelectorAll('ul>li>div>div>div:nth-child(2)>span')].map(e=>e.click());
-			// 	`
-			// 	_, exp, err := runtime.Evaluate(s).Do(ctx)
-			// 	if err != nil {
-			// 		return err
-			// 	}
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				s := `
+					document.querySelector('.iget-header-main').style.display='none';
+					document.querySelector('.article-body-wrap').style.margin="0px 50px";
+				`
+				_, exp, err := runtime.Evaluate(s).Do(ctx)
+				if err != nil {
+					return err
+				}
 
-			// 	if exp != nil {
-			// 		return exp
-			// 	}
+				if exp != nil {
+					return exp
+				}
 
-			// 	return nil
-			// }),
-			// chromedp.ActionFunc(func(ctx context.Context) error {
-			// 	s := `
-			// 		var divs = document.getElementsByTagName('div');
-			// 		for (var i = 0; i < divs.length; ++i){
-			// 			if(divs[i].innerText === "打开APP"){
-			// 				divs[i].parentNode.parentNode.style.display="none";
-			// 				break;
-			// 			}
-			// 		}
-			// 	`
-			// 	_, exp, err := runtime.Evaluate(s).Do(ctx)
-			// 	if err != nil {
-			// 		return err
-			// 	}
+				return nil
+			}),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				s := `
+					var buttons = document.getElementsByTagName('button');
+					for (var i = 0; i < buttons.length; ++i){
+						if(buttons[i].innerText === "展开侧边栏" || buttons[i].innerText === "设置文本"){
+							buttons[i].parentNode.style.display="none";
+							break;
+						}
+					}
+					var asides = document.getElementsByTagName('aside');
+					for (var i = 0; i < asides.length; ++i){
+						asides[i].style.display="none";
+					}
+				`
+				_, exp, err := runtime.Evaluate(s).Do(ctx)
+				if err != nil {
+					return err
+				}
 
-			// 	if exp != nil {
-			// 		return exp
-			// 	}
+				if exp != nil {
+					return exp
+				}
 
-			// 	return nil
-			// }),
+				return nil
+			}),
 
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				// time.Sleep(time.Second * 5)
