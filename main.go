@@ -8,7 +8,6 @@ import (
 )
 
 func init() {
-
 	err := config.Instance.Init()
 	if err != nil {
 		fmt.Println(err)

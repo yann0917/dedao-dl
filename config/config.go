@@ -167,8 +167,10 @@ func (c *ConfigsData) loadConfigFromFile() error {
 	//从配置文件中加载配置
 	decoder := jsoniter.NewDecoder(c.configFile)
 	var conf configJSONExport
-	decoder.Decode(conf)
+	decoder.Decode(&conf)
 
+	c.AcitveUID = conf.AcitveUID
+	c.Users = conf.Users
 	return nil
 }
 
@@ -246,8 +248,7 @@ func (c *ConfigsData) SetUser(u *Dedao) (*Dedao, error) {
 		CookieOptions: u.CookieOptions,
 	}
 	c.Users = append(c.Users, dedao)
-	c.setactiveUser(dedao)
-
+	c.setActiveUser(dedao)
 	return dedao, nil
 }
 
@@ -266,7 +267,7 @@ func (c *ConfigsData) ActiveUser() *Dedao {
 	return c.activeUser
 }
 
-func (c *ConfigsData) setactiveUser(u *Dedao) {
+func (c *ConfigsData) setActiveUser(u *Dedao) {
 	c.AcitveUID = u.UIDHazy
 	c.activeUser = u
 }
@@ -280,7 +281,7 @@ func (c *ConfigsData) LoginUserCount() int {
 func (c *ConfigsData) SwitchUser(u *User) error {
 	for _, user := range c.Users {
 		if user.UIDHazy == u.UIDHazy {
-			c.setactiveUser(user)
+			c.setActiveUser(user)
 			return nil
 		}
 	}
