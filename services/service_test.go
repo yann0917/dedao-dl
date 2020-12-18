@@ -3,11 +3,8 @@ package services
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 	"testing"
-
-	"github.com/go-rod/rod"
-	"github.com/yann0917/dedao-dl/utils"
 )
 
 var service *Service
@@ -104,13 +101,16 @@ func TestArticleDetail(t *testing.T) {
 }
 
 func TestConvertToStruct(t *testing.T) {
-	rod.Try(func() {
-		c := utils.Get("https://www.dedao.cn")
-		if !strings.Contains(c, "ISID=") {
-			t.Error("cookie should contain the ISID")
-		}
-		var cookie CookieOptions
-		ConvertToStruct(c, &cookie)
-		t.Log(c)
-	})
+	// rod.Try(func() {
+	// 	c := utils.Get("https://www.dedao.cn")
+	// 	if !strings.Contains(c, "ISID=") {
+	// 		t.Error("cookie should contain the ISID")
+	// 	}
+	// 	var cookie CookieOptions
+	// 	ParseCookies(c, &cookie)
+	// 	fmt.Printf("%#v", cookie)
+	// })
+	dir, _ := os.LookupEnv("HOME")
+	str := filepath.Join(dir, ".config", "dedao")
+	fmt.Printf("%#v", str)
 }

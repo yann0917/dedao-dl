@@ -23,9 +23,9 @@ downloader/*.jpg
 
 # Ignore compiled binaries
 # - native
-annie
+dedao-dl
 # - gox builds
-annie_*
+dedao-dl_*
 
 # macOS
 .DS_Store

@@ -9,6 +9,7 @@ require (
 	github.com/go-rod/rod v0.85.6
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/json-iterator/go v1.1.10
+	github.com/mitchellh/mapstructure v1.4.0
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.1

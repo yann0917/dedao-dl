@@ -1,4 +1,4 @@
-package dedao
+package config
 
 import (
 	"github.com/yann0917/dedao-dl/services"
@@ -6,8 +6,9 @@ import (
 
 //User dedao user info
 type User struct {
-	Name   string `json:"name"`
-	Avatar string `json:"avatar"`
+	UIDHazy string `json:"uid_hazy"`
+	Name    string `json:"name"`
+	Avatar  string `json:"avatar"`
 }
 
 //Dedao geek time info

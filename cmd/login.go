@@ -1,24 +1,21 @@
 package cmd
 
 import (
-	"fmt"
+	"strings"
 
+	"github.com/go-rod/rod"
 	"github.com/spf13/cobra"
+	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 // Login login
 type Login struct {
-	phone         string
-	password      string
-	GAT           string `json:"gat"`
-	ISID          string `json:"isid"`
-	GuardDeviceID string `json:"guard_device_id"`
-	SID           string `json:"sid"`
-	AcwTc         string `json:"acw_tc"`
-	Iget          string `json:"iget"`
-	Token         string `json:"token"`
-	CookieStr     string `json:"cookieStr"`
+	phone    string
+	password string
+	services.CookieOptions
 }
 
 // IsByCookie cookie login
@@ -31,21 +28,41 @@ var loginCmd = &cobra.Command{
 	Short: "use `dedao-dl login` to login https://www.dedao.cn",
 	Long:  `use dedao-dl login to login https://www.dedao.cn`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("login cmd")
+		app.Who()
 	},
 }
 
+var whoCmd = &cobra.Command{
+	Use:   "who",
+	Short: "use `dedao-dl who` to get current login user info",
+	Long:  `use dedao-dl who to get current login user info`,
+	Run: func(cmd *cobra.Command, args []string) {
+		app.Who()
+	},
+}
+
+// Dedao dedao client
+var Dedao *services.Service
+
 func init() {
 	rootCmd.AddCommand(loginCmd)
-	var cookie services.CookieOptions
-	loginCmd.Flags().StringVarP(&cookie.CookieStr, "cookie", "c", "", "cookie from www.dedao.cn")
-	// Here you will define your flags and configuration settings.
+	rootCmd.AddCommand(whoCmd)
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// testCmd.PersistentFlags().String("foo", "", "A help for foo")
+	defaultCookie := getCookie()
+	var u config.Dedao
+	Dedao = u.New()
+	services.ParseCookies(defaultCookie, &u.CookieOptions)
+	u.CookieStr = defaultCookie
+	config.Instance.SetUser(&u)
+	config.Instance.Save()
+	loginCmd.Flags().StringVarP(&u.CookieStr, "cookie", "c", defaultCookie, "cookie from www.dedao.cn")
+}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// testCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func getCookie() (cookie string) {
+	_ = rod.Try(func() {
+		cookie = utils.Get("https://www.dedao.cn")
+		if !strings.Contains(cookie, "ISID=") {
+		}
+	})
+	return
 }
