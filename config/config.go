@@ -221,8 +221,8 @@ func GetConfigDir() string {
 	return filepath.Join("/tmp", "dedao")
 }
 
-// activeUserService user
-func (c *ConfigsData) activeUserService() *services.Service {
+// ActiveUserService user
+func (c *ConfigsData) ActiveUserService() *services.Service {
 	if c.service == nil {
 		c.service = c.activeUser.New()
 	}

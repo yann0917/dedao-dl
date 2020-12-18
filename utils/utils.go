@@ -8,12 +8,16 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/yann0917/dedao-dl/request"
 )
 
 // MAXLENGTH Maximum length of file name
 const MAXLENGTH = 80
+
+// TimeFormat timeformat
+const TimeFormat = "2006-01-02 15:04:05"
 
 //FileName filter invalid string
 func FileName(name string, ext string) string {
@@ -111,4 +115,10 @@ func M3u8URLs(uri string) (urls []string, err error) {
 		}
 	}
 	return urls, nil
+}
+
+// Unix2String 时间戳[转换为]字符串 eg:(2019-09-09 09:09:09)
+func Unix2String(stamp int64) string {
+	str := time.Unix(stamp, 0).Format(TimeFormat)
+	return str
 }

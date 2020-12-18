@@ -1,23 +1,24 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var buyCmd = &cobra.Command{
-	Use:   "buy",
-	Short: "use `dedao-dl buy` to login https://www.dedao.cn",
-	Long:  `use dedao-dl buy to login https://www.dedao.cn`,
+var classID string
+
+var articleCmd = &cobra.Command{
+	Use:   "article",
+	Short: "`dedao-dl article` 获取文章详情",
+	Long:  `使用 dedao-dl article 获取文章详情`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("buy cmd")
+		app.ArticleList(classID)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(buyCmd)
-
+	rootCmd.AddCommand(articleCmd)
+	articleCmd.PersistentFlags().StringVarP(&classID, "id", "i", "", "课程id")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

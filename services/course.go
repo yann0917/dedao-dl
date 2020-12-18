@@ -2,45 +2,56 @@ package services
 
 // Course course metadata
 type Course struct {
-	AssetsType     int         `json:"assets_type"`
-	AudioDetail    interface{} `json:"audio_detail"`
-	Author         string      `json:"author"`
-	ClassFinished  bool        `json:"class_finished"`
-	ClassID        int         `json:"class_id"`
-	ClassType      int         `json:"class_type"`
-	CourseNum      int         `json:"course_num"`
-	CreateTime     int         `json:"create_time"`
-	DdExtURL       string      `json:"dd_ext_url"`
-	DdURL          string      `json:"dd_url"`
-	DrmToken       string      `json:"drm_token"`
-	Duration       int         `json:"duration"`
-	Enid           string      `json:"enid"`
-	ExtInfo        interface{} `json:"ext_info"`
-	HasExtra       bool        `json:"has_extra"`
-	HasPlayAuth    bool        `json:"has_play_auth"`
-	Icon           string      `json:"icon"`
-	ID             int         `json:"id"`
-	Intro          string      `json:"intro"`
-	IsCollected    bool        `json:"is_collected"`
-	IsFinished     int         `json:"is_finished"`
-	IsNew          int         `json:"is_new"`
-	IsTop          int         `json:"is_top"`
-	LastActionTime int         `json:"last_action_time"`
-	LastRead       string      `json:"last_read"`
-	LogID          string      `json:"log_id"`
-	LogType        string      `json:"log_type"`
-	Price          string      `json:"price"`
-	ProductIntro   string      `json:"product_intro"`
-	ProductPrice   int         `json:"product_price"`
-	Progress       int         `json:"progress"`
-	PublishNum     int         `json:"publish_num"`
-	Size           string      `json:"size"`
-	Status         int         `json:"status"`
-	Title          string      `json:"title"`
-	Type           int         `json:"type"`
+	Enid           string        `json:"enid"`
+	ID             int           `json:"id"`
+	Type           int           `json:"type"`
+	ClassType      int           `json:"class_type"`
+	ClassID        int           `json:"class_id"`
+	HasExtra       bool          `json:"has_extra"`
+	ClassFinished  bool          `json:"class_finished"`
+	Title          string        `json:"title"`
+	Intro          string        `json:"intro"`
+	Author         string        `json:"author"`
+	Icon           string        `json:"icon"`
+	CreateTime     int           `json:"create_time"`
+	LastRead       string        `json:"last_read"`
+	Progress       int           `json:"progress"`
+	Duration       int           `json:"duration"`
+	CourseNum      int           `json:"course_num"`
+	PublishNum     int           `json:"publish_num"`
+	LogID          string        `json:"log_id"`
+	LogType        string        `json:"log_type"`
+	IsTop          int           `json:"is_top"`
+	LastActionTime int           `json:"last_action_time"`
+	IsNew          int           `json:"is_new"`
+	IsFinished     int           `json:"is_finished"`
+	Size           string        `json:"size"`
+	DdURL          string        `json:"dd_url"`
+	AssetsType     int           `json:"assets_type"`
+	DrmToken       string        `json:"drm_token"`
+	AudioDetail    Audio         `json:"audio_detail"`
+	ProductPrice   int           `json:"product_price"`
+	Price          string        `json:"price"`
+	ProductIntro   string        `json:"product_intro"`
+	HasPlayAuth    bool          `json:"has_play_auth"`
+	ExtInfo        []ReplierInfo `json:"ext_info"`
+	Status         int           `json:"status"`
+	DdExtURL       string        `json:"dd_ext_url"`
+	IsCollected    bool          `json:"is_collected"`
 	WendaExtInfo   struct {
 		AnswerID int `json:"answer_id"`
 	} `json:"wenda_ext_info"`
+}
+
+// ReplierInfo Replier Info
+type ReplierInfo struct {
+	ReplierUID         int    `json:"replier_uid"`
+	ReplierName        string `json:"replier_name"`
+	ReplierImg         string `json:"replier_img"`
+	ReplierIntro       string `json:"replier_intro"`
+	ReplierVStatus     bool   `json:"replier_v_status"`
+	ReplierVStateValue int    `json:"replier_v_state_value"`
+	ReplierTitle       string `json:"replier_title"`
 }
 
 // CourseIntro course introduce

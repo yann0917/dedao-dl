@@ -22,14 +22,10 @@ func Who() {
 	table.Render()
 }
 
-// Dedao dedao client
-var Dedao *services.Service
-
 // LoginByCookie login by cookie
 func LoginByCookie(cookie string) {
 	var u config.Dedao
 	services.ParseCookies(cookie, &u.CookieOptions)
-	Dedao = u.New()
 	// save config
 	u.CookieStr = cookie
 	config.Instance.SetUser(&u)
@@ -39,7 +35,7 @@ func LoginByCookie(cookie string) {
 // GetCookie get cookie string
 func GetCookie() (cookie string) {
 	_ = rod.Try(func() {
-		cookie = utils.Get("https://www.dedao.cn")
+		cookie = utils.Get(config.BaseURL)
 		if !strings.Contains(cookie, "ISID=") {
 		}
 	})

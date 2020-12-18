@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/config"
 )
@@ -16,17 +14,15 @@ var rootCmd = &cobra.Command{
 		Complete documentation is available at http://hugo.spf13.com`,
 }
 
-var AuthFunc = func(cmd *cobra.Command, args []string) {
+// AuthFunc 验证是否登录
+var AuthFunc = func(cmd *cobra.Command, args []string) error {
 	if config.Instance.AcitveUID == "" {
-		fmt.Println("authFunc")
-		fmt.Println(len(config.Instance.Users))
 		if len(config.Instance.Users) > 0 {
-			fmt.Println("存在登录的用户，可以进行切换登录用户")
-
+			return errors.New("存在登录的用户，可以进行切换登录用户")
 		}
-		fmt.Println("请先登录极客时间账户")
-		os.Exit(1)
+		return errors.New("请先前往 https://www.dedao.cn 登录得到账户")
 	}
+	return nil
 }
 
 // Execute exec cmd

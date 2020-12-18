@@ -3,8 +3,9 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
-	"github.com/yann0917/dedao-dl/config"
 )
+
+var cookie string
 
 // Login login
 var loginCmd = &cobra.Command{
@@ -27,15 +28,13 @@ var whoCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		app.Who()
 	},
-	PreRun: AuthFunc,
+	PreRunE: AuthFunc,
 }
 
-var cookie string
-
 func init() {
-	config.Instance.Init()
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(whoCmd)
+
 	defaultCookie := app.GetCookie()
 	cookie = defaultCookie
 	loginCmd.Flags().StringVarP(&cookie, "cookie", "c", defaultCookie, "cookie from www.dedao.cn")
