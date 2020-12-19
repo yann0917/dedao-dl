@@ -28,8 +28,8 @@ type CourseCategory struct {
 	Category string `json:"category"`
 }
 
-// CourseCourseCategoryList course type list
-type CourseCourseCategoryList struct {
+// CourseCategoryList course type list
+type CourseCategoryList struct {
 	Data struct {
 		List      []CourseCategory `json:"list"`
 		IsShowURL bool             `json:"is_show_url"`
@@ -38,11 +38,12 @@ type CourseCourseCategoryList struct {
 }
 
 // CourseType get course type list
-func (s *Service) CourseType() (list *CourseCourseCategoryList, err error) {
-	err = Cache.LoadFile("./.cache/courseType")
-	x, ok := Cache.Get("courseType")
+func (s *Service) CourseType() (list *CourseCategoryList, err error) {
+	cacheFile := "courseTypeList"
+
+	x, ok := list.getCache(cacheFile)
 	if ok {
-		list = x.(*CourseCourseCategoryList)
+		list = x.(*CourseCategoryList)
 		return
 	}
 	body, err := s.reqCourseType()
@@ -54,7 +55,25 @@ func (s *Service) CourseType() (list *CourseCourseCategoryList, err error) {
 		return
 	}
 
-	Cache.Set("courseType", list, 5*time.Minute)
-	err = Cache.SaveFile("./.cache/courseType")
+	list.setCache(cacheFile)
 	return
+}
+
+func (c *CourseCategoryList) getCacheKey() string {
+	return "courseType"
+}
+
+func (c *CourseCategoryList) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *CourseCategoryList) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 10*time.Minute)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
 }
