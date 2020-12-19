@@ -12,12 +12,15 @@ var Cache *cache.Cache
 var cacheDir = "./.cache/"
 
 func init() {
-	Cache = cache.New(20*time.Minute, 10*time.Minute)
+	Cache = cache.New(2*time.Hour, 30*time.Minute)
 	gobRegister()
 }
 
 func gobRegister() {
 	gob.Register(&CourseCategoryList{})
+	gob.Register(&CourseList{})
+	gob.Register(&ArticleList{})
+	gob.Register(&ArticleDetail{})
 }
 
 // Cacher cache interface

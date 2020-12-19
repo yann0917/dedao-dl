@@ -1,5 +1,10 @@
 package services
 
+import (
+	"fmt"
+	"time"
+)
+
 // ArticleDetail article content
 // GET query params token,sign,appid
 type ArticleDetail struct {
@@ -94,8 +99,14 @@ type ArticlePoint struct {
 }
 
 // ArticleList get class article list
-func (s *Service) ArticleList(ID string) (list *ArticleList, err error) {
-	body, err := s.reqArticleList(ID)
+func (s *Service) ArticleList(id string) (list *ArticleList, err error) {
+	cacheFile := "articleList:" + id
+	x, ok := list.getCache(cacheFile)
+	if ok {
+		list = x.(*ArticleList)
+		return
+	}
+	body, err := s.reqArticleList(id)
 	defer body.Close()
 	if err != nil {
 		return
@@ -103,6 +114,7 @@ func (s *Service) ArticleList(ID string) (list *ArticleList, err error) {
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
+	list.setCache(cacheFile)
 	return
 }
 
@@ -130,4 +142,24 @@ func (s *Service) ArticlePoint(token, sign, appID string) (detail *ArticleDetail
 		return
 	}
 	return
+}
+
+func (c *ArticleList) getCacheKey() string {
+	return "articleList"
+}
+
+func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	fmt.Println(err)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *ArticleList) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
 }

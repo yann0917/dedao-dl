@@ -59,6 +59,21 @@ func (s *Service) CourseType() (list *CourseCategoryList, err error) {
 	return
 }
 
+// CourseCount 获取课程数量 by 分类
+func (s *Service) CourseCount(category string) (count int, err error) {
+	list, err := s.CourseType()
+	if err != nil {
+		return
+	}
+	for _, v := range list.Data.List {
+		if v.Category == category {
+			count = v.Count
+			return
+		}
+	}
+	return
+}
+
 func (c *CourseCategoryList) getCacheKey() string {
 	return "courseType"
 }
@@ -73,7 +88,7 @@ func (c *CourseCategoryList) getCache(fileName string) (interface{}, bool) {
 }
 
 func (c *CourseCategoryList) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 10*time.Minute)
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
 	err := Cache.SaveFile(cacheDir + fileName)
 	return err
 }

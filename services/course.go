@@ -1,5 +1,10 @@
 package services
 
+import (
+	"fmt"
+	"time"
+)
+
 // Course course metadata
 type Course struct {
 	Enid           string        `json:"enid"`
@@ -143,6 +148,12 @@ type ClassInfo struct {
 
 // CourseList get course list
 func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
+	cacheFile := "courseList:" + category
+	x, ok := list.getCache(cacheFile)
+	if ok {
+		list = x.(*CourseList)
+		return
+	}
 	body, err := s.reqCourseList(category, order, page, limit)
 	defer body.Close()
 	if err != nil {
@@ -151,12 +162,33 @@ func (s *Service) CourseList(category, order string, page, limit int) (list *Cou
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
+	list.setCache(cacheFile)
+	return
+}
+
+// CourseDetail get course list
+func (s *Service) CourseDetail(category string, id int) (detail *Course, err error) {
+	count, err := s.CourseCount(category)
+	if err != nil {
+		return
+	}
+	list, err := s.CourseList(category, "study", 1, count)
+	if err != nil {
+		return
+	}
+
+	for _, v := range list.List {
+		if v.ID == id {
+			detail = &v
+			return
+		}
+	}
 	return
 }
 
 // CourseInfo get course info
-func (s *Service) CourseInfo(ID string) (info *CourseInfo, err error) {
-	body, err := s.reqCourseInfo(ID)
+func (s *Service) CourseInfo(enID string) (info *CourseInfo, err error) {
+	body, err := s.reqCourseInfo(enID)
 	defer body.Close()
 	if err != nil {
 		return
@@ -165,4 +197,24 @@ func (s *Service) CourseInfo(ID string) (info *CourseInfo, err error) {
 		return
 	}
 	return
+}
+
+func (c *CourseList) getCacheKey() string {
+	return "courseList"
+}
+
+func (c *CourseList) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	fmt.Println(err)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *CourseList) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
 }

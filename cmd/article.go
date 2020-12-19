@@ -5,20 +5,22 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var classID string
+var classID int
 
 var articleCmd = &cobra.Command{
 	Use:   "article",
 	Short: "`dedao-dl article` 获取文章详情",
 	Long:  `使用 dedao-dl article 获取文章详情`,
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.ArticleList(classID)
+		app.ArticleList(cType, classID)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(articleCmd)
-	articleCmd.PersistentFlags().StringVarP(&classID, "id", "i", "", "课程id")
+	articleCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程id")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

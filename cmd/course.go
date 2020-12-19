@@ -5,20 +5,24 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var cList, cType string
+var cType string
+
 var courseCmd = &cobra.Command{
-	Use:   "course",
-	Short: "`dedao-dl course`获取购买过的课程",
-	Long:  `使用 dedao-dl course 获取购买过的课程，课程分类，章节等`,
+	Use:       "course",
+	Short:     "`dedao-dl course`获取购买过的课程",
+	Long:      `使用 dedao-dl course 获取购买过的课程，课程分类，章节等`,
+	Args:      cobra.OnlyValidArgs,
+	ValidArgs: []string{"all", "bauhinia", "ebook", "compass"},
+	Example:   "dedao-dl course -t ebook",
 	Run: func(cmd *cobra.Command, args []string) {
-		app.CourseList(cList, 1, 300)
+		app.CourseList(cType)
 	},
 }
 
 var courseTypeCmd = &cobra.Command{
 	Use:   "cat",
 	Short: "`dedao-dl cat` 获取购买过的课程分类",
-	Long:  `使用 dedao-dl type 获取购买过的课程分类`,
+	Long:  `使用 dedao-dl cat 获取购买过的课程分类`,
 	Run: func(cmd *cobra.Command, args []string) {
 		app.CourseType()
 	},
@@ -28,7 +32,8 @@ func init() {
 	rootCmd.AddCommand(courseCmd)
 	rootCmd.AddCommand(courseTypeCmd)
 
-	courseCmd.PersistentFlags().StringVarP(&cList, "list", "l", "all", "已购课程列表")
+	rootCmd.PersistentFlags().StringVarP(&cType, "type", "t", "bauhinia", "课程类型(all, bauhinia, ebook, compass)")
+
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
@@ -37,4 +42,16 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
+}
+
+func argFuncs(funcs ...cobra.PositionalArgs) cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, f := range funcs {
+			err := f(cmd, args)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
 }
