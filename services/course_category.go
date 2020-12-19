@@ -1,5 +1,9 @@
 package services
 
+import (
+	"time"
+)
+
 const (
 	// CateCourse 课程
 	CateCourse = "bauhinia"
@@ -35,6 +39,12 @@ type CourseCourseCategoryList struct {
 
 // CourseType get course type list
 func (s *Service) CourseType() (list *CourseCourseCategoryList, err error) {
+	err = Cache.LoadFile("./.cache/courseType")
+	x, ok := Cache.Get("courseType")
+	if ok {
+		list = x.(*CourseCourseCategoryList)
+		return
+	}
 	body, err := s.reqCourseType()
 	defer body.Close()
 	if err != nil {
@@ -43,5 +53,8 @@ func (s *Service) CourseType() (list *CourseCourseCategoryList, err error) {
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
+
+	Cache.Set("courseType", list, 5*time.Minute)
+	err = Cache.SaveFile("./.cache/courseType")
 	return
 }

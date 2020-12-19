@@ -87,6 +87,12 @@ type ArticleList struct {
 	Reverse bool           `json:"reverse"`
 }
 
+// ArticlePoint article point note
+type ArticlePoint struct {
+	HasArticlePoint int    `json:"has_article_point"`
+	Content         string `json:"content"`
+}
+
 // ArticleList get class article list
 func (s *Service) ArticleList(ID string) (list *ArticleList, err error) {
 	body, err := s.reqArticleList(ID)
@@ -102,6 +108,19 @@ func (s *Service) ArticleList(ID string) (list *ArticleList, err error) {
 
 // ArticleDetail get article detail
 func (s *Service) ArticleDetail(token, sign, appID string) (detail *ArticleDetail, err error) {
+	body, err := s.reqArticleDetail(token, sign, appID)
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &detail); err != nil {
+		return
+	}
+	return
+}
+
+// ArticlePoint get article point
+func (s *Service) ArticlePoint(token, sign, appID string) (detail *ArticleDetail, err error) {
 	body, err := s.reqArticleDetail(token, sign, appID)
 	defer body.Close()
 	if err != nil {

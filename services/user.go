@@ -33,3 +33,22 @@ func (s *Service) User() (user *User, err error) {
 	}
 	return
 }
+
+// Token token
+type Token struct {
+	Token string `json:"token"`
+}
+
+// Token get token
+func (s *Service) Token() (t *Token, err error) {
+	body, err := s.reqToken()
+	defer body.Close()
+	if err != nil {
+		err = errors.Wrap(err, "request token err")
+		return
+	}
+	if err = handleJSONParse(body, &t); err != nil {
+		return
+	}
+	return
+}

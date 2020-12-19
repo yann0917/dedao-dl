@@ -132,7 +132,10 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 						query.Add(k, v)
 					}
 				}
-				requrl += "?" + query.Encode()
+				encode := query.Encode()
+				if encode != "" {
+					requrl += "?" + encode
+				}
 			} else {
 				postData, err := jsoniter.Marshal(value)
 				if err != nil {
@@ -149,7 +152,7 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 			return nil, fmt.Errorf("request.Req: unknow post type: %s", h.Data)
 		}
 	}
-	fmt.Println(requrl)
+	fmt.Println(method, " ", requrl)
 	req, err := http.NewRequest(method, requrl, obody)
 	if err != nil {
 		return nil, err

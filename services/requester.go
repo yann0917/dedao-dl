@@ -4,6 +4,12 @@ import (
 	"io"
 )
 
+// reqUser 请求token
+func (s *Service) reqToken() (io.ReadCloser, error) {
+	resp, err := s.client.Request("GET", "/ddph/v2/token/create")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqUser 请求用户信息
 func (s *Service) reqUser() (io.ReadCloser, error) {
 	resp, err := s.client.Request("GET", "/api/pc/user/info")
@@ -61,6 +67,15 @@ func (s *Service) reqArticleDetail(token, sign, appID string) (io.ReadCloser, er
 		"token": token,
 		"sign":  sign,
 		"appid": appID,
+	}).Request("GET", "/pc/ddarticle/v1/article/get/v2")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqCourseType 请求文章重点
+func (s *Service) reqArticlePoint(enid string, pType int) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]interface{}{
+		"article_id_hazy": enid,
+		"product_type":    pType,
 	}).Request("GET", "/pc/ddarticle/v1/article/get/v2")
 	return handleHTTPResponse(resp, err)
 }

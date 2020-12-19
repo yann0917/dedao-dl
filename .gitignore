@@ -27,5 +27,7 @@ dedao-dl
 # - gox builds
 dedao-dl_*
 
+.cache
+
 # macOS
 .DS_Store
