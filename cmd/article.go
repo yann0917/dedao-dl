@@ -1,8 +1,13 @@
 package cmd
 
 import (
+	"os"
+	"strconv"
+
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 var articleCmd = &cobra.Command{
@@ -13,7 +18,7 @@ var articleCmd = &cobra.Command{
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if classID > 0 && articleID == 0 {
-			app.ArticleList(classID)
+			articleList(classID)
 		}
 
 		if articleID > 0 {
@@ -36,4 +41,29 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
+}
+
+func articleList(id int) {
+	list, err := app.ArticleList(id)
+	if err != nil {
+		return
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "是否阅读"})
+	table.SetAutoWrapText(false)
+
+	for i, p := range list.List {
+		isRead := "❌"
+		if p.IsRead {
+			isRead = "✔"
+		}
+
+		table.Append([]string{strconv.Itoa(i),
+			p.IDStr, p.Title,
+			utils.Unix2String(int64(p.UpdateTime)),
+			isRead,
+		})
+	}
+	table.Render()
+	return
 }

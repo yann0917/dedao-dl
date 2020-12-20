@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/olekukonko/tablewriter"
@@ -13,41 +12,25 @@ import (
 )
 
 // ArticleList 已购课程文章列表
-func ArticleList(id int) {
+func ArticleList(id int) (list *services.ArticleList, err error) {
 	courseDetail, err := getService().CourseDetail("bauhinia", id)
 	if err != nil {
 		return
 	}
 	enid := courseDetail.Enid
-	list, err := getService().ArticleList(enid)
+	list, err = getService().ArticleList(enid)
 	if err != nil {
 		return
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "是否阅读"})
-	table.SetAutoWrapText(false)
-
-	for i, p := range list.List {
-		isRead := "❌"
-		if p.IsRead {
-			isRead = "✔"
-		}
-
-		table.Append([]string{strconv.Itoa(i),
-			p.IDStr, p.Title,
-			utils.Unix2String(int64(p.UpdateTime)),
-			isRead,
-		})
-	}
-	table.Render()
 	return
+
 }
 
 // ArticleInfo article info
 //
 // get article token, audio token, media security token etc
-func articleInfo(id, aid int) (info *services.ArticleInfo, err error) {
+func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 	courseDetail, err := getService().CourseDetail("bauhinia", id)
 	if err != nil {
 		return
@@ -85,7 +68,7 @@ func articleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 
 // ArticleDetail article detail
 func ArticleDetail(id, aid int) (err error) {
-	info, err := articleInfo(id, aid)
+	info, err := ArticleInfo(id, aid)
 	if err != nil {
 		return
 	}

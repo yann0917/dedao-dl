@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 var (
@@ -36,7 +40,7 @@ var courseCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("classID", classID)
 		if classID > 0 {
-			app.CourseInfo(classID)
+			courseInfo(classID)
 			return
 		}
 		app.CourseList("bauhinia")
@@ -95,14 +99,35 @@ func init() {
 	// is called directly, e.g.:
 }
 
-func argFuncs(funcs ...cobra.PositionalArgs) cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, f := range funcs {
-			err := f(cmd, args)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
+func courseInfo(id int) {
+	info, err := app.CourseInfo(id)
+	if err != nil {
+		return
 	}
+
+	out := os.Stdout
+	table := tablewriter.NewWriter(out)
+
+	fmt.Fprint(out, "专栏名称："+info.ClassInfo.Name+"\n")
+	fmt.Fprint(out, "专栏作者："+info.ClassInfo.LecturerNameAndTitle+"\n")
+	fmt.Fprint(out, "更新进度："+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+
+		"/"+strconv.Itoa(info.ClassInfo.PhaseNum)+"\n")
+	fmt.Fprint(out, "课程亮点："+info.ClassInfo.Highlight+"\n")
+	fmt.Fprintln(out)
+
+	table.SetHeader([]string{"#", "ID", "章节", "更新时间", "是否更新完成"})
+	table.SetAutoWrapText(false)
+
+	for i, p := range info.ChapterList {
+		isFinished := "❌"
+		if p.IsFinished == 1 {
+			isFinished = "✔"
+		}
+		table.Append([]string{strconv.Itoa(i),
+			p.IDStr, p.Name,
+			utils.Unix2String(int64(p.UpdateTime)),
+			isFinished,
+		})
+	}
+	table.Render()
 }
