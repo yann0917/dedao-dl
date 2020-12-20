@@ -1,5 +1,7 @@
 package services
 
+import "time"
+
 // Catelog ebook catalog
 type Catelog struct {
 	Level     int    `json:"level"`
@@ -93,6 +95,12 @@ type EbookInfo struct {
 
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
+	cacheFile := "ebookDetail:" + enid
+	x, ok := detail.getCache(cacheFile)
+	if ok {
+		detail = x.(*EbookDetail)
+		return
+	}
 	body, err := s.reqEbookDetail(enid)
 	defer body.Close()
 	if err != nil {
@@ -101,6 +109,7 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
+	detail.setCache(cacheFile)
 	return
 }
 
@@ -130,4 +139,23 @@ func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
 		return
 	}
 	return
+}
+
+func (c *EbookDetail) getCacheKey() string {
+	return "ebookDetail"
+}
+
+func (c *EbookDetail) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *EbookDetail) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
 }

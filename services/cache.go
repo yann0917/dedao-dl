@@ -21,6 +21,8 @@ func gobRegister() {
 	gob.Register(&CourseList{})
 	gob.Register(&ArticleList{})
 	gob.Register(&ArticleDetail{})
+	gob.Register(&EbookDetail{})
+	gob.Register(&Token{})
 }
 
 // Cacher cache interface

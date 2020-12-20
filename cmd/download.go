@@ -7,9 +7,10 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download",
-	Short: "use `dedao-dl download` to login https://www.dedao.cn",
-	Long:  `use dedao-dl download to login https://www.dedao.cn`,
+	Use:     "download",
+	Short:   "use `dedao-dl download` to login https://www.dedao.cn",
+	Long:    `use dedao-dl download to login https://www.dedao.cn`,
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("download cmd")
 	},

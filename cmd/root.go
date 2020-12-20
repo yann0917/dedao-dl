@@ -10,11 +10,10 @@ var rootCmd = &cobra.Command{
 	Use:   "dedao-dl",
 	Short: "dedao-dl is a very fast dedao app course article download tools",
 	Long: `A Fast dedao app course article download tools built with
-		love by spf13 and friends in Go.
-		Complete documentation is available at http://hugo.spf13.com`,
+		love by spf13 and friends in Go.`,
 }
 
-// AuthFunc 验证是否登录
+// AuthFunc check login
 var AuthFunc = func(cmd *cobra.Command, args []string) error {
 	if config.Instance.AcitveUID == "" {
 		if len(config.Instance.Users) > 0 {

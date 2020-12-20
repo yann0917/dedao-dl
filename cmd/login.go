@@ -22,13 +22,13 @@ var loginCmd = &cobra.Command{
 }
 
 var whoCmd = &cobra.Command{
-	Use:   "who",
-	Short: "查看当前登录的用户",
-	Long:  `use dedao-dl who to get current login user info`,
+	Use:     "who",
+	Short:   "查看当前登录的用户",
+	Long:    `use dedao-dl who to get current login user info`,
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		app.Who()
 	},
-	PreRunE: AuthFunc,
 }
 
 func init() {

@@ -14,6 +14,7 @@ var courseTypeCmd = &cobra.Command{
 	Short:   "获取课程分类",
 	Long:    `使用 dedao-dl cat 获取课程分类`,
 	Example: "dedao-dl cat",
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		app.CourseType()
 	},
@@ -24,6 +25,7 @@ var courseCmd = &cobra.Command{
 	Short:   "获取我购买过课程",
 	Long:    `使用 dedao-dl course 获取我购买过的课程`,
 	Example: "dedao-dl course",
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("classID", classID)
 		if classID > 0 {
@@ -40,6 +42,7 @@ var ebookCmd = &cobra.Command{
 	Long:    `使用 dedao-dl ebook 获取我的电子书架`,
 	Args:    cobra.OnlyValidArgs,
 	Example: "dedao-dl ebook",
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("classID", classID)
 		if classID > 0 {
@@ -56,6 +59,7 @@ var compassCmd = &cobra.Command{
 	Long:    `使用 dedao-dl ace 获取我的锦囊`,
 	Args:    cobra.OnlyValidArgs,
 	Example: "dedao-dl ace",
+	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		app.CourseList("compass")
 	},
