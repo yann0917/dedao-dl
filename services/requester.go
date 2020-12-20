@@ -73,7 +73,6 @@ func (s *Service) reqArticleInfo(ID string) (io.ReadCloser, error) {
 func (s *Service) reqArticleDetail(token, appID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]string{
 		"token": token,
-		// "sign":  sign,
 		"appid": appID,
 	}).Request("GET", "/pc/ddarticle/v1/article/get/v2")
 	return handleHTTPResponse(resp, err)

@@ -137,8 +137,11 @@ func handleHTTPResponse(resp *http.Response, err error) (io.ReadCloser, error) {
 		deferResponseClose(resp)
 		return nil, err
 	}
-	if resp.StatusCode == 452 {
-		return nil, errors.New("452")
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, errors.New("404")
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return nil, errors.New("400")
 	}
 	return resp.Body, nil
 }

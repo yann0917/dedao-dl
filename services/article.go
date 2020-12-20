@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -200,10 +199,10 @@ func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail,
 		return
 	}
 	body, err := s.reqArticleDetail(token, appID)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
@@ -230,7 +229,6 @@ func (c *ArticleList) getCacheKey() string {
 
 func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
 	err := Cache.LoadFile(cacheDir + fileName)
-	fmt.Println(err)
 	if err != nil {
 		return nil, false
 	}
@@ -250,7 +248,6 @@ func (c *ArticleDetail) getCacheKey() string {
 
 func (c *ArticleDetail) getCache(fileName string) (interface{}, bool) {
 	err := Cache.LoadFile(cacheDir + fileName)
-	fmt.Println(err)
 	if err != nil {
 		return nil, false
 	}
@@ -270,7 +267,6 @@ func (c *ArticleInfo) getCacheKey() string {
 
 func (c *ArticleInfo) getCache(fileName string) (interface{}, bool) {
 	err := Cache.LoadFile(cacheDir + fileName)
-	fmt.Println(err)
 	if err != nil {
 		return nil, false
 	}

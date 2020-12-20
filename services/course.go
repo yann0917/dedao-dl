@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -213,7 +212,6 @@ func (c *CourseList) getCacheKey() string {
 
 func (c *CourseList) getCache(fileName string) (interface{}, bool) {
 	err := Cache.LoadFile(cacheDir + fileName)
-	fmt.Println(err)
 	if err != nil {
 		return nil, false
 	}
@@ -233,7 +231,6 @@ func (c *CourseInfo) getCacheKey() string {
 
 func (c *CourseInfo) getCache(fileName string) (interface{}, bool) {
 	err := Cache.LoadFile(cacheDir + fileName)
-	fmt.Println(err)
 	if err != nil {
 		return nil, false
 	}

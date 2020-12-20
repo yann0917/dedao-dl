@@ -11,14 +11,16 @@ var articleCmd = &cobra.Command{
 	Long:    `使用 dedao-dl article 获取文章详情`,
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
-		if classID > 0 {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if classID > 0 && articleID == 0 {
 			app.ArticleList(classID)
 		}
 
 		if articleID > 0 {
-			app.ArticleDetail(classID, articleID)
+			err := app.ArticleDetail(classID, articleID)
+			return err
 		}
+		return nil
 	},
 }
 

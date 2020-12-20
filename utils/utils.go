@@ -122,3 +122,13 @@ func Unix2String(stamp int64) string {
 	str := time.Unix(stamp, 0).Format(TimeFormat)
 	return str
 }
+
+// Contains int in array
+func Contains(s []int, n int) bool {
+	for _, a := range s {
+		if a == n {
+			return true
+		}
+	}
+	return false
+}
