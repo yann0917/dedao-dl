@@ -2,6 +2,7 @@ package request
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -170,8 +172,8 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 }
 
 // HTTPGet http get request
-func HTTPGet(uri string) (body []byte, err error) {
-	client := NewClient(uri)
+func HTTPGet(url string) (body []byte, err error) {
+	client := NewClient(url)
 	resp, err := client.Request("GET", "")
 	defer resp.Body.Close()
 	if err != nil {
@@ -182,4 +184,32 @@ func HTTPGet(uri string) (body []byte, err error) {
 
 	}
 	return
+}
+
+// Headers return the HTTP Headers of the url
+func Headers(url string) (http.Header, error) {
+	client := NewClient(url)
+	resp, err := client.Request("GET", "")
+	defer resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return resp.Header, nil
+}
+
+// Size get size of the url
+func Size(url string) (int, error) {
+	h, err := Headers(url)
+	if err != nil {
+		return 0, err
+	}
+	s := h.Get("Content-Length")
+	if s == "" {
+		return 0, errors.New("Content-Length is not present")
+	}
+	size, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return size, nil
 }
