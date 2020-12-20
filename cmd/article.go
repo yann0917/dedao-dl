@@ -5,8 +5,6 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var classID int
-
 var articleCmd = &cobra.Command{
 	Use:     "article",
 	Short:   "获取文章详情",
@@ -14,7 +12,7 @@ var articleCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.ArticleList(cType, classID)
+		app.ArticleList("bauhinia", classID)
 	},
 }
 

@@ -187,8 +187,14 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 }
 
 // CourseInfo get course info
-func (s *Service) CourseInfo(enID string) (info *CourseInfo, err error) {
-	body, err := s.reqCourseInfo(enID)
+func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
+	cacheFile := "courseInfo:" + enid
+	x, ok := info.getCache(cacheFile)
+	if ok {
+		info = x.(*CourseInfo)
+		return
+	}
+	body, err := s.reqCourseInfo(enid)
 	defer body.Close()
 	if err != nil {
 		return
@@ -196,6 +202,7 @@ func (s *Service) CourseInfo(enID string) (info *CourseInfo, err error) {
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
+	info.setCache(cacheFile)
 	return
 }
 
@@ -214,6 +221,26 @@ func (c *CourseList) getCache(fileName string) (interface{}, bool) {
 }
 
 func (c *CourseList) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
+}
+
+func (c *CourseInfo) getCacheKey() string {
+	return "courseInfo"
+}
+
+func (c *CourseInfo) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	fmt.Println(err)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *CourseInfo) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
 	err := Cache.SaveFile(cacheDir + fileName)
 	return err

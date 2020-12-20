@@ -7,13 +7,19 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var cType string
+var (
+	cType     string
+	classID   int
+	bookID    int
+	compassID int
+)
 
 var courseTypeCmd = &cobra.Command{
 	Use:     "cat",
 	Short:   "获取课程分类",
 	Long:    `使用 dedao-dl cat 获取课程分类`,
 	Example: "dedao-dl cat",
+	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
 		app.CourseType()
@@ -29,7 +35,7 @@ var courseCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("classID", classID)
 		if classID > 0 {
-			app.ArticleList("bauhinia", classID)
+			app.CourseInfo(classID)
 			return
 		}
 		app.CourseList("bauhinia")
@@ -44,9 +50,9 @@ var ebookCmd = &cobra.Command{
 	Example: "dedao-dl ebook",
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("classID", classID)
-		if classID > 0 {
-			app.EbookDetail(classID)
+		fmt.Println("bookID", bookID)
+		if bookID > 0 {
+			app.EbookDetail(bookID)
 			return
 		}
 		app.CourseList("ebook")
@@ -61,6 +67,9 @@ var compassCmd = &cobra.Command{
 	Example: "dedao-dl ace",
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
+		if compassID > 0 {
+			return
+		}
 		app.CourseList("compass")
 	},
 }
@@ -70,9 +79,9 @@ func init() {
 	rootCmd.AddCommand(courseCmd)
 	rootCmd.AddCommand(ebookCmd)
 	rootCmd.AddCommand(compassCmd)
-	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID")
-	ebookCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "电子书ID")
-	compassCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "锦囊 ID")
+	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID，获取课程信息")
+	ebookCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "电子书ID")
+	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
 	// rootCmd.PersistentFlags().StringVarP(&cType, "type", "t", "bauhinia", "课程类型(all, bauhinia, ebook, compass")
 
 	// Here you will define your flags and configuration settings.

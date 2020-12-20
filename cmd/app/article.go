@@ -21,7 +21,7 @@ func ArticleList(category string, id int) {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "章节名称", "更新时间", "是否阅读"})
+	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "是否阅读"})
 	table.SetAutoWrapText(false)
 
 	for i, p := range list.List {

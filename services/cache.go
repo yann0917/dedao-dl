@@ -19,6 +19,7 @@ func init() {
 func gobRegister() {
 	gob.Register(&CourseCategoryList{})
 	gob.Register(&CourseList{})
+	gob.Register(&CourseInfo{})
 	gob.Register(&ArticleList{})
 	gob.Register(&ArticleDetail{})
 	gob.Register(&EbookDetail{})

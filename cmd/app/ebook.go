@@ -29,7 +29,9 @@ func EbookDetail(id int) {
 	fmt.Fprint(out, "专家推荐指数："+detail.ProductScore+"\n")
 	fmt.Fprint(out, "豆瓣评分："+detail.DoubanScore+"\n")
 	fmt.Fprint(out, "发行日期："+detail.PublishTime+"\n")
-	fmt.Fprint(out, "出版社："+detail.Press.Name+"\n\n")
+	fmt.Fprint(out, "出版社："+detail.Press.Name+"\n")
+	fmt.Fprintln(out)
+
 	table.SetHeader([]string{"#", "ID", "章节名称"})
 	table.SetAutoWrapText(false)
 	// table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
