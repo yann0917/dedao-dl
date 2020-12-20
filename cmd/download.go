@@ -15,26 +15,27 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:     "download",
-	Short:   "use `dedao-dl download` to login https://www.dedao.cn",
-	Long:    `use dedao-dl download to login https://www.dedao.cn`,
+	Use:     "dl",
+	Short:   "`dedao-dl dl` 下载已购买课程，并转换成 PDF 或者音频",
+	Long:    `使用 dedao-dl dl 下载已购买课程，并转换成 PDF 或者音频`,
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		fmt.Println("download cmd", args)
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return errors.New("课程ID错误")
+		}
+		aid := 0
 		if len(args) > 1 {
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				return errors.New("课程ID错误")
-			}
-			aid, err := strconv.Atoi(args[1])
+			aid, err = strconv.Atoi(args[1])
 			if err != nil {
 				return errors.New("文章ID错误")
 			}
-			err = download(id, aid)
+
 			return err
 		}
-
+		err = download(id, aid)
 		return nil
 	},
 }
