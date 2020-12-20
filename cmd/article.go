@@ -9,7 +9,7 @@ var classID int
 
 var articleCmd = &cobra.Command{
 	Use:   "article",
-	Short: "`dedao-dl article` 获取文章详情",
+	Short: "获取文章详情",
 	Long:  `使用 dedao-dl article 获取文章详情`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {

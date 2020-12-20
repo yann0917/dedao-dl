@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/yann0917/dedao-dl/utils"
@@ -104,17 +103,20 @@ func TestArticleDetail(t *testing.T) {
 	fmt.Printf("result:=%v \n", result)
 }
 
-func TestConvertToStruct(t *testing.T) {
-	// rod.Try(func() {
-	// 	c := utils.Get("https://www.dedao.cn")
-	// 	if !strings.Contains(c, "ISID=") {
-	// 		t.Error("cookie should contain the ISID")
-	// 	}
-	// 	var cookie CookieOptions
-	// 	ParseCookies(c, &cookie)
-	// 	fmt.Printf("%#v", cookie)
-	// })
-	dir, _ := os.LookupEnv("HOME")
-	str := filepath.Join(dir, ".config", "dedao")
-	fmt.Printf("%#v", str)
+func TestEbookDetail(t *testing.T) {
+	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
+	result, err := service.EbookDetail(enid)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestEbookReadToken(t *testing.T) {
+	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
+	result, err := service.EbookReadToken(enid)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
 }

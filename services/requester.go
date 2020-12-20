@@ -22,7 +22,7 @@ func (s *Service) reqCourseType() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求课程列表
+// reqCourseList 请求课程列表
 func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"category":        category,
@@ -34,7 +34,7 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求课程介绍
+// reqCourseInfo 请求课程介绍
 func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"detail_id": ID,
@@ -43,7 +43,7 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求文章列表
+// reqArticleList 请求文章列表
 func (s *Service) reqArticleList(ID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"chapter_id":      "",
@@ -61,7 +61,7 @@ func (s *Service) reqArticleList(ID string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求文章详情
+// reqArticleDetail 请求文章详情
 func (s *Service) reqArticleDetail(token, sign, appID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]string{
 		"token": token,
@@ -71,7 +71,7 @@ func (s *Service) reqArticleDetail(token, sign, appID string) (io.ReadCloser, er
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求文章重点
+// reqArticlePoint 请求文章重点
 func (s *Service) reqArticlePoint(enid string, pType int) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"article_id_hazy": enid,
@@ -80,11 +80,35 @@ func (s *Service) reqArticlePoint(enid string, pType int) (io.ReadCloser, error)
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseType 请求音频详情
+// reqAudioByAlias 请求音频详情
 func (s *Service) reqAudioByAlias(ids string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"ids":            ids,
 		"get_extra_data": 1,
 	}).Request("POST", "/pc/bauhinia/v1/audio/mutiget_by_alias")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookDetail 请求电子书详情
+func (s *Service) reqEbookDetail(enid string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]string{
+		"id": enid,
+	}).Request("GET", "/pc/ebook2/v1/pc/detail")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookReadToken 请求电子书阅读 token
+func (s *Service) reqEbookReadToken(enid string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]string{
+		"id": enid,
+	}).Request("POST", "/api/pc/ebook2/v1/pc/read/token")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookInfo 请求电子书 info
+func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]string{
+		"token": token,
+	}).Request("GET", "/ebk_web/v1/get_book_info")
 	return handleHTTPResponse(resp, err)
 }

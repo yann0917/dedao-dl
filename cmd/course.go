@@ -1,38 +1,75 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
 var cType string
 
-var courseCmd = &cobra.Command{
-	Use:       "course",
-	Short:     "`dedao-dl course`获取购买过的课程",
-	Long:      `使用 dedao-dl course 获取购买过的课程，课程分类，章节等`,
-	Args:      cobra.OnlyValidArgs,
-	ValidArgs: []string{"all", "bauhinia", "ebook", "compass"},
-	Example:   "dedao-dl course -t ebook",
-	Run: func(cmd *cobra.Command, args []string) {
-		app.CourseList(cType)
-	},
-}
-
 var courseTypeCmd = &cobra.Command{
-	Use:   "cat",
-	Short: "`dedao-dl cat` 获取购买过的课程分类",
-	Long:  `使用 dedao-dl cat 获取购买过的课程分类`,
+	Use:     "cat",
+	Short:   "获取课程分类",
+	Long:    `使用 dedao-dl cat 获取课程分类`,
+	Example: "dedao-dl cat",
 	Run: func(cmd *cobra.Command, args []string) {
 		app.CourseType()
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(courseCmd)
-	rootCmd.AddCommand(courseTypeCmd)
+var courseCmd = &cobra.Command{
+	Use:     "course",
+	Short:   "获取我购买过课程",
+	Long:    `使用 dedao-dl course 获取我购买过的课程`,
+	Example: "dedao-dl course",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("classID", classID)
+		if classID > 0 {
+			app.ArticleList("bauhinia", classID)
+			return
+		}
+		app.CourseList("bauhinia")
+	},
+}
 
-	rootCmd.PersistentFlags().StringVarP(&cType, "type", "t", "bauhinia", "课程类型(all, bauhinia, ebook, compass)")
+var ebookCmd = &cobra.Command{
+	Use:     "ebook",
+	Short:   "获取我的电子书架",
+	Long:    `使用 dedao-dl ebook 获取我的电子书架`,
+	Args:    cobra.OnlyValidArgs,
+	Example: "dedao-dl ebook",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("classID", classID)
+		if classID > 0 {
+			app.EbookDetail(classID)
+			return
+		}
+		app.CourseList("ebook")
+	},
+}
+
+var compassCmd = &cobra.Command{
+	Use:     "ace",
+	Short:   "获取我的锦囊",
+	Long:    `使用 dedao-dl ace 获取我的锦囊`,
+	Args:    cobra.OnlyValidArgs,
+	Example: "dedao-dl ace",
+	Run: func(cmd *cobra.Command, args []string) {
+		app.CourseList("compass")
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(courseTypeCmd)
+	rootCmd.AddCommand(courseCmd)
+	rootCmd.AddCommand(ebookCmd)
+	rootCmd.AddCommand(compassCmd)
+	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID")
+	ebookCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "电子书ID")
+	compassCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "锦囊 ID")
+	// rootCmd.PersistentFlags().StringVarP(&cType, "type", "t", "bauhinia", "课程类型(all, bauhinia, ebook, compass")
 
 	// Here you will define your flags and configuration settings.
 
