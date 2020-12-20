@@ -10,6 +10,7 @@ import (
 var (
 	cType     string
 	classID   int
+	articleID int
 	bookID    int
 	compassID int
 )

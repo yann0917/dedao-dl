@@ -61,11 +61,19 @@ func (s *Service) reqArticleList(ID string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqArticleInfo 请求文章 token
+func (s *Service) reqArticleInfo(ID string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]string{
+		"detail_id": ID,
+	}).Request("POST", "/pc/bauhinia/pc/article/info")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqArticleDetail 请求文章详情
-func (s *Service) reqArticleDetail(token, sign, appID string) (io.ReadCloser, error) {
+func (s *Service) reqArticleDetail(token, appID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]string{
 		"token": token,
-		"sign":  sign,
+		// "sign":  sign,
 		"appid": appID,
 	}).Request("GET", "/pc/ddarticle/v1/article/get/v2")
 	return handleHTTPResponse(resp, err)

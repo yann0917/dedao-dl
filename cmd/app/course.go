@@ -68,7 +68,7 @@ func CourseInfo(id int) {
 
 	fmt.Fprint(out, "专栏名称："+info.ClassInfo.Name+"\n")
 	fmt.Fprint(out, "专栏作者："+info.ClassInfo.LecturerNameAndTitle+"\n")
-	fmt.Fprint(out, "更新进度"+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+
+	fmt.Fprint(out, "更新进度："+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+
 		"/"+strconv.Itoa(info.ClassInfo.PhaseNum)+"\n")
 	fmt.Fprint(out, "课程亮点："+info.ClassInfo.Highlight+"\n")
 	fmt.Fprintln(out)

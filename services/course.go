@@ -80,6 +80,7 @@ type CourseInfo struct {
 	ChapterList  []Chapter     `json:"chapter_list"`
 }
 
+// ClassInfo class info
 type ClassInfo struct {
 	LogID                string `json:"log_id"`
 	LogType              string `json:"log_type"`

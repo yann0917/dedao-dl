@@ -1,5 +1,6 @@
 package services
 
+// Chapter chapter
 type Chapter struct {
 	ID          int           `json:"id"`
 	IDStr       string        `json:"id_str"`
@@ -15,5 +16,5 @@ type Chapter struct {
 	UpdateTime  int           `json:"update_time"`
 	LogID       string        `json:"log_id"`
 	LogType     string        `json:"log_type"`
-	ArticleList []ArticleInfo `json:"article_list"`
+	ArticleList []ArticleBase `json:"article_list"`
 }

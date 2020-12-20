@@ -103,6 +103,14 @@ func TestArticleDetail(t *testing.T) {
 	fmt.Printf("result:=%v \n", result)
 }
 
+func TestArticleInfo(t *testing.T) {
+	enid := "R2Mo65zY4QZ3VnmvraKqEdNAa98jGB"
+	result, err := service.ArticleInfo(enid)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
 func TestEbookDetail(t *testing.T) {
 	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
 	result, err := service.EbookDetail(enid)

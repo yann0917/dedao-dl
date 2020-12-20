@@ -12,6 +12,25 @@ type ArticleDetail struct {
 	Content string  `json:"content"`
 }
 
+// Content article Content
+type Content struct {
+	Title        string        `json:"title"`
+	TemplateType string        `json:"templateType"`
+	Content      []interface{} `json:"content"`
+	Plaintext    string        `json:"plaintext"`
+	CoverImage   string        `json:"coverImage"`
+	CSSLink      string        `json:"cssLink"`
+	Author       struct {
+		Name   string `json:"name"`
+		Avatar string `json:"avatar"`
+	} `json:"author"`
+	Message struct {
+		Title     string `json:"title"`
+		WriteText string `json:"writeText"`
+		Tips      string `json:"tips"`
+	} `json:"message"`
+}
+
 // Article metadata
 type Article struct {
 	ID          int64  `json:"Id"`
@@ -27,13 +46,13 @@ type Article struct {
 
 // ArticleIntro article introduce
 type ArticleIntro struct {
-	ArticleInfo
+	ArticleBase
 	MediaBaseInfo []MediaBaseInfo `json:"media_base_info"`
 	Aduio         Audio           `json:"audio"`
 }
 
-// ArticleInfo article info
-type ArticleInfo struct {
+// ArticleBase article base info
+type ArticleBase struct {
 	ID             int      `json:"id"`
 	IDStr          string   `json:"id_str"`
 	Enid           string   `json:"enid"`
@@ -98,6 +117,40 @@ type ArticlePoint struct {
 	Content         string `json:"content"`
 }
 
+// ArticleInfo article info
+type ArticleInfo struct {
+	ClassID           int          `json:"class_id"`
+	ClassEnid         string       `json:"class_enid"`
+	Ptype             int          `json:"ptype"`
+	Pid               int          `json:"pid"`
+	ArticleID         int          `json:"article_id"`
+	OriginArticleID   int          `json:"origin_article_id"`
+	DdArticleID       int64        `json:"dd_article_id"`
+	DdArticleToken    string       `json:"dd_article_token"`
+	LikeNum           int          `json:"like_num"`
+	IsLike            bool         `json:"is_like"`
+	IsBuy             int          `json:"is_buy"`
+	ShareSwitch       int          `json:"share_switch"`
+	IsFreeTry         bool         `json:"is_free_try"`
+	IsUserFreeTry     bool         `json:"is_user_free_try"`
+	PrevArticleID     int          `json:"prev_article_id"`
+	PrevArticleEnid   string       `json:"prev_article_enid"`
+	NextArticleID     int          `json:"next_article_id"`
+	NextArticleEnid   string       `json:"next_article_enid"`
+	ArticleInfo       ArticleIntro `json:"article_info"`
+	ClassInfo         ClassInfo    `json:"class_info"`
+	Extra             string       `json:"extra"`
+	TrialReadCount    int          `json:"trial_read_count"`
+	TrialMaxReadCount int          `json:"trial_max_read_count"`
+	ShareImage        string       `json:"share_image"`
+	ShareURL          string       `json:"share_url"`
+	ArticleTitle      string       `json:"article_title"`
+	ClassTitle        string       `json:"class_title"`
+	PaymentAudioID    int          `json:"payment_audio_id"`
+	ResourceID        int          `json:"resource_id"`
+	ResourceType      int          `json:"resource_type"`
+}
+
 // ArticleList get class article list
 func (s *Service) ArticleList(id string) (list *ArticleList, err error) {
 	cacheFile := "articleList:" + id
@@ -118,9 +171,35 @@ func (s *Service) ArticleList(id string) (list *ArticleList, err error) {
 	return
 }
 
+// ArticleInfo get article info
+func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
+	cacheFile := "articleInfo:" + enid
+	x, ok := info.getCache(cacheFile)
+	if ok {
+		info = x.(*ArticleInfo)
+		return
+	}
+	body, err := s.reqArticleInfo(enid)
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &info); err != nil {
+		return
+	}
+	info.setCache(cacheFile)
+	return
+}
+
 // ArticleDetail get article detail
-func (s *Service) ArticleDetail(token, sign, appID string) (detail *ArticleDetail, err error) {
-	body, err := s.reqArticleDetail(token, sign, appID)
+func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail, err error) {
+	cacheFile := "articleDetail:" + id
+	x, ok := detail.getCache(cacheFile)
+	if ok {
+		detail = x.(*ArticleDetail)
+		return
+	}
+	body, err := s.reqArticleDetail(token, appID)
 	defer body.Close()
 	if err != nil {
 		return
@@ -128,12 +207,13 @@ func (s *Service) ArticleDetail(token, sign, appID string) (detail *ArticleDetai
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
+	detail.setCache(cacheFile)
 	return
 }
 
 // ArticlePoint get article point
-func (s *Service) ArticlePoint(token, sign, appID string) (detail *ArticleDetail, err error) {
-	body, err := s.reqArticleDetail(token, sign, appID)
+func (s *Service) ArticlePoint(id string, pType int) (detail *ArticleDetail, err error) {
+	body, err := s.reqArticlePoint(id, pType)
 	defer body.Close()
 	if err != nil {
 		return
@@ -159,6 +239,46 @@ func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
 }
 
 func (c *ArticleList) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
+}
+
+func (c *ArticleDetail) getCacheKey() string {
+	return "articleDetail"
+}
+
+func (c *ArticleDetail) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	fmt.Println(err)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *ArticleDetail) setCache(fileName string) error {
+	Cache.Set(cacheKey(c), c, 1*time.Hour)
+	err := Cache.SaveFile(cacheDir + fileName)
+	return err
+}
+
+func (c *ArticleInfo) getCacheKey() string {
+	return "articleInfo"
+}
+
+func (c *ArticleInfo) getCache(fileName string) (interface{}, bool) {
+	err := Cache.LoadFile(cacheDir + fileName)
+	fmt.Println(err)
+	if err != nil {
+		return nil, false
+	}
+	x, ok := Cache.Get(cacheKey(c))
+	return x, ok
+}
+
+func (c *ArticleInfo) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
 	err := Cache.SaveFile(cacheDir + fileName)
 	return err

@@ -21,6 +21,7 @@ func gobRegister() {
 	gob.Register(&CourseList{})
 	gob.Register(&CourseInfo{})
 	gob.Register(&ArticleList{})
+	gob.Register(&ArticleInfo{})
 	gob.Register(&ArticleDetail{})
 	gob.Register(&EbookDetail{})
 	gob.Register(&Token{})

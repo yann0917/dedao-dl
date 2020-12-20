@@ -12,14 +12,20 @@ var articleCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.ArticleList("bauhinia", classID)
+		if classID > 0 {
+			app.ArticleList(classID)
+		}
+
+		if articleID > 0 {
+			app.ArticleDetail(classID, articleID)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(articleCmd)
 	articleCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程id")
-
+	articleCmd.PersistentFlags().IntVarP(&articleID, "aid", "a", 0, "文章id")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
