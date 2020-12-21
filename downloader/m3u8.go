@@ -23,6 +23,7 @@ const (
 	progressWidth    = 40
 )
 
+// Downloader ts download
 type Downloader struct {
 	lock     sync.Mutex
 	queue    []int

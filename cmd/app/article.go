@@ -2,10 +2,7 @@ package app
 
 import (
 	"fmt"
-	"os"
 
-	jsoniter "github.com/json-iterator/go"
-	"github.com/olekukonko/tablewriter"
 	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -67,24 +64,18 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 }
 
 // ArticleDetail article detail
-func ArticleDetail(id, aid int) (err error) {
+func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
 	info, err := ArticleInfo(id, aid)
 	if err != nil {
 		return
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err := getService().ArticleDetail(token, info.ClassInfo.Enid, appid)
+	detail, err = getService().ArticleDetail(token, info.ClassInfo.Enid, appid)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	out := os.Stdout
-	table := tablewriter.NewWriter(out)
-
-	var content services.Content
-	jsoniter.UnmarshalFromString(detail.Content, &content)
-	fmt.Fprint(out, content.Plaintext)
-	fmt.Fprintln(out)
-	table.Render()
 	return
+
 }

@@ -1,34 +1,21 @@
 package app
 
 import (
-	"os"
-	"strconv"
-
-	"github.com/olekukonko/tablewriter"
 	"github.com/yann0917/dedao-dl/services"
 )
 
 // CourseType 课程分类
-func CourseType() (err error) {
-	list, err := getService().CourseType()
-	if err != nil {
-		return
-	}
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "名称", "统计", "分类标签"})
-	table.SetAutoWrapText(false)
-
-	for i, p := range list.Data.List {
-
-		table.Append([]string{strconv.Itoa(i), p.Name, strconv.Itoa(p.Count), p.Category})
-	}
-	table.Render()
+func CourseType() (list *services.CourseCategoryList, err error) {
+	list, err = getService().CourseType()
 	return
 }
 
 // CourseList 已购课程列表
 func CourseList(category string) (list *services.CourseList, err error) {
 	limit, _ := getService().CourseCount(category)
+	if limit > 400 {
+		limit = 400
+	}
 	list, err = getService().CourseList(category, "study", 1, limit)
 	if err != nil {
 		return

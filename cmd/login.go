@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"os"
+
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
 )
 
@@ -23,7 +27,7 @@ var loginCmd = &cobra.Command{
 	},
 
 	PostRun: func(cmd *cobra.Command, args []string) {
-		app.Who()
+		who()
 	},
 }
 
@@ -33,7 +37,7 @@ var whoCmd = &cobra.Command{
 	Long:    `use dedao-dl who to get current login user info`,
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.Who()
+		who()
 	},
 }
 
@@ -48,4 +52,15 @@ func init() {
 func LoginedCookies() (cookies map[string]string) {
 	services.ParseCookies(Cookie, &cookies)
 	return
+}
+
+// current login user
+func who() {
+	activeUser := config.Instance.ActiveUser()
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"UID", "姓名", "头像"})
+	table.SetAutoFormatHeaders(true)
+	table.SetAutoWrapText(false)
+	table.Append([]string{activeUser.UIDHazy, activeUser.Name, activeUser.Avatar})
+	table.Render()
 }

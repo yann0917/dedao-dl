@@ -27,7 +27,7 @@ var courseTypeCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
 	Run: func(cmd *cobra.Command, args []string) {
-		app.CourseType()
+		courseType()
 	},
 }
 
@@ -44,23 +44,6 @@ var courseCmd = &cobra.Command{
 			return
 		}
 		courseList("bauhinia")
-	},
-}
-
-var ebookCmd = &cobra.Command{
-	Use:     "ebook",
-	Short:   "获取我的电子书架",
-	Long:    `使用 dedao-dl ebook 获取我的电子书架`,
-	Args:    cobra.OnlyValidArgs,
-	Example: "dedao-dl ebook",
-	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("bookID", bookID)
-		if bookID > 0 {
-			app.EbookDetail(bookID)
-			return
-		}
-		courseList("ebook")
 	},
 }
 
@@ -97,12 +80,10 @@ var odobCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(courseTypeCmd)
 	rootCmd.AddCommand(courseCmd)
-	rootCmd.AddCommand(ebookCmd)
 	rootCmd.AddCommand(compassCmd)
 	rootCmd.AddCommand(odobCmd)
 
 	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID，获取课程信息")
-	ebookCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "电子书ID")
 	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
 	// rootCmd.PersistentFlags().StringVarP(&cType, "type", "t", "bauhinia", "课程类型(all, bauhinia, ebook, compass")
 
@@ -116,6 +97,22 @@ func init() {
 	// is called directly, e.g.:
 }
 
+func courseType() {
+	list, err := app.CourseType()
+	if err != nil {
+		return
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"#", "名称", "统计", "分类标签"})
+	table.SetAutoWrapText(false)
+
+	for i, p := range list.Data.List {
+
+		table.Append([]string{strconv.Itoa(i), p.Name, strconv.Itoa(p.Count), p.Category})
+	}
+	table.Render()
+	return
+}
 func courseInfo(id int) {
 	info, err := app.CourseInfo(id)
 	if err != nil {

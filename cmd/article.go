@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
 )
 
@@ -22,7 +25,7 @@ var articleCmd = &cobra.Command{
 		}
 
 		if articleID > 0 {
-			err := app.ArticleDetail(classID, articleID)
+			err := articleDetail(classID, articleID)
 			return err
 		}
 		return nil
@@ -64,6 +67,23 @@ func articleList(id int) {
 			isRead,
 		})
 	}
+	table.Render()
+	return
+}
+
+func articleDetail(id, aid int) (err error) {
+	detail, err := app.ArticleDetail(id, aid)
+
+	if err != nil {
+		return
+	}
+	out := os.Stdout
+	table := tablewriter.NewWriter(out)
+
+	var content services.Content
+	jsoniter.UnmarshalFromString(detail.Content, &content)
+	fmt.Fprint(out, content.Plaintext)
+	fmt.Fprintln(out)
 	table.Render()
 	return
 }
