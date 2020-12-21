@@ -6,6 +6,7 @@ import (
 	"github.com/yann0917/dedao-dl/services"
 )
 
+// Cookie cookie from https://www.dedao.cn
 var Cookie string
 
 // Login login
@@ -14,6 +15,10 @@ var loginCmd = &cobra.Command{
 	Short: "登录得到 pc 端 https://www.dedao.cn",
 	Long:  `use dedao-dl login to login https://www.dedao.cn`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if Cookie == "" {
+			defaultCookie := app.GetCookie()
+			Cookie = defaultCookie
+		}
 		app.LoginByCookie(Cookie)
 	},
 
@@ -36,12 +41,10 @@ func init() {
 	rootCmd.AddCommand(loginCmd)
 	rootCmd.AddCommand(whoCmd)
 
-	defaultCookie := app.GetCookie()
-	Cookie = defaultCookie
-	loginCmd.Flags().StringVarP(&Cookie, "cookie", "c", defaultCookie, "cookie from www.dedao.cn")
+	loginCmd.Flags().StringVarP(&Cookie, "cookie", "c", "", "cookie from https://www.dedao.cn")
 }
 
-// LoginedCookies cookie to map for chromedp print pdf
+// LoginedCookies cookie sting to map for chromedp print pdf
 func LoginedCookies() (cookies map[string]string) {
 	services.ParseCookies(Cookie, &cookies)
 	return
