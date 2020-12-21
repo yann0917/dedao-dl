@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -32,8 +31,6 @@ var downloadCmd = &cobra.Command{
 			if err != nil {
 				return errors.New("文章ID错误")
 			}
-
-			return err
 		}
 		err = download(id, aid)
 		return nil
@@ -62,50 +59,51 @@ func download(id, aid int) error {
 	articles, err := app.ArticleList(id)
 	downloadData := extractDownloadData(course, articles, aid)
 	errors := make([]error, 0)
-	// path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "MP3")
+	path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "MP3")
 
-	// for _, datum := range downloadData.Data {
-	// 	if !datum.IsCanDL {
-	// 		continue
-	// 	}
-	// 	stream := strings.ToLower(course.ClassInfo.Enid)
-	// 	if err := downloader.Download(datum, stream, path); err != nil {
-	// 		errors = append(errors, err)
-	// 	}
-	// }
-	// if len(errors) > 0 {
-	// 	return errors[0]
-	// }
-	// 下载 PDF
-	path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
-	if err != nil {
-		return err
-	}
-
-	cookies := LoginedCookies()
 	for _, datum := range downloadData.Data {
 		if !datum.IsCanDL {
 			continue
 		}
-		if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+		stream := datum.Enid
+		if err := downloader.Download(datum, stream, path); err != nil {
 			errors = append(errors, err)
 		}
 	}
 	if len(errors) > 0 {
 		return errors[0]
 	}
+	// 下载 PDF
+	// path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
+	// if err != nil {
+	// 	return err
+	// }
+
+	// cookies := LoginedCookies()
+	// for _, datum := range downloadData.Data {
+	// 	if !datum.IsCanDL {
+	// 		continue
+	// 	}
+	// 	if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+	// 		errors = append(errors, err)
+	// 	}
+	// }
+	// if len(errors) > 0 {
+	// 	return errors[0]
+	// }
 	return nil
 }
 
 //生成下载数据
 func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int) downloader.Data {
 
+	// TODO: odob ,course, ebook compass are diff
 	downloadData := downloader.Data{
 		Title: course.ClassInfo.Name,
 	}
 
 	if course.ClassInfo.LogType == "class" {
-		downloadData.Type = "course"
+		downloadData.Type = "audio"
 		downloadData.Data = extractCourseDownloadData(articles, aid)
 	}
 
@@ -116,7 +114,7 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 func extractCourseDownloadData(articles *services.ArticleList, aid int) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
-	key := "df"
+
 	audioData := make([]*downloader.Datum, 0)
 	fmt.Println(aid)
 	for _, article := range articles.List {
@@ -126,6 +124,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 		audioIds[article.ID] = article.Aduio.AliasID
 
 		urls := []downloader.URL{}
+		key := article.Enid
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
@@ -141,6 +140,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 			ClassID:   article.ClassID,
 			Title:     article.Title,
 			IsCanDL:   true,
+			M3U8URL:   article.Aduio.Mp3PlayURL,
 			Streams:   streams,
 			Type:      "audio",
 		}
@@ -156,10 +156,8 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 				wgp.Done()
 			}()
 			if datum.IsCanDL {
-				aInfo, _ := app.ArticleInfo(datum.ClassID, datum.ID)
-				mp3URL := aInfo.ArticleInfo.Aduio.Mp3PlayURL
-				if urls, err := utils.M3u8URLs(mp3URL); err == nil {
-					key := strings.ToLower(aInfo.ArticleInfo.ClassEnid)
+				if urls, err := utils.M3u8URLs(datum.M3U8URL); err == nil {
+					key := datum.Enid
 					stream := datum.Streams[key]
 					for _, url := range urls {
 						stream.URLs = append(stream.URLs, downloader.URL{

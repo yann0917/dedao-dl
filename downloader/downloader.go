@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -31,15 +30,15 @@ func Download(v Datum, stream string, path string) error {
 	if !v.IsCanDL {
 		return errors.New("该课程目录未付费，或者不支持下载")
 	}
-
 	//按大到小排序
 	v.genSortedStreams()
-
 	title := utils.FileName(v.Title, "")
 	if stream == "" {
 		stream = v.sortedStreams[0].name
 	}
-	data, ok := v.Streams[strings.ToLower(stream)]
+
+	data, ok := v.Streams[stream]
+
 	if !ok {
 		return fmt.Errorf("指定要下载的类型不存在：%s", stream)
 	}
@@ -51,6 +50,7 @@ func Download(v Datum, stream string, path string) error {
 
 	filePreName := filepath.Join(path, title)
 	fileName, err := utils.FilePath(filePreName, "mp4", false)
+	fmt.Println(fileName)
 
 	if err != nil {
 		return err
@@ -118,8 +118,15 @@ func Download(v Datum, stream string, path string) error {
 	}
 
 	bar.Finish()
+	fmt.Println(v.Type)
+	switch v.Type {
+	case "audio":
+		err = utils.MergeToMP4(parts, fileName, title)
+	case "vedio":
+		err = utils.MergeToMP4(parts, fileName, title)
+	}
 
-	if v.Type != "视频" {
+	if v.Type != "ad" {
 		return nil
 	}
 
@@ -131,9 +138,7 @@ func Download(v Datum, stream string, path string) error {
 }
 
 // Save save url file
-func Save(
-	urlData URL, fileName string, bar *pb.ProgressBar, chunkSizeMB int,
-) error {
+func Save(urlData URL, fileName string, bar *pb.ProgressBar, chunkSizeMB int) error {
 	if urlData.Size == 0 {
 		size, err := request.Size(urlData.URL)
 		if err != nil {
