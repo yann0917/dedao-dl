@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -15,12 +14,11 @@ import (
 
 var downloadCmd = &cobra.Command{
 	Use:     "dl",
-	Short:   "`dedao-dl dl` 下载已购买课程，并转换成 PDF 或者音频",
-	Long:    `使用 dedao-dl dl 下载已购买课程，并转换成 PDF 或者音频`,
+	Short:   "`dedao-dl dl` 下载已购买课程，并转换成 PDF & 音频",
+	Long:    `使用 dedao-dl dl 下载已购买课程，并转换成 PDF & 音频`,
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		fmt.Println("download cmd", args)
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
 			return errors.New("课程ID错误")
@@ -65,8 +63,12 @@ func download(id, aid int) error {
 		if !datum.IsCanDL {
 			continue
 		}
-		stream := datum.Enid
-		if err := downloader.Download(datum, stream, path); err != nil {
+		downloader, err := downloader.NewTask(path, datum.M3U8URL)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		outName := datum.Title + ".mp3"
+		if err := downloader.Start(25, outName); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -74,23 +76,23 @@ func download(id, aid int) error {
 		return errors[0]
 	}
 	// 下载 PDF
-	// path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
-	// if err != nil {
-	// 	return err
-	// }
+	path, err = utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
+	if err != nil {
+		return err
+	}
 
-	// cookies := LoginedCookies()
-	// for _, datum := range downloadData.Data {
-	// 	if !datum.IsCanDL {
-	// 		continue
-	// 	}
-	// 	if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-	// 		errors = append(errors, err)
-	// 	}
-	// }
-	// if len(errors) > 0 {
-	// 	return errors[0]
-	// }
+	cookies := LoginedCookies()
+	for _, datum := range downloadData.Data {
+		if !datum.IsCanDL {
+			continue
+		}
+		if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+			errors = append(errors, err)
+		}
+	}
+	if len(errors) > 0 {
+		return errors[0]
+	}
 	return nil
 }
 
@@ -181,13 +183,4 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 		data = append(data, *d)
 	}
 	return data
-}
-
-func printExtractDownloadData(v interface{}) {
-	jsonData, err := json.MarshalIndent(v, "", "    ")
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Printf("%s\n", jsonData)
-	}
 }

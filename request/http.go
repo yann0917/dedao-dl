@@ -173,17 +173,29 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 
 // HTTPGet http get request
 func HTTPGet(url string) (body []byte, err error) {
-	client := NewClient(url)
-	resp, err := client.Request("GET", "")
-	defer resp.Body.Close()
+	r, err := Get(url)
+	defer r.Close()
 	if err != nil {
 
 	}
-	body, err = ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(r)
 	if err != nil {
-
+		return
 	}
 	return
+}
+
+// Get http get request
+func Get(url string) (io.ReadCloser, error) {
+	client := NewClient(url)
+	resp, err := client.Request("GET", "")
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http error: status code %d", resp.StatusCode)
+	}
+	return resp.Body, nil
 }
 
 // Headers return the HTTP Headers of the url

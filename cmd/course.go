@@ -43,7 +43,7 @@ var courseCmd = &cobra.Command{
 			courseInfo(classID)
 			return
 		}
-		app.CourseList("bauhinia")
+		courseList("bauhinia")
 	},
 }
 
@@ -60,7 +60,7 @@ var ebookCmd = &cobra.Command{
 			app.EbookDetail(bookID)
 			return
 		}
-		app.CourseList("ebook")
+		courseList("ebook")
 	},
 }
 
@@ -75,7 +75,22 @@ var compassCmd = &cobra.Command{
 		if compassID > 0 {
 			return
 		}
-		app.CourseList("compass")
+		courseList("compass")
+	},
+}
+
+var odobCmd = &cobra.Command{
+	Use:     "odob",
+	Short:   "获取我的听书书架",
+	Long:    `使用 dedao-dl odob 获取我的听书书架`,
+	Args:    cobra.OnlyValidArgs,
+	Example: "dedao-dl odob",
+	PreRunE: AuthFunc,
+	Run: func(cmd *cobra.Command, args []string) {
+		if compassID > 0 {
+			return
+		}
+		courseList("odob")
 	},
 }
 
@@ -84,6 +99,8 @@ func init() {
 	rootCmd.AddCommand(courseCmd)
 	rootCmd.AddCommand(ebookCmd)
 	rootCmd.AddCommand(compassCmd)
+	rootCmd.AddCommand(odobCmd)
+
 	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID，获取课程信息")
 	ebookCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "电子书ID")
 	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
@@ -130,4 +147,26 @@ func courseInfo(id int) {
 		})
 	}
 	table.Render()
+}
+
+func courseList(category string) {
+	list, err := app.CourseList(category)
+	if err != nil {
+		return
+	}
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
+	table.SetAutoWrapText(false)
+
+	for i, p := range list.List {
+
+		table.Append([]string{strconv.Itoa(i),
+			strconv.Itoa(p.ID), p.Title, p.Author,
+			utils.Unix2String(int64(p.CreateTime)),
+			p.Price,
+			strconv.Itoa(p.Progress),
+		})
+	}
+	table.Render()
+	return
 }

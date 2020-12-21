@@ -6,7 +6,6 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/yann0917/dedao-dl/services"
-	"github.com/yann0917/dedao-dl/utils"
 )
 
 // CourseType 课程分类
@@ -28,28 +27,14 @@ func CourseType() (err error) {
 }
 
 // CourseList 已购课程列表
-func CourseList(category string) {
+func CourseList(category string) (list *services.CourseList, err error) {
 	limit, _ := getService().CourseCount(category)
-	list, err := getService().CourseList(category, "study", 1, limit)
+	list, err = getService().CourseList(category, "study", 1, limit)
 	if err != nil {
 		return
 	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
-	table.SetAutoWrapText(false)
-
-	for i, p := range list.List {
-
-		table.Append([]string{strconv.Itoa(i),
-			strconv.Itoa(p.ID), p.Title, p.Author,
-			utils.Unix2String(int64(p.CreateTime)),
-			p.Price,
-			strconv.Itoa(p.Progress),
-		})
-	}
-	table.Render()
 	return
+
 }
 
 // CourseInfo 已购课程列表
