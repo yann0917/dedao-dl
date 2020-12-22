@@ -79,7 +79,7 @@ func (c *CourseCategoryList) getCacheKey() string {
 }
 
 func (c *CourseCategoryList) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -89,6 +89,6 @@ func (c *CourseCategoryList) getCache(fileName string) (interface{}, bool) {
 
 func (c *CourseCategoryList) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }
