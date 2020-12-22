@@ -68,14 +68,14 @@ func download(id, aid int) error {
 			errors = append(errors, err)
 		}
 		/// use m3u8 downloader
-		downloader, err := downloader.NewTask(path, datum.M3U8URL)
-		if err != nil {
-			errors = append(errors, err)
-		}
-		outName := datum.Title + ".mp3"
-		if err := downloader.Start(25, outName); err != nil {
-			errors = append(errors, err)
-		}
+		// downloader, err := downloader.NewTask(path, datum.M3U8URL)
+		// if err != nil {
+		// 	errors = append(errors, err)
+		// }
+		// outName := datum.Title + ".mp3"
+		// if err := downloader.Start(25, outName); err != nil {
+		// 	errors = append(errors, err)
+		// }
 	}
 	if len(errors) > 0 {
 		return errors[0]
@@ -109,7 +109,7 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 		Title: course.ClassInfo.Name,
 	}
 
-	if course.ClassInfo.LogType == "class" {
+	if course.HasAudio() {
 		downloadData.Type = "audio"
 		downloadData.Data = extractCourseDownloadData(articles, aid)
 	}

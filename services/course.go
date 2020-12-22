@@ -206,6 +206,16 @@ func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
 	return
 }
 
+// HasAudio include audio
+func (c *CourseInfo) HasAudio() bool {
+	return c.ClassInfo.WithoutAudio == false
+}
+
+// IsSubscribe Is Subscribe
+func (c *CourseInfo) IsSubscribe() bool {
+	return c.ClassInfo.IsSubscribe == 1
+}
+
 func (c *CourseList) getCacheKey() string {
 	return "courseList"
 }
