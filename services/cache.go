@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/patrickmn/go-cache"
+	"github.com/pkg/errors"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 // Cache go-cache
@@ -44,4 +46,27 @@ func getCache(c Cacher, fileName string) (interface{}, bool) {
 
 func setCache(c Cacher, fileName string) error {
 	return c.setCache(fileName)
+}
+
+// LoadCacheFile load local file
+func LoadCacheFile(fname string) (err error) {
+	err = Cache.LoadFile(cacheDir + fname)
+	if err != nil {
+		errors.Wrap(err, "load cache file error")
+		_, err = utils.Mkdir(cacheDir)
+		if err != nil {
+			errors.Wrap(err, "make cache dir error")
+		}
+		return
+	}
+	return
+}
+
+// SaveCacheFile save cache
+func SaveCacheFile(fname string) (err error) {
+	err = Cache.SaveFile(cacheDir + fname)
+	if err != nil {
+		errors.Wrap(err, "save cache file error")
+	}
+	return
 }

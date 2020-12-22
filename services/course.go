@@ -211,7 +211,7 @@ func (c *CourseList) getCacheKey() string {
 }
 
 func (c *CourseList) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -221,7 +221,7 @@ func (c *CourseList) getCache(fileName string) (interface{}, bool) {
 
 func (c *CourseList) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }
 
@@ -230,7 +230,7 @@ func (c *CourseInfo) getCacheKey() string {
 }
 
 func (c *CourseInfo) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -240,6 +240,6 @@ func (c *CourseInfo) getCache(fileName string) (interface{}, bool) {
 
 func (c *CourseInfo) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }

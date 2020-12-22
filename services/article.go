@@ -228,7 +228,7 @@ func (c *ArticleList) getCacheKey() string {
 }
 
 func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -238,7 +238,7 @@ func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
 
 func (c *ArticleList) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }
 
@@ -247,7 +247,7 @@ func (c *ArticleDetail) getCacheKey() string {
 }
 
 func (c *ArticleDetail) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -257,7 +257,7 @@ func (c *ArticleDetail) getCache(fileName string) (interface{}, bool) {
 
 func (c *ArticleDetail) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }
 
@@ -266,7 +266,7 @@ func (c *ArticleInfo) getCacheKey() string {
 }
 
 func (c *ArticleInfo) getCache(fileName string) (interface{}, bool) {
-	err := Cache.LoadFile(cacheDir + fileName)
+	err := LoadCacheFile(fileName)
 	if err != nil {
 		return nil, false
 	}
@@ -276,6 +276,6 @@ func (c *ArticleInfo) getCache(fileName string) (interface{}, bool) {
 
 func (c *ArticleInfo) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := Cache.SaveFile(cacheDir + fileName)
+	err := SaveCacheFile(fileName)
 	return err
 }
