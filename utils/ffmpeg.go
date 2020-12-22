@@ -25,9 +25,20 @@ func runMergeCmd(cmd *exec.Cmd, paths []string, mergeFilePath string) error {
 	return nil
 }
 
-// MergeFilesWithSameExtension merges files that have the same extension into one.
-// Can also handle merging audio and video.
-func MergeFilesWithSameExtension(paths []string, mergedFilePath string) error {
+// MergeAudio merge audio
+func MergeAudio(paths []string, mergedFilePath string) error {
+	cmds := []string{
+		"-y",
+	}
+	for _, path := range paths {
+		cmds = append(cmds, "-i", path)
+	}
+	cmds = append(cmds, "-c:v", "copy", mergedFilePath)
+	return runMergeCmd(exec.Command("ffmpeg", cmds...), paths, "")
+}
+
+// MergeAudioAndVideo merge audio and video
+func MergeAudioAndVideo(paths []string, mergedFilePath string) error {
 	cmds := []string{
 		"-y",
 	}
