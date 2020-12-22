@@ -13,11 +13,20 @@
 
 ## 安装
 
+### 安装依赖
+
+* chromedp
+  > 生成 PDF 需要借助 [chromedp](https://github.com/chromedp/chromedp), 该功能必须安装 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/) 浏览器
+* ffmpeg
+  > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成
+  >
+  >说明: 代码里集成了 u3m8 下载器，会导致编译后程序体积增大 7MB 左右，如果不想安装 ffmpeg， 请打开相关代码的注释即可。
+
+### 使用 `go get` 安装
+
 使用如下命令安装：
 
 `go get github.com/yann0917/dedao-dl`
-
-生成 PDF 需要借助 [chromedp](https://github.com/chromedp/chromedp), 该功能必须安装 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/) 浏览器
 
 ## 使用方法
 
