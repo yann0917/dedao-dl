@@ -63,36 +63,40 @@ func download(id, aid int) error {
 		if !datum.IsCanDL {
 			continue
 		}
-		downloader, err := downloader.NewTask(path, datum.M3U8URL)
-		if err != nil {
+		stream := datum.Enid
+		if err := downloader.Download(datum, stream, path); err != nil {
 			errors = append(errors, err)
 		}
-		outName := datum.Title + ".mp3"
-		if err := downloader.Start(25, outName); err != nil {
-			errors = append(errors, err)
-		}
+		// downloader, err := downloader.NewTask(path, datum.M3U8URL)
+		// if err != nil {
+		// 	errors = append(errors, err)
+		// }
+		// outName := datum.Title + ".mp3"
+		// if err := downloader.Start(25, outName); err != nil {
+		// 	errors = append(errors, err)
+		// }
 	}
 	if len(errors) > 0 {
 		return errors[0]
 	}
 	// 下载 PDF
-	path, err = utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
-	if err != nil {
-		return err
-	}
+	// path, err = utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
+	// if err != nil {
+	// 	return err
+	// }
 
-	cookies := LoginedCookies()
-	for _, datum := range downloadData.Data {
-		if !datum.IsCanDL {
-			continue
-		}
-		if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-			errors = append(errors, err)
-		}
-	}
-	if len(errors) > 0 {
-		return errors[0]
-	}
+	// cookies := LoginedCookies()
+	// for _, datum := range downloadData.Data {
+	// 	if !datum.IsCanDL {
+	// 		continue
+	// 	}
+	// 	if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+	// 		errors = append(errors, err)
+	// 	}
+	// }
+	// if len(errors) > 0 {
+	// 	return errors[0]
+	// }
 	return nil
 }
 
