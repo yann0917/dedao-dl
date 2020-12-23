@@ -132,16 +132,30 @@ func courseInfo(id int) {
 	table.SetHeader([]string{"#", "ID", "章节", "更新时间", "是否更新完成"})
 	table.SetAutoWrapText(false)
 
-	for i, p := range info.ChapterList {
+	if len(info.ChapterList) > 0 {
+		for i, p := range info.ChapterList {
+			isFinished := "❌"
+			if p.IsFinished == 1 {
+				isFinished = "✔"
+			}
+			table.Append([]string{strconv.Itoa(i),
+				p.IDStr, p.Name,
+				utils.Unix2String(int64(p.UpdateTime)),
+				isFinished,
+			})
+		}
+	} else if len(info.FlatArticleList) > 0 {
 		isFinished := "❌"
-		if p.IsFinished == 1 {
+		if info.ClassInfo.IsFinished == 1 {
 			isFinished = "✔"
 		}
-		table.Append([]string{strconv.Itoa(i),
-			p.IDStr, p.Name,
-			utils.Unix2String(int64(p.UpdateTime)),
-			isFinished,
-		})
+		for i, p := range info.FlatArticleList {
+			table.Append([]string{strconv.Itoa(i),
+				p.IDStr, p.Title,
+				utils.Unix2String(int64(p.UpdateTime)),
+				isFinished,
+			})
+		}
 	}
 	table.Render()
 }
