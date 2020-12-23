@@ -169,6 +169,9 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 
 // ParseCookies parse cookie string to cookie options
 func ParseCookies(cookie string, v interface{}) (err error) {
+	if cookie == "" {
+		return errors.New("cookie is empty")
+	}
 	list := strings.Split(cookie, "; ")
 	cookieM := make(map[string]string, len(list))
 	for _, v := range list {

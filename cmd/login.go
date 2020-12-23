@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 	"github.com/yann0917/dedao-dl/config"
@@ -18,12 +19,16 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "登录得到 pc 端 https://www.dedao.cn",
 	Long:  `use dedao-dl login to login https://www.dedao.cn`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if Cookie == "" {
 			defaultCookie := app.GetCookie()
+			if defaultCookie == "" {
+				return errors.New("自动获取 cookie 失败，请使用参数设置 cookie")
+			}
 			Cookie = defaultCookie
 		}
-		app.LoginByCookie(Cookie)
+		err := app.LoginByCookie(Cookie)
+		return err
 	},
 
 	PostRun: func(cmd *cobra.Command, args []string) {

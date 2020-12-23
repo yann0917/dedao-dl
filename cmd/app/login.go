@@ -10,13 +10,17 @@ import (
 )
 
 // LoginByCookie login by cookie
-func LoginByCookie(cookie string) {
+func LoginByCookie(cookie string) (err error) {
 	var u config.Dedao
-	services.ParseCookies(cookie, &u.CookieOptions)
+	err = services.ParseCookies(cookie, &u.CookieOptions)
+	if err != nil {
+		return
+	}
 	// save config
 	u.CookieStr = cookie
 	config.Instance.SetUser(&u)
 	config.Instance.Save()
+	return
 }
 
 // GetCookie get cookie string

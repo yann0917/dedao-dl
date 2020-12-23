@@ -152,15 +152,19 @@ func courseList(category string) {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
+	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "是否完结", "学习进度"})
 	table.SetAutoWrapText(false)
 
 	for i, p := range list.List {
-
+		classFinished := "❌"
+		if p.ClassFinished {
+			classFinished = "✔"
+		}
 		table.Append([]string{strconv.Itoa(i),
 			strconv.Itoa(p.ID), p.Title, p.Author,
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
+			classFinished,
 			strconv.Itoa(p.Progress),
 		})
 	}
