@@ -128,3 +128,11 @@ func TestEbookReadToken(t *testing.T) {
 	}
 	fmt.Printf("result:=%v \n", result)
 }
+
+func TestEbookVIPInfo(t *testing.T) {
+	result, err := service.EbookVIPInfo()
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}

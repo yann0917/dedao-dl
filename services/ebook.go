@@ -93,6 +93,33 @@ type EbookInfo struct {
 	} `json:"bookInfo"`
 }
 
+// EbookVIPInfo ebook vip info
+type EbookVIPInfo struct {
+	UID                int    `json:"uid"`
+	Nickname           string `json:"nickname"`
+	Slogan             string `json:"slogan"`
+	Avatar             string `json:"avatar"`
+	AvatarS            string `json:"avatar_s"`
+	MonthCount         int    `json:"month_count"`
+	TotalCount         int    `json:"total_count"`
+	FinishedCount      int    `json:"finished_count"`
+	SavePrice          string `json:"save_price"`
+	IsVip              bool   `json:"is_vip"`
+	BeginTime          int    `json:"begin_time"`
+	EndTime            int    `json:"end_time"`
+	EnterpriseEndTime  int    `json:"enterprise_end_time"`
+	ExpireTime         int    `json:"expire_time"`
+	SurplusTime        int    `json:"surplus_time"`
+	IsExpire           bool   `json:"is_expire"`
+	CardID             int    `json:"card_id"`
+	CardType           int    `json:"card_type"`
+	PriceDesc          string `json:"price_desc"`
+	IsBuyMonthDiscount bool   `json:"is_buy_month_discount"`
+	MonthDiscountPrice int    `json:"month_discount_price"`
+	DdURL              string `json:"dd_url"`
+	ErrTips            string `json:"err_tips"`
+}
+
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 	cacheFile := "ebookDetail:" + enid
@@ -131,6 +158,19 @@ func (s *Service) EbookReadToken(enid string) (t *Token, err error) {
 // include book block, book TOC, epubPath etc
 func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
 	body, err := s.reqEbookInfo(token)
+	defer body.Close()
+	if err != nil {
+		return
+	}
+	if err = handleJSONParse(body, &info); err != nil {
+		return
+	}
+	return
+}
+
+// EbookVIPInfo get ebook vip info
+func (s *Service) EbookVIPInfo() (info *EbookVIPInfo, err error) {
+	body, err := s.reqEbookVIPInfo()
 	defer body.Close()
 	if err != nil {
 		return

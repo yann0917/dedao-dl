@@ -119,3 +119,9 @@ func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
 	}).Request("GET", "/ebk_web/v1/get_book_info")
 	return handleHTTPResponse(resp, err)
 }
+
+// reqEbookInfo 请求电子书vip info
+func (s *Service) reqEbookVIPInfo() (io.ReadCloser, error) {
+	resp, err := s.client.Request("POST", "/api/pc/ebook2/v1/vip/info")
+	return handleHTTPResponse(resp, err)
+}

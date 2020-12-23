@@ -13,6 +13,15 @@ import (
 var Cache *cache.Cache
 var cacheDir = "./.cache/"
 
+var _ Cacher = (*CourseCategoryList)(nil)
+var _ Cacher = (*CourseList)(nil)
+var _ Cacher = (*CourseInfo)(nil)
+var _ Cacher = (*ArticleList)(nil)
+var _ Cacher = (*ArticleInfo)(nil)
+var _ Cacher = (*ArticleDetail)(nil)
+var _ Cacher = (*EbookDetail)(nil)
+var _ Cacher = (*CourseList)(nil)
+
 func init() {
 	Cache = cache.New(2*time.Hour, 30*time.Minute)
 	gobRegister()
