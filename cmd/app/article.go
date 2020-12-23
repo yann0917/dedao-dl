@@ -43,20 +43,21 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 	aids := []int{}
 
 	// get article enid
-	var articlleIntro services.ArticleIntro
+	var aEnid string
 	for _, p := range list.List {
 		aids = append(aids, p.ID)
 		if p.ClassID == id && p.ID == aid {
-			articlleIntro = p
+			aEnid = p.Enid
 		}
 	}
-
+	fmt.Println(aids)
+	fmt.Println(aEnid)
 	if !utils.Contains(aids, aid) {
 		err = errors.New("找不到该文章 ID，请检查输入是否正确")
 		return
 	}
 
-	info, err = getService().ArticleInfo(articlleIntro.Enid)
+	info, err = getService().ArticleInfo(aEnid)
 	if err != nil {
 		return
 	}

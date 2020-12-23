@@ -233,7 +233,7 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 	}
 
 	for _, v := range list.List {
-		if v.ID == id {
+		if v.ClassID == id {
 			detail = &v
 			return
 		}

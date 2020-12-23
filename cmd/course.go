@@ -139,7 +139,7 @@ func courseInfo(id int) {
 				isFinished = "✔"
 			}
 			table.Append([]string{strconv.Itoa(i),
-				p.IDStr, p.Name,
+				p.ClassIDStr, p.Name,
 				utils.Unix2String(int64(p.UpdateTime)),
 				isFinished,
 			})
@@ -175,7 +175,7 @@ func courseList(category string) {
 			classFinished = "✔"
 		}
 		table.Append([]string{strconv.Itoa(i),
-			strconv.Itoa(p.ID), p.Title, p.Author,
+			strconv.Itoa(p.ClassID), p.Title, p.Author,
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
 			classFinished,
