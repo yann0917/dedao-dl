@@ -73,10 +73,14 @@ type CourseList struct {
 
 // CourseInfo product intro info
 type CourseInfo struct {
-	ClassInfo    ClassInfo     `json:"class_info"`
-	Items        []CourseIntro `json:"items"`
-	ArticleIntro ArticleIntro  `json:"intro_article"`
-	ChapterList  []Chapter     `json:"chapter_list"`
+	ClassInfo              ClassInfo         `json:"class_info"`
+	Items                  []CourseIntro     `json:"items"`
+	ArticleIntro           ArticleIntro      `json:"intro_article"`
+	ChapterList            []Chapter         `json:"chapter_list"`
+	FlatArticleList        []FlatArticleList `json:"flat_article_list"`
+	UserType               string            `json:"user_type"`
+	HasMoreFlatArticleList bool              `json:"has_more_flat_article_list"`
+	IsShowGrading          bool              `json:"is_show_grading"`
 }
 
 // ClassInfo class info
@@ -146,6 +150,57 @@ type ClassInfo struct {
 	} `json:"collection"`
 }
 
+// FlatArticleList flat
+type FlatArticleList struct {
+	ID             int           `json:"id"`
+	IDStr          string        `json:"id_str"`
+	Enid           string        `json:"enid"`
+	ClassEnid      string        `json:"class_enid"`
+	OriginID       int           `json:"origin_id"`
+	OriginIDStr    string        `json:"origin_id_str"`
+	ProductType    int           `json:"product_type"`
+	ProductID      int           `json:"product_id"`
+	ProductIDStr   string        `json:"product_id_str"`
+	ClassID        int           `json:"class_id"`
+	ClassIDStr     string        `json:"class_id_str"`
+	ChapterID      int           `json:"chapter_id"`
+	ChapterIDStr   string        `json:"chapter_id_str"`
+	Title          string        `json:"title"`
+	Logo           string        `json:"logo"`
+	URL            string        `json:"url"`
+	Summary        string        `json:"summary"`
+	Mold           int           `json:"mold"`
+	PushContent    string        `json:"push_content"`
+	PublishTime    int           `json:"publish_time"`
+	PushTime       int           `json:"push_time"`
+	PushStatus     int           `json:"push_status"`
+	ShareTitle     string        `json:"share_title"`
+	ShareContent   string        `json:"share_content"`
+	ShareSwitch    int           `json:"share_switch"`
+	DdArticleID    int64         `json:"dd_article_id"`
+	DdArticleIDStr string        `json:"dd_article_id_str"`
+	DdArticleToken string        `json:"dd_article_token"`
+	Status         int           `json:"status"`
+	CreateTime     int           `json:"create_time"`
+	UpdateTime     int           `json:"update_time"`
+	CurLearnCount  int           `json:"cur_learn_count"`
+	IsFreeTry      bool          `json:"is_free_try"`
+	IsUserFreeTry  bool          `json:"is_user_free_try"`
+	OrderNum       int           `json:"order_num"`
+	IsLike         bool          `json:"is_like"`
+	ShareURL       string        `json:"share_url"`
+	TrialShareURL  string        `json:"trial_share_url"`
+	IsRead         bool          `json:"is_read"`
+	LogID          string        `json:"log_id"`
+	LogType        string        `json:"log_type"`
+	RecommendTitle string        `json:"recommend_title"`
+	AudioAliasIds  []interface{} `json:"audio_alias_ids"`
+	IsBuy          bool          `json:"is_buy"`
+	DdMediaID      int           `json:"dd_media_id"`
+	DdMediaIDStr   string        `json:"dd_media_id_str"`
+	VideoStatus    int           `json:"video_status"`
+}
+
 // CourseList get course list
 func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
 	cacheFile := "courseList:" + category
@@ -178,7 +233,7 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 	}
 
 	for _, v := range list.List {
-		if v.ID == id {
+		if v.ClassID == id {
 			detail = &v
 			return
 		}

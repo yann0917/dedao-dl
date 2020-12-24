@@ -11,12 +11,8 @@ const (
 	CateAudioBook = "odob"
 	// CateEbook 电子书
 	CateEbook = "ebook"
-	// CateLecture 讲座
-	CateLecture = "navigator"
 	// CateAce 锦囊
 	CateAce = "compass"
-	// CateOther 其他
-	CateOther = "other"
 	// CatAll 全部
 	CatAll = "all"
 )

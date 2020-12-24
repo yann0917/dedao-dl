@@ -10,7 +10,7 @@ import (
 
 // EbookDetail 电子书详情
 func EbookDetail(id int) {
-	courseDetail, err := getService().CourseDetail("ebook", id)
+	courseDetail, err := getService().CourseDetail(CateEbook, id)
 	if err != nil {
 		return
 	}

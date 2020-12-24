@@ -43,7 +43,7 @@ var courseCmd = &cobra.Command{
 			courseInfo(classID)
 			return
 		}
-		courseList("bauhinia")
+		courseList(app.CateCourse)
 	},
 }
 
@@ -58,7 +58,7 @@ var compassCmd = &cobra.Command{
 		if compassID > 0 {
 			return
 		}
-		courseList("compass")
+		courseList(app.CateAce)
 	},
 }
 
@@ -73,7 +73,7 @@ var odobCmd = &cobra.Command{
 		if compassID > 0 {
 			return
 		}
-		courseList("odob")
+		courseList(app.CateAudioBook)
 	},
 }
 
@@ -132,16 +132,30 @@ func courseInfo(id int) {
 	table.SetHeader([]string{"#", "ID", "章节", "更新时间", "是否更新完成"})
 	table.SetAutoWrapText(false)
 
-	for i, p := range info.ChapterList {
+	if len(info.ChapterList) > 0 {
+		for i, p := range info.ChapterList {
+			isFinished := "❌"
+			if p.IsFinished == 1 {
+				isFinished = "✔"
+			}
+			table.Append([]string{strconv.Itoa(i),
+				p.ClassIDStr, p.Name,
+				utils.Unix2String(int64(p.UpdateTime)),
+				isFinished,
+			})
+		}
+	} else if len(info.FlatArticleList) > 0 {
 		isFinished := "❌"
-		if p.IsFinished == 1 {
+		if info.ClassInfo.IsFinished == 1 {
 			isFinished = "✔"
 		}
-		table.Append([]string{strconv.Itoa(i),
-			p.IDStr, p.Name,
-			utils.Unix2String(int64(p.UpdateTime)),
-			isFinished,
-		})
+		for i, p := range info.FlatArticleList {
+			table.Append([]string{strconv.Itoa(i),
+				p.IDStr, p.Title,
+				utils.Unix2String(int64(p.UpdateTime)),
+				isFinished,
+			})
+		}
 	}
 	table.Render()
 }
@@ -151,14 +165,25 @@ func courseList(category string) {
 	if err != nil {
 		return
 	}
+
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
 	table.SetAutoWrapText(false)
 
 	for i, p := range list.List {
-
+		classID := ""
+		switch category {
+		case app.CateAce:
+			fallthrough
+		case app.CateAudioBook:
+			fallthrough
+		case app.CateEbook:
+			classID = strconv.Itoa(p.ID)
+		case app.CateCourse:
+			classID = strconv.Itoa(p.ClassID)
+		}
 		table.Append([]string{strconv.Itoa(i),
-			strconv.Itoa(p.ID), p.Title, p.Author,
+			classID, p.Title, p.Author,
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
 			strconv.Itoa(p.Progress),

@@ -20,7 +20,7 @@ var ebookCmd = &cobra.Command{
 			app.EbookDetail(bookID)
 			return
 		}
-		courseList("ebook")
+		courseList(app.CateEbook)
 	},
 }
 
