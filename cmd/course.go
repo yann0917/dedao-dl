@@ -43,7 +43,7 @@ var courseCmd = &cobra.Command{
 			courseInfo(classID)
 			return
 		}
-		courseList("bauhinia")
+		courseList(app.CateCourse)
 	},
 }
 
@@ -58,7 +58,7 @@ var compassCmd = &cobra.Command{
 		if compassID > 0 {
 			return
 		}
-		courseList("compass")
+		courseList(app.CateAce)
 	},
 }
 
@@ -73,7 +73,7 @@ var odobCmd = &cobra.Command{
 		if compassID > 0 {
 			return
 		}
-		courseList("odob")
+		courseList(app.CateAudioBook)
 	},
 }
 
@@ -165,20 +165,27 @@ func courseList(category string) {
 	if err != nil {
 		return
 	}
+
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "是否完结", "学习进度"})
+	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
 	table.SetAutoWrapText(false)
 
 	for i, p := range list.List {
-		classFinished := "❌"
-		if p.ClassFinished {
-			classFinished = "✔"
+		classID := ""
+		switch category {
+		case app.CateAce:
+			fallthrough
+		case app.CateAudioBook:
+			fallthrough
+		case app.CateEbook:
+			classID = strconv.Itoa(p.ID)
+		case app.CateCourse:
+			classID = strconv.Itoa(p.ClassID)
 		}
 		table.Append([]string{strconv.Itoa(i),
-			strconv.Itoa(p.ClassID), p.Title, p.Author,
+			classID, p.Title, p.Author,
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
-			classFinished,
 			strconv.Itoa(p.Progress),
 		})
 	}

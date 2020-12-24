@@ -26,7 +26,7 @@ func CourseList(category string) (list *services.CourseList, err error) {
 
 // CourseInfo 已购课程列表
 func CourseInfo(id int) (info *services.CourseInfo, err error) {
-	courseDetail, err := getService().CourseDetail("bauhinia", id)
+	courseDetail, err := getService().CourseDetail(CateCourse, id)
 	if err != nil {
 		return
 	}

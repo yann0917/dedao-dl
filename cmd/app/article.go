@@ -10,7 +10,7 @@ import (
 
 // ArticleList 已购课程文章列表
 func ArticleList(id int) (list *services.ArticleList, err error) {
-	courseDetail, err := getService().CourseDetail("bauhinia", id)
+	courseDetail, err := getService().CourseDetail(CateCourse, id)
 	if err != nil {
 		return
 	}
@@ -28,7 +28,7 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 //
 // get article token, audio token, media security token etc
 func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
-	courseDetail, err := getService().CourseDetail("bauhinia", id)
+	courseDetail, err := getService().CourseDetail(CateCourse, id)
 	if err != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, info.ClassInfo.Enid, appid)
+	detail, err = getService().ArticleDetail(token, info.ArticleInfo.Enid, appid)
 	if err != nil {
 		fmt.Println(err)
 		return
