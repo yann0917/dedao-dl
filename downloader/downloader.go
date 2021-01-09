@@ -49,8 +49,10 @@ func Download(v Datum, stream string, path string) error {
 	if v.Type == "audio" {
 		fmt.Println(fileName)
 		err = downloadAudio(v.M3U8URL, fileName)
-		fmt.Println(err)
-		return err
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 	}
 	_, mergedFileExists, err := utils.FileSize(fileName)
 	if err != nil {

@@ -151,14 +151,14 @@ type ArticleInfo struct {
 }
 
 // ArticleList get class article list
-func (s *Service) ArticleList(id string) (list *ArticleList, err error) {
+func (s *Service) ArticleList(id string, count int) (list *ArticleList, err error) {
 	cacheFile := "articleList:" + id
 	x, ok := list.getCache(cacheFile)
 	if ok {
 		list = x.(*ArticleList)
 		return
 	}
-	body, err := s.reqArticleList(id)
+	body, err := s.reqArticleList(id, count)
 	defer body.Close()
 	if err != nil {
 		return
