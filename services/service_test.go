@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/yann0917/dedao-dl/utils"
 )
 
 var service *Service
 
 func TestMain(m *testing.M) {
-	cookie := utils.Get(baseURL)
+	// cookie := utils.Get(baseURL)
+	cookie := "ISID=538c3c9bc97227fb31290d9f54ad87cd; _sid=1ekdk2rsmmivs75orohjpkk6g2o49vpo; _guard_device_id=1epe8s675vg8Gg5c5dGvhQcgDfe9PD5FdKTkZc7; token=iXBjd6WM-ar7lw2242KOjqm4sQPm-lJViRnw; iget=eyJzZWNyZXQiOiJzVWdwSVJwc3c3QzVoY21DYVhRX1RlSnoiLCJfZXhwaXJlIjoxNjEwMTk2MzkwMzI4LCJfbWF4QWdlIjo2MDQ4MDAwMDB9; GAT=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJpZ2V0Z2V0LmNvbSIsImV4cCI6MTYxMDQ1MjkwNiwiaWF0IjoxNjEwMDIwOTA2LCJpc3MiOiJEREdXIEpXVCBNSURETEVXQVJFIiwibmJmIjoxNjEwMDIwOTA2LCJzdWIiOiIxNzk1MDMyNCIsImRldmljZV9pZCI6IjUzOGMzYzliYzk3MjI3ZmIzMTI5MGQ5ZjU0YWQ4N2NkIiwiZGV2aWNlX3R5cGUiOiJpZ2V0d2ViIn0.GH0o6ZYOCt0tSI4GzUnJnRkvJqEBOKpnI4FrFADfyN0GD0oE4-0ZwhxQ7qbXfWYCtSRN_iJ8PiZ3XqJyijhtmA; acw_tc=276082a916100771826244684e8b9b53f794448d7df554acf58703e1319d18"
 	co := &CookieOptions{}
 	ParseCookies(cookie, &co)
 	service = NewService(co)
@@ -76,7 +75,7 @@ func TestCourseInfo(t *testing.T) {
 
 func TestArticleList(t *testing.T) {
 	ID := "OY8PNZj5EavJq1aHO9Jn1eqGDdlgw7"
-	result, err := service.ArticleList(ID)
+	result, err := service.ArticleList(ID, 30)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}
@@ -131,6 +130,14 @@ func TestEbookReadToken(t *testing.T) {
 
 func TestEbookVIPInfo(t *testing.T) {
 	result, err := service.EbookVIPInfo()
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestTopicAll(t *testing.T) {
+	result, err := service.TopicAll(0, 10)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}

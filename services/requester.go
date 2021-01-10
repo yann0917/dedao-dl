@@ -44,10 +44,10 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 }
 
 // reqArticleList 请求文章列表
-func (s *Service) reqArticleList(ID string) (io.ReadCloser, error) {
+func (s *Service) reqArticleList(ID string, count int) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"chapter_id":      "",
-		"count":           30,
+		"count":           count,
 		"detail_id":       ID,
 		"include_edge":    false,
 		"is_unlearn":      false,
@@ -123,5 +123,35 @@ func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
 // reqEbookInfo 请求电子书vip info
 func (s *Service) reqEbookVIPInfo() (io.ReadCloser, error) {
 	resp, err := s.client.Request("POST", "/api/pc/ebook2/v1/vip/info")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqTopicAll 请求推荐话题列表
+func (s *Service) reqTopicAll(page, limit int) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]int{
+		"page_id": page,
+		"limit":   limit,
+	}).Request("POST", "/pc/ledgers/topic/all")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqTopicAll 请求话题详情
+func (s *Service) reqTopicDetail(topicID string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]interface{}{
+		"incr_view_count": true,
+		"topic_id_hazy":   topicID,
+	}).Request("POST", "/pc/ledgers/topic/detail")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqTopicNotesList 请求话题笔记列表
+func (s *Service) reqTopicNotesList(topicID string) (io.ReadCloser, error) {
+	resp, err := s.client.SetData(map[string]interface{}{
+		"count":         20,
+		"is_elected":    true,
+		"page_id":       0,
+		"version":       2,
+		"topic_id_hazy": topicID,
+	}).Request("POST", "/pc/ledgers/notes/list")
 	return handleHTTPResponse(resp, err)
 }

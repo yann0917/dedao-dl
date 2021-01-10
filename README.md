@@ -2,8 +2,6 @@
 
 > 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊等
 
-
-
 ## 特性
 
 * 可查看购买的课程，课程文章内容
@@ -53,7 +51,7 @@ Available Commands:
   who         查看当前登录的用户
 ```
 
-`dedao-dl login` 登录，不带任何参数的情况下，默认使用 [`go-rod/rod`](https://github.com/go-rod/rod) 从浏览器获取cookie
+`dedao-dl login` 登录，不带任何参数的情况下，默认使用 [`go-rod/rod`](https://github.com/go-rod/rod) 从浏览器获取cookie，如果无法自动获取 cookie，则使用 `dedao-dl login -c "xxxxxxxx"` 登录
 
 `dedao-dl cat` 获取课程分类
 

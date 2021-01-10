@@ -15,7 +15,8 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 		return
 	}
 	enid := courseDetail.Enid
-	list, err = getService().ArticleList(enid)
+	count := courseDetail.PublishNum
+	list, err = getService().ArticleList(enid, count)
 	if err != nil {
 		return
 	}
@@ -35,7 +36,8 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 
 	// get course enid
 	enid := courseDetail.Enid
-	list, err := getService().ArticleList(enid)
+	count := courseDetail.PublishNum
+	list, err := getService().ArticleList(enid, count)
 	if err != nil {
 		return
 	}

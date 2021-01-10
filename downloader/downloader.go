@@ -49,8 +49,10 @@ func Download(v Datum, stream string, path string) error {
 	if v.Type == "audio" {
 		fmt.Println(fileName)
 		err = downloadAudio(v.M3U8URL, fileName)
-		fmt.Println(err)
-		return err
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
 	}
 	_, mergedFileExists, err := utils.FileSize(fileName)
 	if err != nil {
@@ -276,7 +278,7 @@ func PrintToPDF(v Datum, cookies map[string]string, path string) error {
 	_, exist, err := utils.FileSize(filename)
 
 	if err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败")
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 		return err
 	}
 
@@ -288,7 +290,7 @@ func PrintToPDF(v Datum, cookies map[string]string, path string) error {
 	err = utils.ColumnPrintToPDF(v.Enid, filename, cookies)
 
 	if err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败")
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 		return err
 	}
 

@@ -55,6 +55,7 @@ func init() {
 
 // LoginedCookies cookie sting to map for chromedp print pdf
 func LoginedCookies() (cookies map[string]string) {
+	Cookie := config.Instance.ActiveUser().CookieStr
 	services.ParseCookies(Cookie, &cookies)
 	return
 }
