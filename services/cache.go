@@ -21,6 +21,9 @@ var _ Cacher = (*ArticleInfo)(nil)
 var _ Cacher = (*ArticleDetail)(nil)
 var _ Cacher = (*EbookDetail)(nil)
 var _ Cacher = (*CourseList)(nil)
+var _ Cacher = (*TopicAll)(nil)
+var _ Cacher = (*TopicDetail)(nil)
+var _ Cacher = (*NotesList)(nil)
 
 func init() {
 	Cache = cache.New(2*time.Hour, 30*time.Minute)
@@ -36,6 +39,9 @@ func gobRegister() {
 	gob.Register(&ArticleDetail{})
 	gob.Register(&EbookDetail{})
 	gob.Register(&Token{})
+	gob.Register(&TopicAll{})
+	gob.Register(&TopicDetail{})
+	gob.Register(&NotesList{})
 }
 
 // Cacher cache interface

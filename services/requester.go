@@ -127,7 +127,11 @@ func (s *Service) reqEbookVIPInfo() (io.ReadCloser, error) {
 }
 
 // reqTopicAll 请求推荐话题列表
-func (s *Service) reqTopicAll(page, limit int) (io.ReadCloser, error) {
+func (s *Service) reqTopicAll(page, limit int, all bool) (io.ReadCloser, error) {
+	if all {
+		resp, err := s.client.Request("POST", "/pc/ledgers/topic/all")
+		return handleHTTPResponse(resp, err)
+	}
 	resp, err := s.client.SetData(map[string]int{
 		"page_id": page,
 		"limit":   limit,
@@ -147,11 +151,11 @@ func (s *Service) reqTopicDetail(topicID string) (io.ReadCloser, error) {
 // reqTopicNotesList 请求话题笔记列表
 func (s *Service) reqTopicNotesList(topicID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
-		"count":         20,
+		"count":         40,
 		"is_elected":    true,
 		"page_id":       0,
 		"version":       2,
 		"topic_id_hazy": topicID,
-	}).Request("POST", "/pc/ledgers/notes/list")
+	}).Request("POST", "/pc/ledgers/topic/notes/list")
 	return handleHTTPResponse(resp, err)
 }
