@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -31,7 +30,7 @@ var downloadCmd = &cobra.Command{
 			}
 		}
 		err = download(id, aid)
-		return nil
+		return err
 	},
 }
 
@@ -123,7 +122,6 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 	audioIds := map[int]string{}
 
 	audioData := make([]*downloader.Datum, 0)
-	fmt.Println(aid)
 	for _, article := range articles.List {
 		if aid > 0 && article.ID != aid {
 			continue
@@ -139,14 +137,17 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 				Quality: key,
 			},
 		}
-
+		isCanDL := true
+		if len(article.Aduio.AliasID) == 0 {
+			isCanDL = false
+		}
 		datum := &downloader.Datum{
 			ID:        article.ID,
 			Enid:      article.Enid,
 			ClassEnid: article.ClassEnid,
 			ClassID:   article.ClassID,
 			Title:     article.Title,
-			IsCanDL:   true,
+			IsCanDL:   isCanDL,
 			M3U8URL:   article.Aduio.Mp3PlayURL,
 			Streams:   streams,
 			Type:      "audio",
