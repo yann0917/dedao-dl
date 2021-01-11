@@ -137,7 +137,25 @@ func TestEbookVIPInfo(t *testing.T) {
 }
 
 func TestTopicAll(t *testing.T) {
-	result, err := service.TopicAll(0, 10)
+	result, err := service.TopicAll(0, 10, false)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestTopicDetail(t *testing.T) {
+	id := "4qpo7LxOynVXemeY6pALW1JXrlwG6E"
+	result, err := service.TopicDetail(id)
+	if err != nil {
+		fmt.Printf("err:=%#v \n", err)
+	}
+	fmt.Printf("result:=%v \n", result)
+}
+
+func TestTopicNotesList(t *testing.T) {
+	id := "4qpo7LxOynVXemeY6pALW1JXrlwG6E"
+	result, err := service.TopicNotesList(id)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}

@@ -17,6 +17,7 @@ var (
 	articleID int
 	bookID    int
 	compassID int
+	topicID   string
 )
 
 var courseTypeCmd = &cobra.Command{
