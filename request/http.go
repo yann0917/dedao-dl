@@ -154,7 +154,7 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 			return nil, fmt.Errorf("request.Req: unknow post type: %s", h.Data)
 		}
 	}
-	fmt.Println(method, " ", requrl)
+	// fmt.Println(method, " ", requrl)
 	req, err := http.NewRequest(method, requrl, obody)
 	if err != nil {
 		return nil, err

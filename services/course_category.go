@@ -43,10 +43,10 @@ func (s *Service) CourseType() (list *CourseCategoryList, err error) {
 		return
 	}
 	body, err := s.reqCourseType()
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}

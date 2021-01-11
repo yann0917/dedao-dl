@@ -210,10 +210,10 @@ func (s *Service) CourseList(category, order string, page, limit int) (list *Cou
 		return
 	}
 	body, err := s.reqCourseList(category, order, page, limit)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
@@ -233,7 +233,7 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 	}
 
 	for _, v := range list.List {
-		if v.ClassID == id {
+		if v.ID == id {
 			detail = &v
 			return
 		}

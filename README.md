@@ -9,6 +9,7 @@
 * 可查看已购买的锦囊
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，也可生成 mp3 文件
+* 可切换登录账号
 
 ## 安装
 
@@ -49,7 +50,9 @@ Available Commands:
   help        Help about any command
   login       登录得到 pc 端 https://www.dedao.cn
   odob        获取我的听书书架
+  su          切换登录账号
   topic       获取推荐话题列表
+  users       查看登录过的用户列表
   who         查看当前登录的用户
 ```
 

@@ -14,13 +14,13 @@ var ebookCmd = &cobra.Command{
 	Args:    cobra.OnlyValidArgs,
 	Example: "dedao-dl ebook",
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("bookID", bookID)
 		if bookID > 0 {
-			app.EbookDetail(bookID)
-			return
+			return app.EbookDetail(bookID)
+
 		}
-		courseList(app.CateEbook)
+		return courseList(app.CateEbook)
 	},
 }
 

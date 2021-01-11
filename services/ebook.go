@@ -129,10 +129,10 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 		return
 	}
 	body, err := s.reqEbookDetail(enid)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
@@ -143,10 +143,10 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 // EbookReadToken get ebook read token
 func (s *Service) EbookReadToken(enid string) (t *Token, err error) {
 	body, err := s.reqEbookReadToken(enid)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &t); err != nil {
 		return
 	}
@@ -158,10 +158,10 @@ func (s *Service) EbookReadToken(enid string) (t *Token, err error) {
 // include book block, book TOC, epubPath etc
 func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
 	body, err := s.reqEbookInfo(token)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
@@ -171,10 +171,10 @@ func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
 // EbookVIPInfo get ebook vip info
 func (s *Service) EbookVIPInfo() (info *EbookVIPInfo, err error) {
 	body, err := s.reqEbookVIPInfo()
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
