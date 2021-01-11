@@ -138,10 +138,13 @@ func handleHTTPResponse(resp *http.Response, err error) (io.ReadCloser, error) {
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, errors.New("404")
+		return nil, errors.New("404 NotFound")
 	}
 	if resp.StatusCode == http.StatusBadRequest {
-		return nil, errors.New("400")
+		return nil, errors.New("400 BadRequest")
+	}
+	if resp.StatusCode == http.StatusUnauthorized {
+		return nil, errors.New("401 Unauthorized")
 	}
 	return resp.Body, nil
 }

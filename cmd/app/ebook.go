@@ -9,11 +9,12 @@ import (
 )
 
 // EbookDetail 电子书详情
-func EbookDetail(id int) {
+func EbookDetail(id int) (err error) {
 	courseDetail, err := getService().CourseDetail(CateEbook, id)
 	if err != nil {
 		return
 	}
+
 	enID := courseDetail.Enid
 	detail, err := getService().EbookDetail(enID)
 	if err != nil {

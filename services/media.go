@@ -58,10 +58,10 @@ type AudioList struct {
 // AudioByAlias get article audio info
 func (s *Service) AudioByAlias(ID string) (list *AudioList, err error) {
 	body, err := s.reqAudioByAlias(ID)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}

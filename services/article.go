@@ -159,10 +159,10 @@ func (s *Service) ArticleList(id string, count int) (list *ArticleList, err erro
 		return
 	}
 	body, err := s.reqArticleList(id, count)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
@@ -179,10 +179,10 @@ func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
 		return
 	}
 	body, err := s.reqArticleInfo(enid)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
@@ -199,10 +199,10 @@ func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail,
 		return
 	}
 	body, err := s.reqArticleDetail(token, appID)
+	defer body.Close()
 	if err != nil {
 		return
 	}
-	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
@@ -213,10 +213,10 @@ func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail,
 // ArticlePoint get article point
 func (s *Service) ArticlePoint(id string, pType int) (detail *ArticleDetail, err error) {
 	body, err := s.reqArticlePoint(id, pType)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}

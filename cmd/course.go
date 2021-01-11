@@ -27,8 +27,8 @@ var courseTypeCmd = &cobra.Command{
 	Example: "dedao-dl cat",
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
-		courseType()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return courseType()
 	},
 }
 
@@ -38,13 +38,13 @@ var courseCmd = &cobra.Command{
 	Long:    `使用 dedao-dl course 获取我购买过的课程`,
 	Example: "dedao-dl course",
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("classID", classID)
 		if classID > 0 {
-			courseInfo(classID)
-			return
+			return courseInfo(classID)
+
 		}
-		courseList(app.CateCourse)
+		return courseList(app.CateCourse)
 	},
 }
 
@@ -55,11 +55,11 @@ var compassCmd = &cobra.Command{
 	Args:    cobra.OnlyValidArgs,
 	Example: "dedao-dl ace",
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if compassID > 0 {
-			return
+			return nil
 		}
-		courseList(app.CateAce)
+		return courseList(app.CateAce)
 	},
 }
 
@@ -70,11 +70,11 @@ var odobCmd = &cobra.Command{
 	Args:    cobra.OnlyValidArgs,
 	Example: "dedao-dl odob",
 	PreRunE: AuthFunc,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if compassID > 0 {
-			return
+			return nil
 		}
-		courseList(app.CateAudioBook)
+		return courseList(app.CateAudioBook)
 	},
 }
 
@@ -98,7 +98,7 @@ func init() {
 	// is called directly, e.g.:
 }
 
-func courseType() {
+func courseType() (err error) {
 	list, err := app.CourseType()
 	if err != nil {
 		return
@@ -114,7 +114,7 @@ func courseType() {
 	table.Render()
 	return
 }
-func courseInfo(id int) {
+func courseInfo(id int) (err error) {
 	info, err := app.CourseInfo(id)
 	if err != nil {
 		return
@@ -159,9 +159,10 @@ func courseInfo(id int) {
 		}
 	}
 	table.Render()
+	return
 }
 
-func courseList(category string) {
+func courseList(category string) (err error) {
 	list, err := app.CourseList(category)
 	if err != nil {
 		return
