@@ -2,6 +2,14 @@
 
 > 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
+## 特别声明
+
+仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+
+仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+
+仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+
 ## 特性
 
 * 可查看购买的课程，课程文章内容
@@ -26,7 +34,7 @@
 
 使用如下命令安装：
 
-`go get github.com/yann0917/dedao-dl`
+`go get -u github.com/yann0917/dedao-dl`
 
 ## 使用方法
 
@@ -56,7 +64,7 @@ Available Commands:
   who         查看当前登录的用户
 ```
 
-`dedao-dl login` 登录，不带任何参数的情况下，默认使用 [`go-rod/rod`](https://github.com/go-rod/rod) 从浏览器获取cookie，如果无法自动获取 cookie，则使用 `dedao-dl login -c "xxxxxxxx"` 登录
+`dedao-dl login` 登录，不带任何参数的情况下，默认使用 [`go-rod/rod`](https://github.com/go-rod/rod) 从浏览器获取cookie. 如果无法自动获取 cookie，则使用 `dedao-dl login -c "xxxxxxxx"` 登录
 
 `dedao-dl cat` 获取课程分类
 
@@ -128,10 +136,12 @@ Available Commands:
 * [annie](https://github.com/iawia002/annie)
 * [m3u8](https://github.com/oopsguy/m3u8)
 
-仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+## Stargazers over time
 
-仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+[![Stargazers over time](https://starchart.cc/yann0917/dedao-dl.svg)](https://starchart.cc/yann0917/dedao-dl)
 
-仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
+## License
+
+[MIT](./LICENSE) © yann0917
 
 ---
