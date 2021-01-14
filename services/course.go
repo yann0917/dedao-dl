@@ -2,6 +2,8 @@ package services
 
 import (
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // Course course metadata
@@ -237,6 +239,10 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 			detail = &v
 			return
 		}
+	}
+	if detail == nil {
+		err = errors.New("You have not purchased the course, cannot get course information")
+		return
 	}
 	return
 }
