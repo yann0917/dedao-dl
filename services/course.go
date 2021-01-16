@@ -1,6 +1,8 @@
 package services
 
 import (
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -71,6 +73,7 @@ type CourseIntro struct {
 type CourseList struct {
 	List   []Course `json:"list"`
 	ISMore int      `json:"is_more"`
+	Page   int      `json:"page"`
 }
 
 // CourseInfo product intro info
@@ -203,9 +206,11 @@ type FlatArticleList struct {
 	VideoStatus    int           `json:"video_status"`
 }
 
-// CourseList get course list
+// CourseList get course list by page
 func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
-	cacheFile := "courseList:" + category
+	cacheFile := "courseList:" + category + ":" + strconv.Itoa(page)
+	list = new(CourseList)
+	list.Page = page
 	x, ok := list.getCache(cacheFile)
 	if ok {
 		list = x.(*CourseList)
@@ -223,21 +228,45 @@ func (s *Service) CourseList(category, order string, page, limit int) (list *Cou
 	return
 }
 
-// CourseDetail get course list
-func (s *Service) CourseDetail(category string, id int) (detail *Course, err error) {
+// CourseListAll get all course list
+func (s *Service) CourseListAll(category, order string) (list *CourseList, err error) {
 	count, err := s.CourseCount(category)
 	if err != nil {
 		return
 	}
-	list, err := s.CourseList(category, "study", 1, count)
+	limit := 18.0
+	page := int(math.Ceil(float64(count) / limit))
+	var lists []Course
+	for i := 1; i <= page; i++ {
+		list, err = s.CourseList(category, order, i, int(limit))
+		if err != nil {
+			return
+		}
+		lists = append(lists, list.List...)
+	}
+	list.List = lists
+	return
+}
+
+// CourseDetail get course list
+func (s *Service) CourseDetail(category string, id int) (detail *Course, err error) {
+	list, err := s.CourseListAll(category, "study")
 	if err != nil {
 		return
 	}
 
 	for _, v := range list.List {
-		if v.ID == id {
-			detail = &v
-			return
+		switch category {
+		case CateCourse:
+			if v.ClassID == id {
+				detail = &v
+				return
+			}
+		case CateAudioBook:
+			if v.ID == id {
+				detail = &v
+				return
+			}
 		}
 	}
 	if detail == nil {
@@ -277,8 +306,13 @@ func (c *CourseInfo) IsSubscribe() bool {
 	return c.ClassInfo.IsSubscribe == 1
 }
 
+// HasAudio include audio
+func (c *Course) HasAudio() bool {
+	return c.AudioDetail.LogType == "audio"
+}
+
 func (c *CourseList) getCacheKey() string {
-	return "courseList"
+	return "courseList:" + strconv.Itoa(c.Page)
 }
 
 func (c *CourseList) getCache(fileName string) (interface{}, bool) {

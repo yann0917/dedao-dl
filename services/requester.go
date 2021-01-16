@@ -44,14 +44,14 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 }
 
 // reqArticleList 请求文章列表
-func (s *Service) reqArticleList(ID string, count int) (io.ReadCloser, error) {
+func (s *Service) reqArticleList(ID string, maxID int) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]interface{}{
 		"chapter_id":      "",
-		"count":           count,
+		"count":           30,
 		"detail_id":       ID,
 		"include_edge":    false,
 		"is_unlearn":      false,
-		"max_id":          0,
+		"max_id":          maxID,
 		"max_order_num":   0,
 		"reverse":         false,
 		"since_id":        0,
