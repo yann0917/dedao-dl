@@ -146,6 +146,9 @@ func handleHTTPResponse(resp *http.Response, err error) (io.ReadCloser, error) {
 	if resp.StatusCode == http.StatusUnauthorized {
 		return nil, errors.New("401 Unauthorized")
 	}
+	if resp.StatusCode == 496 {
+		return nil, errors.New("496 NoCertificate")
+	}
 	return resp.Body, nil
 }
 
@@ -160,6 +163,8 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 	// fmt.Printf("result.C:=%#v", result.C)
 	if !result.isSuccess() {
 		//未登录或者登录凭证无效
+		err = errors.New("服务异常，请稍后重试")
+		return err
 	}
 	err = utils.UnmarshalJSON(result.C, v)
 	if err != nil {

@@ -36,7 +36,6 @@ type CourseCategoryList struct {
 // CourseType get course type list
 func (s *Service) CourseType() (list *CourseCategoryList, err error) {
 	cacheFile := "courseTypeList"
-
 	x, ok := list.getCache(cacheFile)
 	if ok {
 		list = x.(*CourseCategoryList)

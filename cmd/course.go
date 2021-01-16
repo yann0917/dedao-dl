@@ -39,7 +39,6 @@ var courseCmd = &cobra.Command{
 	Example: "dedao-dl course",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("classID", classID)
 		if classID > 0 {
 			return courseInfo(classID)
 

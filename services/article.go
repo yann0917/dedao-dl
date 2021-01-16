@@ -1,6 +1,7 @@
 package services
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -108,6 +109,7 @@ type ArticleList struct {
 	Ptype   int            `json:"ptype"`
 	PID     int            `json:"pid"`
 	Reverse bool           `json:"reverse"`
+	MaxID   int            `json:"max_id"`
 }
 
 // ArticlePoint article point note
@@ -151,14 +153,16 @@ type ArticleInfo struct {
 }
 
 // ArticleList get class article list
-func (s *Service) ArticleList(id string, count int) (list *ArticleList, err error) {
-	cacheFile := "articleList:" + id
-	x, ok := list.getCache(cacheFile)
+func (s *Service) ArticleList(id string, maxID int) (list *ArticleList, err error) {
+	cacheFile := "articleList:" + id + ":" + strconv.Itoa(maxID)
+	list = new(ArticleList)
+	list.MaxID = maxID
+	x, ok := getCache(list, cacheFile)
 	if ok {
 		list = x.(*ArticleList)
 		return
 	}
-	body, err := s.reqArticleList(id, count)
+	body, err := s.reqArticleList(id, maxID)
 	if err != nil {
 		return
 	}
@@ -166,7 +170,7 @@ func (s *Service) ArticleList(id string, count int) (list *ArticleList, err erro
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	list.setCache(cacheFile)
+	setCache(list, cacheFile)
 	return
 }
 
@@ -224,7 +228,7 @@ func (s *Service) ArticlePoint(id string, pType int) (detail *ArticleDetail, err
 }
 
 func (c *ArticleList) getCacheKey() string {
-	return "articleList"
+	return "articleList:" + strconv.Itoa(c.MaxID)
 }
 
 func (c *ArticleList) getCache(fileName string) (interface{}, bool) {

@@ -12,16 +12,8 @@ func CourseType() (list *services.CourseCategoryList, err error) {
 
 // CourseList 已购课程列表
 func CourseList(category string) (list *services.CourseList, err error) {
-	limit, _ := getService().CourseCount(category)
-	if limit > 400 {
-		limit = 400
-	}
-	list, err = getService().CourseList(category, "study", 1, limit)
-	if err != nil {
-		return
-	}
+	list, err = getService().CourseListAll(category, "study")
 	return
-
 }
 
 // CourseInfo 已购课程列表

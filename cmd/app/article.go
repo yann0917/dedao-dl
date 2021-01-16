@@ -1,7 +1,7 @@
 package app
 
 import (
-	"fmt"
+	"math"
 
 	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/services"
@@ -16,11 +16,18 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 	}
 	enid := courseDetail.Enid
 	count := courseDetail.PublishNum
-	list, err = getService().ArticleList(enid, count)
-	if err != nil {
-		return
+	page := int(math.Ceil(float64(count) / 30.0))
+	maxID := 0
+	var lists []services.ArticleIntro
+	for i := 0; i < page; i++ {
+		list, err = getService().ArticleList(enid, maxID)
+		if err != nil {
+			return
+		}
+		maxID = list.List[len(list.List)-1].ID
+		lists = append(lists, list.List...)
 	}
-
+	list.List = lists
 	return
 
 }
@@ -29,15 +36,7 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 //
 // get article token, audio token, media security token etc
 func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
-	courseDetail, err := getService().CourseDetail(CateCourse, id)
-	if err != nil {
-		return
-	}
-
-	// get course enid
-	enid := courseDetail.Enid
-	count := courseDetail.PublishNum
-	list, err := getService().ArticleList(enid, count)
+	list, err := ArticleList(id)
 	if err != nil {
 		return
 	}
@@ -52,8 +51,6 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 			aEnid = p.Enid
 		}
 	}
-	fmt.Println(aids)
-	fmt.Println(aEnid)
 	if !utils.Contains(aids, aid) {
 		err = errors.New("找不到该文章 ID，请检查输入是否正确")
 		return
@@ -76,7 +73,6 @@ func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
 	appid := "1632426125495894021"
 	detail, err = getService().ArticleDetail(token, info.ArticleInfo.Enid, appid)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	return

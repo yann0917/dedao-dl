@@ -17,6 +17,7 @@
 * 可查看已购买的锦囊
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，也可生成 mp3 文件
+* 每天听本书可下载音频
 * 可切换登录账号
 
 ## 安装
@@ -54,6 +55,7 @@ Available Commands:
   cat         获取课程分类
   course      获取我购买过课程
   dl          下载已购买课程，并转换成 PDF & 音频
+  dlo         下载每天听本书音频
   ebook       获取我的电子书架
   help        Help about any command
   login       登录得到 pc 端 https://www.dedao.cn
