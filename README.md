@@ -47,7 +47,7 @@
 
 ```bash
 # build
-docker build https://github.com/yann0917/dedao-dl.git -t dedao
+docker build https://github.com/yann0917/dedao-dl.git#main -t dedao
 
 # 登录
 docker run -v `pwd`/config.json:/app/config.json -it --rm dedao login -c "CookieString pleaseholder"
