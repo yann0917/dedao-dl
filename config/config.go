@@ -208,19 +208,11 @@ func New(configFilePath string) *ConfigsData {
 
 //GetConfigDir config file dir
 func GetConfigDir() string {
-	configDir, ok := os.LookupEnv(EnvConfigDir)
-	if ok {
-		if filepath.IsAbs(configDir) {
-			return configDir
-		}
+	configDir, err := os.Getwd()
+	if err != nil {
+		return ""
 	}
-
-	home, ok := os.LookupEnv("HOME")
-	if ok {
-		return filepath.Join(home, ".config", "dedao")
-	}
-
-	return filepath.Join("/tmp", "dedao")
+	return configDir
 }
 
 // ActiveUserService user

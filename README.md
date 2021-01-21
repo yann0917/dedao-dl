@@ -2,6 +2,8 @@
 
 > 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
+
 ## 特别声明
 
 仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
@@ -37,10 +39,40 @@
 
 `go get -u github.com/yann0917/dedao-dl`
 
+### 使用 Docker 运行
+
+> 为了加快 build 速度，`alpine` 镜像源已修改为阿里镜像。
+
+如果不想在本地安装 `ffmpeg` 和 `chromedp` 则提供了 `docker` 环境，参考以下命令构建并使用容器执行相关命令。
+
+```bash
+# build
+docker build https://github.com/yann0917/dedao-dl.git -t dedao
+
+# 登录
+docker run -v `pwd`/config.json:/app/config.json -it --rm dedao login -c "CookieString pleaseholder"
+
+docker run -v `pwd`/config.json:/app/config.json -it --rm dedao cat
+# 查看课程
+docker run -v `pwd`/config.json:/app/config.json -it --rm dedao course
+
+# 下载课程
+docker run -v `pwd`/output:/app/output -v `pwd`/config.json:/app/config.json -it --rm dedao dl xxx
+# 下载每天听本书
+docker run -v `pwd`/output:/app/output -v `pwd`/config.json:/app/config.json -it --rm dedao dlo xxx
+
+```
+
+#### 删除 `docker images` 中为 `none` 的镜像
+
+```bash
+docker ps -a | grep "Exited" | awk '{print $1 }'|xargs docker stop
+docker ps -a | grep "Exited" | awk '{print $1 }'|xargs docker rm
+docker images|grep none|awk '{print $3 }'|xargs docker rmi
+```
+
 ## 使用方法
 
-* 电脑端登录 [得到](https://www.dedao.cn)，以便生成 cookie ☆☆☆☆☆
-* 电脑端登录 [得到](https://www.dedao.cn)，以便生成 cookie ☆☆☆☆☆
 * 电脑端登录 [得到](https://www.dedao.cn)，以便生成 cookie ☆☆☆☆☆
 
 `dedao-dl -h` 可查看帮助说明，每个命令都有 `-h` 参数可查看该命令的用法
