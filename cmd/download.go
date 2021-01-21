@@ -11,6 +11,9 @@ import (
 	"github.com/yann0917/dedao-dl/utils"
 )
 
+// OutputDir OutputDir
+var OutputDir = "output"
+
 var downloadCmd = &cobra.Command{
 	Use:     "dl",
 	Short:   "下载已购买课程，并转换成 PDF & 音频",
@@ -74,7 +77,7 @@ func download(cType string, id, aid int) error {
 		}
 		downloadData := extractDownloadData(course, articles, aid)
 		errors := make([]error, 0)
-		path, err := utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "MP3")
+		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
 
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
@@ -98,7 +101,7 @@ func download(cType string, id, aid int) error {
 			return errors[0]
 		}
 		// 下载 PDF
-		path, err = utils.Mkdir(utils.FileName(course.ClassInfo.Name, ""), "PDF")
+		path, err = utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
 			return err
 		}
@@ -127,7 +130,7 @@ func download(cType string, id, aid int) error {
 		downloadData.Type = "audio"
 		downloadData.Data = extractOdobDownloadData(list, id)
 		errors := make([]error, 0)
-		path, err := utils.Mkdir(utils.FileName(fileName, ""), "MP3")
+		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
 				continue
