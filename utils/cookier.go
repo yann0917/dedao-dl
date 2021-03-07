@@ -12,7 +12,7 @@ import (
 // Get gets cookies from the user's Chrome or Edge automatically.
 // The urls is the list of URLs for which applicable cookies will be fetched.
 func Get(urls ...string) string {
-	path, has := launcher.NewBrowser().LookPath()
+	path, has := launcher.LookPath()
 
 	if !has {
 		return ""
