@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -98,13 +97,9 @@ func setCookies(cookies map[string]string) chromedp.ActionFunc {
 		expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 
 		for key, value := range cookies {
-			success, err := network.SetCookie(key, value).WithExpires(&expr).WithDomain(".dedao.cn").WithHTTPOnly(true).Do(ctx)
+			err := network.SetCookie(key, value).WithExpires(&expr).WithDomain(".dedao.cn").WithHTTPOnly(true).Do(ctx)
 			if err != nil {
 				return err
-			}
-
-			if !success {
-				return fmt.Errorf("could not set cookie %q to %q", key, value)
 			}
 		}
 		return nil
