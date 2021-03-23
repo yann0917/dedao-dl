@@ -8,10 +8,10 @@ require (
 	github.com/chromedp/chromedp v0.6.8
 	github.com/go-rod/rod v0.94.1
 	github.com/json-iterator/go v1.1.10
-	github.com/mitchellh/mapstructure v1.4.0
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	golang.org/x/sys v0.0.0-20210305230114-8fe3ee5dd75b // indirect
 )
