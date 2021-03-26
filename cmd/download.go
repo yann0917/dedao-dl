@@ -17,7 +17,7 @@ var OutputDir = "output"
 var downloadCmd = &cobra.Command{
 	Use:     "dl",
 	Short:   "下载已购买课程，并转换成 PDF & 音频",
-	Long:    `使用 dedao-dl dl 下载已购买课程，并转换成 PDF & 音频`,
+	Long:    `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频`,
 	Example: "dedao-dl dl 123",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {

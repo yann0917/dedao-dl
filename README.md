@@ -1,6 +1,6 @@
 # dedao-dl
 
-> 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
+> 🦉 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
 
@@ -52,7 +52,7 @@
 docker build https://github.com/yann0917/dedao-dl.git#main -t dedao
 
 # 登录
-docker run -v `pwd`/config.json:/app/config.json -it --rm dedao login -c "CookieString pleaseholder"
+docker run -v `pwd`/config.json:/app/config.json -it --rm dedao login -c "CookieString placeholder"
 
 docker run -v `pwd`/config.json:/app/config.json -it --rm dedao cat
 # 查看课程
@@ -88,7 +88,7 @@ Available Commands:
   article     获取文章详情
   cat         获取课程分类
   course      获取我购买过课程
-  dl          下载已购买课程，并转换成 PDF & 音频
+  dl          下载已购买课程, 并转换成 PDF & 音频
   dlo         下载每天听本书音频
   ebook       获取我的电子书架
   help        Help about any command
@@ -179,5 +179,9 @@ Available Commands:
 ## License
 
 [MIT](./LICENSE) © yann0917
+
+## Support
+
+[![jetbrains](https://s1.ax1x.com/2020/03/26/G9uQoR.png)](https://www.jetbrains.com/?from=dedao-dl)
 
 ---
