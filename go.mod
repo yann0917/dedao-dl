@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/cheggaaa/pb/v3 v3.0.7
 	github.com/chromedp/cdproto v0.0.0-20210323015217-0942afbea50e
-	github.com/chromedp/chromedp v0.6.10
+	github.com/chromedp/chromedp v0.6.12
 	github.com/go-rod/rod v0.97.2
 	github.com/json-iterator/go v1.1.10
 	github.com/mitchellh/mapstructure v1.4.1
