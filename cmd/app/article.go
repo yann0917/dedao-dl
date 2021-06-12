@@ -20,7 +20,7 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 	maxID := 0
 	var lists []services.ArticleIntro
 	for i := 0; i < page; i++ {
-		list, err = getService().ArticleList(enid, maxID)
+		list, err = getService().ArticleList(enid, "", maxID)
 		if err != nil {
 			return
 		}
@@ -30,6 +30,22 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 	list.List = lists
 	return
 
+}
+
+
+// ArticleListByChapterID 已购课程文章列表
+func ArticleListByChapterID(id int, chapterID string) (list *services.ArticleList, err error) {
+	courseDetail, err := getService().CourseDetail(CateCourse, id)
+	if err != nil {
+		return
+	}
+	enid := courseDetail.Enid
+	maxID := 0
+	list, err = getService().ArticleList(enid, chapterID, maxID)
+	if err != nil {
+		return
+	}
+	return
 }
 
 // ArticleInfo article info

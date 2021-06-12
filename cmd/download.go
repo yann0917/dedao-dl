@@ -87,7 +87,7 @@ func download(cType string, id, aid int) error {
 			if err := downloader.Download(datum, stream, path); err != nil {
 				errors = append(errors, err)
 			}
-			/// use m3u8 downloader
+			// use m3u8 downloader
 			// downloader, err := downloader.NewTask(path, datum.M3U8URL)
 			// if err != nil {
 			// 	errors = append(errors, err)

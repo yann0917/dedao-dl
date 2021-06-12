@@ -129,7 +129,7 @@ func courseInfo(id int) (err error) {
 	fmt.Fprint(out, "课程亮点："+info.ClassInfo.Highlight+"\n")
 	fmt.Fprintln(out)
 
-	table.SetHeader([]string{"#", "ID", "章节", "更新时间", "是否更新完成"})
+	table.SetHeader([]string{"#", "ID", "章节","文章标题", "更新时间", "是否更新完成"})
 	table.SetAutoWrapText(false)
 
 	if len(info.ChapterList) > 0 {
@@ -138,11 +138,23 @@ func courseInfo(id int) (err error) {
 			if p.IsFinished == 1 {
 				isFinished = "✔"
 			}
-			table.Append([]string{strconv.Itoa(i),
-				p.ClassIDStr, p.Name,
-				utils.Unix2String(int64(p.UpdateTime)),
-				isFinished,
-			})
+			articleList, err1 := app.ArticleListByChapterID(id, p.IDStr)
+			if err1 != nil {
+				err = err1
+				return
+			}
+			for _, articleBase := range articleList.List {
+				table.Append([]string{strconv.Itoa(i),
+					p.IDStr, p.Name, articleBase.Title,
+					utils.Unix2String(int64(p.UpdateTime)),
+					isFinished,
+				})
+			}
+			// table.Append([]string{strconv.Itoa(i),
+			// 	p.ClassIDStr, p.Name,
+			// 	utils.Unix2String(int64(p.UpdateTime)),
+			// 	isFinished,
+			// })
 		}
 	} else if len(info.FlatArticleList) > 0 {
 		isFinished := "❌"
@@ -151,10 +163,13 @@ func courseInfo(id int) (err error) {
 		}
 		for i, p := range info.FlatArticleList {
 			table.Append([]string{strconv.Itoa(i),
-				p.IDStr, p.Title,
+				p.IDStr, "-", p.Title,
 				utils.Unix2String(int64(p.UpdateTime)),
 				isFinished,
 			})
+		}
+		if info.HasMoreFlatArticleList {
+			fmt.Fprint(out, "⚠️  更多文章请使用 article -i 查看文章列表...\n")
 		}
 	}
 	table.Render()
