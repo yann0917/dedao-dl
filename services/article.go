@@ -48,7 +48,7 @@ type Article struct {
 type ArticleIntro struct {
 	ArticleBase
 	MediaBaseInfo []MediaBaseInfo `json:"media_base_info"`
-	Aduio         Audio           `json:"audio"`
+	Audio         Audio           `json:"audio"`
 }
 
 // ArticleBase article base info
@@ -102,14 +102,15 @@ type ArticleBase struct {
 	VideoStatus    int      `json:"video_status"`
 }
 
-// ArticleList clasee article list
+// ArticleList class article list
 type ArticleList struct {
-	List    []ArticleIntro `json:"article_list"`
-	ClassID int            `json:"class_id"`
-	Ptype   int            `json:"ptype"`
-	PID     int            `json:"pid"`
-	Reverse bool           `json:"reverse"`
-	MaxID   int            `json:"max_id"`
+	List         []ArticleIntro `json:"article_list"`
+	ClassID      int            `json:"class_id"`
+	Ptype        int            `json:"ptype"`
+	PID          int            `json:"pid"`
+	Reverse      bool           `json:"reverse"`
+	ChapterIDStr string         `json:"chapter_id"`
+	MaxID        int            `json:"max_id"`
 }
 
 // ArticlePoint article point note
@@ -153,16 +154,17 @@ type ArticleInfo struct {
 }
 
 // ArticleList get class article list
-func (s *Service) ArticleList(id string, maxID int) (list *ArticleList, err error) {
-	cacheFile := "articleList:" + id + ":" + strconv.Itoa(maxID)
+func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleList, err error) {
+	cacheFile := "articleList:" + id + ":" + chapterID + ":" + strconv.Itoa(maxID)
 	list = new(ArticleList)
 	list.MaxID = maxID
-	x, ok := getCache(list, cacheFile)
+	list.ChapterIDStr = chapterID
+	x, ok := list.getCache(cacheFile)
 	if ok {
 		list = x.(*ArticleList)
 		return
 	}
-	body, err := s.reqArticleList(id, maxID)
+	body, err := s.reqArticleList(id, chapterID, maxID)
 	if err != nil {
 		return
 	}
@@ -170,7 +172,7 @@ func (s *Service) ArticleList(id string, maxID int) (list *ArticleList, err erro
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	setCache(list, cacheFile)
+	err = list.setCache(cacheFile)
 	return
 }
 
@@ -228,7 +230,7 @@ func (s *Service) ArticlePoint(id string, pType int) (detail *ArticleDetail, err
 }
 
 func (c *ArticleList) getCacheKey() string {
-	return "articleList:" + strconv.Itoa(c.MaxID)
+	return "articleList:" + c.ChapterIDStr + ":" + strconv.Itoa(c.MaxID)
 }
 
 func (c *ArticleList) getCache(fileName string) (interface{}, bool) {

@@ -124,12 +124,16 @@ func courseInfo(id int) (err error) {
 
 	fmt.Fprint(out, "专栏名称："+info.ClassInfo.Name+"\n")
 	fmt.Fprint(out, "专栏作者："+info.ClassInfo.LecturerNameAndTitle+"\n")
-	fmt.Fprint(out, "更新进度："+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+
-		"/"+strconv.Itoa(info.ClassInfo.PhaseNum)+"\n")
+	if info.ClassInfo.PhaseNum == 0 {
+		fmt.Fprint(out, "共"+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+"讲\n")
+	} else {
+		fmt.Fprint(out, "更新进度："+strconv.Itoa(info.ClassInfo.CurrentArticleCount)+
+			"/"+strconv.Itoa(info.ClassInfo.PhaseNum)+"\n")
+	}
 	fmt.Fprint(out, "课程亮点："+info.ClassInfo.Highlight+"\n")
 	fmt.Fprintln(out)
 
-	table.SetHeader([]string{"#", "ID", "章节", "更新时间", "是否更新完成"})
+	table.SetHeader([]string{"#", "ID", "章节", "讲数", "更新时间", "是否更新完成"})
 	table.SetAutoWrapText(false)
 
 	if len(info.ChapterList) > 0 {
@@ -139,7 +143,7 @@ func courseInfo(id int) (err error) {
 				isFinished = "✔"
 			}
 			table.Append([]string{strconv.Itoa(i),
-				p.ClassIDStr, p.Name,
+				p.IDStr, p.Name, strconv.Itoa(p.PhaseNum),
 				utils.Unix2String(int64(p.UpdateTime)),
 				isFinished,
 			})
@@ -151,10 +155,13 @@ func courseInfo(id int) (err error) {
 		}
 		for i, p := range info.FlatArticleList {
 			table.Append([]string{strconv.Itoa(i),
-				p.IDStr, p.Title,
+				p.IDStr, "-", p.Title,
 				utils.Unix2String(int64(p.UpdateTime)),
 				isFinished,
 			})
+		}
+		if info.HasMoreFlatArticleList {
+			fmt.Fprint(out, "⚠️  更多文章请使用 article -i 查看文章列表...\n")
 		}
 	}
 	table.Render()

@@ -47,7 +47,7 @@ func init() {
 }
 
 func articleList(id int) {
-	list, err := app.ArticleList(id)
+	list, err := app.ArticleList(id, "")
 	if err != nil {
 		return
 	}

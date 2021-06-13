@@ -75,7 +75,7 @@ func TestCourseInfo(t *testing.T) {
 
 func TestArticleList(t *testing.T) {
 	ID := "OY8PNZj5EavJq1aHO9Jn1eqGDdlgw7"
-	result, err := service.ArticleList(ID, 30)
+	result, err := service.ArticleList(ID, "", 30)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}

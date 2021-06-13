@@ -17,7 +17,7 @@ var OutputDir = "output"
 var downloadCmd = &cobra.Command{
 	Use:     "dl",
 	Short:   "下载已购买课程，并转换成 PDF & 音频",
-	Long:    `使用 dedao-dl dl 下载已购买课程，并转换成 PDF & 音频`,
+	Long:    `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频`,
 	Example: "dedao-dl dl 123",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -71,7 +71,7 @@ func download(cType string, id, aid int) error {
 		if err != nil {
 			return err
 		}
-		articles, err := app.ArticleList(id)
+		articles, err := app.ArticleList(id, "")
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func download(cType string, id, aid int) error {
 			if err := downloader.Download(datum, stream, path); err != nil {
 				errors = append(errors, err)
 			}
-			/// use m3u8 downloader
+			// use m3u8 downloader
 			// downloader, err := downloader.NewTask(path, datum.M3U8URL)
 			// if err != nil {
 			// 	errors = append(errors, err)
@@ -181,19 +181,19 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 		if aid > 0 && article.ID != aid {
 			continue
 		}
-		audioIds[article.ID] = article.Aduio.AliasID
+		audioIds[article.ID] = article.Audio.AliasID
 
 		urls := []downloader.URL{}
 		key := article.Enid
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
-				Size:    article.Aduio.Size,
+				Size:    article.Audio.Size,
 				Quality: key,
 			},
 		}
 		isCanDL := true
-		if len(article.Aduio.AliasID) == 0 {
+		if len(article.Audio.AliasID) == 0 {
 			isCanDL = false
 		}
 		datum := &downloader.Datum{
@@ -203,7 +203,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 			ClassID:   article.ClassID,
 			Title:     article.Title,
 			IsCanDL:   isCanDL,
-			M3U8URL:   article.Aduio.Mp3PlayURL,
+			M3U8URL:   article.Audio.Mp3PlayURL,
 			Streams:   streams,
 			Type:      "audio",
 		}
@@ -231,7 +231,7 @@ func extractOdobDownloadData(lists *services.CourseList, aid int) []downloader.D
 		}
 		audioIds[article.ID] = article.AudioDetail.AliasID
 
-		urls := []downloader.URL{}
+		var urls []downloader.URL
 		key := article.Enid
 		streams := map[string]downloader.Stream{
 			key: {

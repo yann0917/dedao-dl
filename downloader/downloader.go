@@ -21,7 +21,7 @@ func progressBar(size int, prefix string) *pb.ProgressBar {
 }
 
 //Download download data
-func Download(v Datum, stream string, path string) error {
+func Download(v Datum, stream, path string) error {
 	//按大到小排序
 	v.genSortedStreams()
 
@@ -119,11 +119,11 @@ func Download(v Datum, stream string, path string) error {
 	switch v.Type {
 	case "audio":
 		err = utils.MergeAudio(parts, fileName)
-	case "vedio":
+	case "video":
 		err = utils.MergeAudioAndVideo(parts, fileName)
 	}
 
-	if v.Type != "audio" && v.Type != "vedio" {
+	if v.Type != "audio" && v.Type != "video" {
 		return nil
 	}
 
