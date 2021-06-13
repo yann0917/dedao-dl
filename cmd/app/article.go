@@ -9,7 +9,7 @@ import (
 )
 
 // ArticleList 已购课程文章列表
-func ArticleList(id int) (list *services.ArticleList, err error) {
+func ArticleList(id int, chapterID string) (list *services.ArticleList, err error) {
 	courseDetail, err := getService().CourseDetail(CateCourse, id)
 	if err != nil {
 		return
@@ -20,7 +20,7 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 	maxID := 0
 	var lists []services.ArticleIntro
 	for i := 0; i < page; i++ {
-		list, err = getService().ArticleList(enid, "", maxID)
+		list, err = getService().ArticleList(enid, chapterID, maxID)
 		if err != nil {
 			return
 		}
@@ -32,32 +32,16 @@ func ArticleList(id int) (list *services.ArticleList, err error) {
 
 }
 
-
-// ArticleListByChapterID 已购课程文章列表
-func ArticleListByChapterID(id int, chapterID string) (list *services.ArticleList, err error) {
-	courseDetail, err := getService().CourseDetail(CateCourse, id)
-	if err != nil {
-		return
-	}
-	enid := courseDetail.Enid
-	maxID := 0
-	list, err = getService().ArticleList(enid, chapterID, maxID)
-	if err != nil {
-		return
-	}
-	return
-}
-
 // ArticleInfo article info
 //
 // get article token, audio token, media security token etc
 func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
-	list, err := ArticleList(id)
+	list, err := ArticleList(id, "")
 	if err != nil {
 		return
 	}
 
-	aids := []int{}
+	var aids []int
 
 	// get article enid
 	var aEnid string

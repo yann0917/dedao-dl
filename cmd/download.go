@@ -71,7 +71,7 @@ func download(cType string, id, aid int) error {
 		if err != nil {
 			return err
 		}
-		articles, err := app.ArticleList(id)
+		articles, err := app.ArticleList(id, "")
 		if err != nil {
 			return err
 		}
@@ -181,19 +181,19 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 		if aid > 0 && article.ID != aid {
 			continue
 		}
-		audioIds[article.ID] = article.Aduio.AliasID
+		audioIds[article.ID] = article.Audio.AliasID
 
 		urls := []downloader.URL{}
 		key := article.Enid
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
-				Size:    article.Aduio.Size,
+				Size:    article.Audio.Size,
 				Quality: key,
 			},
 		}
 		isCanDL := true
-		if len(article.Aduio.AliasID) == 0 {
+		if len(article.Audio.AliasID) == 0 {
 			isCanDL = false
 		}
 		datum := &downloader.Datum{
@@ -203,7 +203,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 			ClassID:   article.ClassID,
 			Title:     article.Title,
 			IsCanDL:   isCanDL,
-			M3U8URL:   article.Aduio.Mp3PlayURL,
+			M3U8URL:   article.Audio.Mp3PlayURL,
 			Streams:   streams,
 			Type:      "audio",
 		}
@@ -231,7 +231,7 @@ func extractOdobDownloadData(lists *services.CourseList, aid int) []downloader.D
 		}
 		audioIds[article.ID] = article.AudioDetail.AliasID
 
-		urls := []downloader.URL{}
+		var urls []downloader.URL
 		key := article.Enid
 		streams := map[string]downloader.Stream{
 			key: {

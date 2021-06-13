@@ -48,7 +48,7 @@ type Article struct {
 type ArticleIntro struct {
 	ArticleBase
 	MediaBaseInfo []MediaBaseInfo `json:"media_base_info"`
-	Aduio         Audio           `json:"audio"`
+	Audio         Audio           `json:"audio"`
 }
 
 // ArticleBase article base info
@@ -102,7 +102,7 @@ type ArticleBase struct {
 	VideoStatus    int      `json:"video_status"`
 }
 
-// ArticleList clasee article list
+// ArticleList class article list
 type ArticleList struct {
 	List         []ArticleIntro `json:"article_list"`
 	ClassID      int            `json:"class_id"`

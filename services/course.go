@@ -244,6 +244,8 @@ func (s *Service) CourseListAll(category, order string) (list *CourseList, err e
 		}
 		lists = append(lists, list.List...)
 	}
+	// 启发俱乐部
+	lists = append(lists, EnlightenClub())
 	list.List = lists
 	return
 }
@@ -269,10 +271,7 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 			}
 		}
 	}
-	if detail == nil {
-		err = errors.New("You have not purchased the course, cannot get course information")
-		return
-	}
+	err = errors.New("You have not purchased the course, cannot get course information")
 	return
 }
 
@@ -347,4 +346,49 @@ func (c *CourseInfo) setCache(fileName string) error {
 	Cache.Set(cacheKey(c), c, 1*time.Hour)
 	err := SaveCacheFile(fileName)
 	return err
+}
+
+func EnlightenClub() (detail Course) {
+
+	return Course{
+		Enid:           "5L9DznlwYyOVdwasGdKmbWABv0Zk4a",
+		ID:             252,
+		Type:           0,
+		ClassType:      0,
+		ClassID:        252,
+		HasExtra:       false,
+		ClassFinished:  false,
+		Title:          "罗辑思维·启发俱乐部",
+		Intro:          "罗振宇，又称“罗胖”，得到App和罗辑思维创始人。",
+		Author:         "罗振宇·得到App创始人",
+		Icon:           "https://piccdn3.umiwi.com/img/202004/05/202004050004416065909398.jpeg",
+		CreateTime:     1472925194,
+		LastRead:       "",
+		Progress:       0,
+		Duration:       0,
+		CourseNum:      0,
+		PublishNum:     1076,
+		LogID:          "252",
+		LogType:        "free_column",
+		IsTop:          0,
+		LastActionTime: 0,
+		IsNew:          0,
+		IsFinished:     0,
+		Size:           "",
+		DdURL:          "",
+		AssetsType:     0,
+		DrmToken:       "",
+		AudioDetail:    Audio{},
+		ProductPrice:   0,
+		Price:          "0.00",
+		ProductIntro:   "",
+		HasPlayAuth:    false,
+		ExtInfo:        nil,
+		Status:         0,
+		DdExtURL:       "",
+		IsCollected:    false,
+		WendaExtInfo: struct {
+			AnswerID int `json:"answer_id"`
+		}{},
+	}
 }
