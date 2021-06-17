@@ -93,7 +93,7 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 }
 
 func setCookies(cookies map[string]string) chromedp.ActionFunc {
-	return chromedp.ActionFunc(func(ctx context.Context) error {
+	return func(ctx context.Context) error {
 		expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 
 		for key, value := range cookies {
@@ -103,7 +103,7 @@ func setCookies(cookies map[string]string) chromedp.ActionFunc {
 			}
 		}
 		return nil
-	})
+	}
 }
 
 func enableLifeCycleEvents() chromedp.ActionFunc {
