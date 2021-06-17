@@ -245,7 +245,12 @@ func (s *Service) CourseListAll(category, order string) (list *CourseList, err e
 		lists = append(lists, list.List...)
 	}
 	// 启发俱乐部
-	lists = append(lists, EnlightenClub())
+	if category == CateCourse {
+		lists = append(lists, EnlightenClub())
+	}
+	if page == 0 {
+		list = new(CourseList)
+	}
 	list.List = lists
 	return
 }
