@@ -6,7 +6,7 @@ require (
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/chromedp/cdproto v0.0.0-20210526005521-9e51b9051fd0
 	github.com/chromedp/chromedp v0.7.3
-	github.com/go-rod/rod v0.100.0
+	github.com/go-rod/rod v0.101.3
 	github.com/json-iterator/go v1.1.11
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olekukonko/tablewriter v0.0.5
