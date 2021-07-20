@@ -48,7 +48,8 @@ type Article struct {
 type ArticleIntro struct {
 	ArticleBase
 	MediaBaseInfo []MediaBaseInfo `json:"media_base_info"`
-	Audio         Audio           `json:"audio"`
+	Audio         *Audio          `json:"audio,omitempty"`
+	Video         *[]Video        `json:"video,omitempty"`
 }
 
 // ArticleBase article base info
@@ -99,7 +100,9 @@ type ArticleBase struct {
 	IsBuy          bool     `json:"is_buy"`
 	DdMediaID      int      `json:"dd_media_id"`
 	DdMediaIDStr   string   `json:"dd_media_id_str"`
-	VideoStatus    int      `json:"video_status"`
+	VideoStatus    int      `json:"video_status"` // 1-video
+	DdLiveID       int      `json:"dd_live_id"`
+	NotJoinPlan    int      `json:"not_join_plan"`
 }
 
 // ArticleList class article list

@@ -2,7 +2,7 @@ package services
 
 // MediaBaseInfo media info
 type MediaBaseInfo struct {
-	MediaType     int    `json:"media_type"`
+	MediaType     int    `json:"media_type"` // 1-audio,2-video
 	SourceID      string `json:"source_id"`
 	SecurityToken string `json:"security_token"`
 }
@@ -48,6 +48,30 @@ type Audio struct {
 	IndexImg       string `json:"index_img"`
 	Reader         string `json:"reader"`
 	ReaderName     string `json:"reader_name"`
+}
+
+type Video struct {
+	Token            string `json:"token"`
+	TokenVersion     int    `json:"token_version"`
+	CoverImg         string `json:"cover_img"`
+	DdMediaID        int64  `json:"dd_media_id"`
+	DdMediaIDStr     string `json:"dd_media_id_str"`
+	Duration         int    `json:"duration"`
+	Bitrate480       string `json:"bitrate_480"`
+	Bitrate480Size   int    `json:"bitrate_480_size"`
+	Bitrate480Audio  string `json:"bitrate_480_audio"`
+	Bitrate720       string `json:"bitrate_720"`
+	Bitrate720Size   int    `json:"bitrate_720_size"`
+	Bitrate720Audio  string `json:"bitrate_720_audio"`
+	Bitrate1080      string `json:"bitrate_1080"`
+	Bitrate1080Size  int    `json:"bitrate_1080_size"`
+	Bitrate1080Audio string `json:"bitrate_1080_audio"`
+	IsDrm            bool   `json:"is_drm"`
+	ListenProgress   int    `json:"listen_progress"`
+	ListenFinished   bool   `json:"listen_finished"`
+	LogID            string `json:"log_id"`
+	LogType          string `json:"log_type"`
+	Caption          string `json:"caption"`
 }
 
 // AudioList audio baseic info list

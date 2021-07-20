@@ -61,6 +61,7 @@ type CookieOptions struct {
 	GuardDeviceID string `json:"_guard_device_id" mapstructure:"_guard_device_id"`
 	SID           string `json:"_sid" mapstructure:"_sid"`
 	AcwTc         string `json:"acw_tc" mapstructure:"acw_tc"`
+	AliyungfTc    string `json:"aliyungf_tc"`
 	CookieStr     string `json:"cookieStr"`
 }
 
@@ -102,6 +103,11 @@ func NewService(co *CookieOptions) *Service {
 	cookies = append(cookies, &http.Cookie{
 		Name:   "token",
 		Value:  co.Token,
+		Domain: "www." + dedaoCommURL.Host,
+	})
+	cookies = append(cookies, &http.Cookie{
+		Name:   "aliyungf_tc",
+		Value:  co.AliyungfTc,
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	client.Client.Jar.SetCookies(dedaoCommURL, cookies)

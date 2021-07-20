@@ -181,34 +181,38 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 		if aid > 0 && article.ID != aid {
 			continue
 		}
-		audioIds[article.ID] = article.Audio.AliasID
 
-		urls := []downloader.URL{}
-		key := article.Enid
-		streams := map[string]downloader.Stream{
-			key: {
-				URLs:    urls,
-				Size:    article.Audio.Size,
-				Quality: key,
-			},
-		}
-		isCanDL := true
-		if len(article.Audio.AliasID) == 0 {
-			isCanDL = false
-		}
-		datum := &downloader.Datum{
-			ID:        article.ID,
-			Enid:      article.Enid,
-			ClassEnid: article.ClassEnid,
-			ClassID:   article.ClassID,
-			Title:     article.Title,
-			IsCanDL:   isCanDL,
-			M3U8URL:   article.Audio.Mp3PlayURL,
-			Streams:   streams,
-			Type:      "audio",
+		if article.VideoStatus == 0 {
+			audioIds[article.ID] = article.Audio.AliasID
+
+			var urls []downloader.URL
+			key := article.Enid
+			streams := map[string]downloader.Stream{
+				key: {
+					URLs:    urls,
+					Size:    article.Audio.Size,
+					Quality: key,
+				},
+			}
+			isCanDL := true
+			if len(article.Audio.AliasID) == 0 {
+				isCanDL = false
+			}
+			datum := &downloader.Datum{
+				ID:        article.ID,
+				Enid:      article.Enid,
+				ClassEnid: article.ClassEnid,
+				ClassID:   article.ClassID,
+				Title:     article.Title,
+				IsCanDL:   isCanDL,
+				M3U8URL:   article.Audio.Mp3PlayURL,
+				Streams:   streams,
+				Type:      "audio",
+			}
+
+			audioData = append(audioData, datum)
 		}
 
-		audioData = append(audioData, datum)
 	}
 
 	handleStreams(audioData, audioIds)
