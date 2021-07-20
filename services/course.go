@@ -78,14 +78,14 @@ type CourseList struct {
 
 // CourseInfo product intro info
 type CourseInfo struct {
-	ClassInfo              ClassInfo         `json:"class_info"`
-	Items                  []CourseIntro     `json:"items"`
-	ArticleIntro           ArticleIntro      `json:"intro_article"`
-	ChapterList            []Chapter         `json:"chapter_list"`
-	FlatArticleList        []FlatArticleList `json:"flat_article_list"`
-	UserType               string            `json:"user_type"`
-	HasMoreFlatArticleList bool              `json:"has_more_flat_article_list"`
-	IsShowGrading          bool              `json:"is_show_grading"`
+	ClassInfo              ClassInfo     `json:"class_info"`
+	Items                  []CourseIntro `json:"items"`
+	ArticleIntro           ArticleIntro  `json:"intro_article"`
+	ChapterList            []Chapter     `json:"chapter_list"`
+	FlatArticleList        []ArticleBase `json:"flat_article_list"`
+	UserType               string        `json:"user_type"`
+	HasMoreFlatArticleList bool          `json:"has_more_flat_article_list"`
+	IsShowGrading          bool          `json:"is_show_grading"`
 }
 
 // ClassInfo class info
@@ -142,6 +142,7 @@ type ClassInfo struct {
 	EstimatedShelfTime   int    `json:"estimated_shelf_time"`
 	EstimatedDownTime    int    `json:"estimated_down_time"`
 	CornerImg            string `json:"corner_img"`
+	CornerImgVertical    string `json:"corner_img_vertical"`
 	WithoutGiving        bool   `json:"without_giving"`
 	DdURL                string `json:"dd_url"`
 	PublishTime          int    `json:"publish_time"`
@@ -153,6 +154,21 @@ type ClassInfo struct {
 		IsCollected     bool `json:"is_collected"`
 		CollectionCount int  `json:"collection_count"`
 	} `json:"collection"`
+	FormalArticleCount    int    `json:"formal_article_count"`
+	VideoClass            int    `json:"video_class"`
+	VideoClassIntro       string `json:"video_class_intro"`
+	ActivityIcon          string `json:"activity_icon"`
+	ActivityTitle         string `json:"activity_title"`
+	ActivityURL           string `json:"activity_url"`
+	RealityExtraCount     int    `json:"reality_extra_count"`
+	RealityFormalCount    int    `json:"reality_formal_count"`
+	IntroArticleIds       []int  `json:"intro_article_ids"`
+	IsPreferential        int    `json:"is_preferential"`
+	IsCountDown           int    `json:"is_count_down"`
+	PreferentialStartTime int    `json:"preferential_start_time"`
+	PreferentialEndTime   int    `json:"preferential_end_time"`
+	EarlyBirdPrice        int    `json:"early_bird_price"`
+	TrialCount            int    `json:"trial_count"`
 }
 
 // FlatArticleList flat
@@ -204,6 +220,8 @@ type FlatArticleList struct {
 	DdMediaID      int           `json:"dd_media_id"`
 	DdMediaIDStr   string        `json:"dd_media_id_str"`
 	VideoStatus    int           `json:"video_status"`
+	DdLiveID       int           `json:"dd_live_id"`
+	NotJoinPlan    int           `json:"not_join_plan"`
 }
 
 // CourseList get course list by page
