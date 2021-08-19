@@ -292,6 +292,9 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 				detail = &v
 				return
 			}
+		default:
+			err = errors.New("Please make sure to enter the correct course ID")
+			return
 		}
 	}
 	err = errors.New("You have not purchased the course, cannot get course information")
@@ -307,10 +310,10 @@ func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
 		return
 	}
 	body, err := s.reqCourseInfo(enid)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}

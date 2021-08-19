@@ -21,7 +21,9 @@ var articleCmd = &cobra.Command{
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if classID > 0 && articleID == 0 {
-			articleList(classID)
+			if err := articleList(classID); err != nil {
+				return err
+			}
 		}
 
 		if articleID > 0 {
@@ -46,7 +48,7 @@ func init() {
 	// is called directly, e.g.:
 }
 
-func articleList(id int) {
+func articleList(id int) (err error) {
 	list, err := app.ArticleList(id, "")
 	if err != nil {
 		return
