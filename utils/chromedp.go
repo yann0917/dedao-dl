@@ -30,14 +30,15 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 
 	err := chromedp.Run(ctx,
 		chromedp.Tasks{
-			chromedp.Emulate(device.IPhone7),
+			chromedp.Emulate(device.IPadProlandscape),
 			enableLifeCycleEvents(),
 			setCookies(cookies),
-			navigateAndWaitFor(`https://www.dedao.cn/article/`+aid, "networkIdle"),
+			navigateAndWaitFor(`https://www.dedao.cn/courseArticle/`+aid, "networkIdle"),
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				s := `
-					document.querySelector('.iget-header-main').style.display='none';
-					document.querySelector('.article-body-wrap').style.margin="0px 50px";
+					document.querySelector('.iget-header').style.display='none';
+					document.querySelector('.pageControl').style.display='none';
+					// document.querySelector('.article-wrap').style.margin="0px 0px";
 				`
 				_, exp, err := runtime.Evaluate(s).Do(ctx)
 				if err != nil {
@@ -54,7 +55,7 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 				s := `
 					var buttons = document.getElementsByTagName('button');
 					for (var i = 0; i < buttons.length; ++i){
-						if(buttons[i].innerText === "展开侧边栏" || buttons[i].innerText === "设置文本"){
+						if(buttons[i].innerText === " 展开目录 " || buttons[i].innerText === " 设置文本 "){
 							buttons[i].parentNode.style.display="none";
 							break;
 						}

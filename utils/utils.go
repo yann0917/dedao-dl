@@ -111,7 +111,7 @@ func M3u8URLs(uri string) (urls []string, err error) {
 				if err != nil {
 					continue
 				}
-				urls = append(urls, fmt.Sprintf("%s", base.ResolveReference(u)))
+				urls = append(urls, base.ResolveReference(u).String())
 			}
 		}
 	}

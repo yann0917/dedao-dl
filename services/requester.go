@@ -73,8 +73,9 @@ func (s *Service) reqArticleInfo(ID string) (io.ReadCloser, error) {
 // reqArticleDetail 请求文章详情
 func (s *Service) reqArticleDetail(token, appID string) (io.ReadCloser, error) {
 	resp, err := s.client.SetData(map[string]string{
-		"token": token,
-		"appid": appID,
+		"token":  token,
+		"appid":  appID,
+		"is_new": "1",
 	}).Request("GET", "/pc/ddarticle/v1/article/get/v2")
 	return handleHTTPResponse(resp, err)
 }

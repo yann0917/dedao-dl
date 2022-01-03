@@ -202,10 +202,11 @@ func (s *Service) TopicNotesList(id string) (list *NotesList, err error) {
 		return
 	}
 	body, err := s.reqTopicNotesList(id)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
+
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
