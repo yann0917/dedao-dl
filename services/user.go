@@ -23,11 +23,11 @@ type VIPUser struct {
 // User get user info
 func (s *Service) User() (user *User, err error) {
 	body, err := s.reqUser()
-	defer body.Close()
 	if err != nil {
 		err = errors.Wrap(err, "request user err")
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &user); err != nil {
 		return
 	}
@@ -42,11 +42,11 @@ type Token struct {
 // Token get token
 func (s *Service) Token() (t *Token, err error) {
 	body, err := s.reqToken()
-	defer body.Close()
 	if err != nil {
 		err = errors.Wrap(err, "request token err")
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &t); err != nil {
 		return
 	}

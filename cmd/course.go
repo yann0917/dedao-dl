@@ -194,7 +194,7 @@ func courseList(category string) (err error) {
 			classID, p.Title, p.Author,
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
-			strconv.Itoa(p.Progress),
+			strconv.Itoa(p.Progress) + "%",
 		})
 	}
 	table.Render()

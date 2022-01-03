@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/pkg/errors"
@@ -35,7 +36,7 @@ func ArticleList(id int, chapterID string) (list *services.ArticleList, err erro
 // ArticleInfo article info
 //
 // get article token, audio token, media security token etc
-func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
+func ArticleInfo(id, aid int) (info *services.ArticleInfo, aEnid string, err error) {
 	list, err := ArticleList(id, "")
 	if err != nil {
 		return
@@ -44,7 +45,6 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 	var aids []int
 
 	// get article enid
-	var aEnid string
 	for _, p := range list.List {
 		aids = append(aids, p.ID)
 		if p.ClassID == id && p.ID == aid {
@@ -65,14 +65,15 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, err error) {
 
 // ArticleDetail article detail
 func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
-	info, err := ArticleInfo(id, aid)
+	info, aEnid, err := ArticleInfo(id, aid)
 	if err != nil {
 		return
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, info.ArticleInfo.Enid, appid)
+	detail, err = getService().ArticleDetail(token, aEnid, appid)
 	if err != nil {
+		fmt.Printf("err:%#v\n", err)
 		return
 	}
 	return

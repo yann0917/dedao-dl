@@ -323,7 +323,7 @@ func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
 
 // HasAudio include audio
 func (c *CourseInfo) HasAudio() bool {
-	return c.ClassInfo.WithoutAudio == false
+	return !c.ClassInfo.WithoutAudio
 }
 
 // IsSubscribe Is Subscribe

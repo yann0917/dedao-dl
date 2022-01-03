@@ -17,7 +17,7 @@ var OutputDir = "output"
 var downloadCmd = &cobra.Command{
 	Use:     "dl",
 	Short:   "下载已购买课程，并转换成 PDF & 音频",
-	Long:    `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频`,
+	Long:    `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频 & markdown`,
 	Example: "dedao-dl dl 123",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -78,7 +78,9 @@ func download(cType string, id, aid int) error {
 		downloadData := extractDownloadData(course, articles, aid)
 		errors := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
-
+		if err != nil {
+			return err
+		}
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
 				continue
@@ -100,6 +102,7 @@ func download(cType string, id, aid int) error {
 		if len(errors) > 0 {
 			return errors[0]
 		}
+
 		// 下载 PDF
 		path, err = utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
@@ -118,6 +121,14 @@ func download(cType string, id, aid int) error {
 		if len(errors) > 0 {
 			return errors[0]
 		}
+
+		// 下载 Markdown
+		path, err = utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MD")
+		if err != nil {
+			return err
+		}
+		DownloadMarkdown(app.CateCourse, id, path)
+
 	case app.CateAudioBook:
 		list, err := app.CourseList(cType)
 		if err != nil {
@@ -131,6 +142,9 @@ func download(cType string, id, aid int) error {
 		downloadData.Data = extractOdobDownloadData(list, id)
 		errors := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
+		if err != nil {
+			return err
+		}
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
 				continue
@@ -245,7 +259,7 @@ func extractOdobDownloadData(lists *services.CourseList, aid int) []downloader.D
 			},
 		}
 		isCanDL := true
-		if article.HasPlayAuth == false {
+		if !article.HasPlayAuth {
 			isCanDL = false
 		}
 		datum := &downloader.Datum{

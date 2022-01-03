@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/olekukonko/tablewriter"
@@ -82,10 +83,99 @@ func articleDetail(id, aid int) (err error) {
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)
 
-	var content services.Content
+	var content []services.Content
 	jsoniter.UnmarshalFromString(detail.Content, &content)
-	fmt.Fprint(out, content.Plaintext)
+	fmt.Fprint(out, contentsToMarkdown(content))
 	fmt.Fprintln(out)
 	table.Render()
 	return
+}
+
+func contentsToMarkdown(contents []services.Content) (res string) {
+	for _, content := range contents {
+		switch content.Type {
+		case "audio":
+			title := strings.TrimRight(content.Title, ".mp3")
+			res += getMdHeader(1) + title + "\r\n\r\n"
+
+		case "header":
+			res += getMdHeader(content.Level) + content.Text + "\r\n\r\n"
+		case "paragraph":
+			for _, item := range content.Contents {
+				subContent := strings.Trim(item.Text.Content, " ")
+				switch item.Type {
+				case "text":
+					if item.Text.Bold {
+						res += " **" + subContent + "** "
+					} else if item.Text.Highlight {
+						res += " *" + subContent + "* "
+					} else {
+						res += subContent
+					}
+				}
+			}
+			res = strings.Trim(res, " ")
+			res += "\r\n\r\n"
+		case "elite": // 划重点
+			res += getMdHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
+
+		case "image":
+			res += "![" + content.URL + "](" + content.URL + ")" + "\r\n\r\n"
+		case "label-group":
+			res += getMdHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
+		}
+	}
+
+	res += "---\r\n"
+	return
+}
+
+func getMdHeader(level int) string {
+	switch level {
+	case 1:
+		return "# "
+	case 2:
+		return "## "
+	case 3:
+		return "### "
+	case 4:
+		return "#### "
+	case 5:
+		return "##### "
+	case 6:
+		return "###### "
+	default:
+		return ""
+	}
+}
+
+func DownloadMarkdown(cType string, id int, filePath string) error {
+	switch cType {
+	case app.CateCourse:
+		list, err := app.ArticleList(id, "")
+		if err != nil {
+			return err
+		}
+		for _, v := range list.List {
+			detail, err := app.ArticleDetail(id, v.ID)
+			if err != nil {
+				return err
+			}
+			var content []services.Content
+			jsoniter.UnmarshalFromString(detail.Content, &content)
+			res := contentsToMarkdown(content)
+			f, err := os.OpenFile(filePath+"/"+v.Title+".md", os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				fmt.Println("Error opening file")
+				return err
+			}
+			defer f.Close()
+			f.WriteString(res)
+		}
+	case app.CateAudioBook:
+
+	}
+
+	return nil
+
 }

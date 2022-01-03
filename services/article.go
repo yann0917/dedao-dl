@@ -14,21 +14,46 @@ type ArticleDetail struct {
 
 // Content article Content
 type Content struct {
-	Title        string        `json:"title"`
-	TemplateType string        `json:"templateType"`
-	Content      []interface{} `json:"content"`
-	Plaintext    string        `json:"plaintext"`
-	CoverImage   string        `json:"coverImage"`
-	CSSLink      string        `json:"cssLink"`
-	Author       struct {
-		Name   string `json:"name"`
-		Avatar string `json:"avatar"`
-	} `json:"author"`
-	Message struct {
-		Title     string `json:"title"`
-		WriteText string `json:"writeText"`
-		Tips      string `json:"tips"`
-	} `json:"message"`
+	Aid      string `json:"aid"`
+	AliasID  string `json:"aliasId"`
+	Contents []struct {
+		Text struct {
+			Bold      bool   `json:"bold"`
+			Content   string `json:"content"`
+			Highlight bool   `json:"highlight"`
+		} `json:"text"`
+		Type string `json:"type"`
+	} `json:"contents"`
+	Desc     string   `json:"desc"`
+	Duration int64    `json:"duration"`
+	Height   int64    `json:"height"`
+	Jump     string   `json:"jump"`
+	Justify  string   `json:"justify"`
+	Legend   string   `json:"legend"`
+	Level    int      `json:"level"`
+	Size     int64    `json:"size"`
+	Text     string   `json:"text"`
+	Title    string   `json:"title"`
+	Type     string   `json:"type"`
+	URL      string   `json:"url"`
+	Width    int64    `json:"width"`
+	Labels   []string `json:"labels"`
+
+	// Title        string        `json:"title"`
+	// TemplateType string        `json:"templateType"`
+	// Content      []interface{} `json:"content"`
+	// Plaintext    string        `json:"plaintext"`
+	// CoverImage   string        `json:"coverImage"`
+	// CSSLink      string        `json:"cssLink"`
+	// Author       struct {
+	// 	Name   string `json:"name"`
+	// 	Avatar string `json:"avatar"`
+	// } `json:"author"`
+	// Message struct {
+	// 	Title     string `json:"title"`
+	// 	WriteText string `json:"writeText"`
+	// 	Tips      string `json:"tips"`
+	// } `json:"message"`
 }
 
 // Article metadata
@@ -181,12 +206,12 @@ func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleLis
 
 // ArticleInfo get article info
 func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
-	cacheFile := "articleInfo:" + enid
-	x, ok := info.getCache(cacheFile)
-	if ok {
-		info = x.(*ArticleInfo)
-		return
-	}
+	// cacheFile := "articleInfo:" + enid
+	// x, ok := info.getCache(cacheFile)
+	// if ok {
+	// 	info = x.(*ArticleInfo)
+	// 	return
+	// }
 	body, err := s.reqArticleInfo(enid)
 	if err != nil {
 		return
@@ -195,27 +220,27 @@ func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
-	info.setCache(cacheFile)
+	// err = info.setCache(cacheFile)
 	return
 }
 
 // ArticleDetail get article detail
 func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail, err error) {
-	cacheFile := "articleDetail:" + id
-	x, ok := detail.getCache(cacheFile)
-	if ok {
-		detail = x.(*ArticleDetail)
-		return
-	}
+	// cacheFile := "articleDetail:" + id
+	// x, ok := detail.getCache(cacheFile)
+	// if ok {
+	// 	detail = x.(*ArticleDetail)
+	// 	return
+	// }
 	body, err := s.reqArticleDetail(token, appID)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
-	detail.setCache(cacheFile)
+	// err = detail.setCache(cacheFile)
 	return
 }
 
