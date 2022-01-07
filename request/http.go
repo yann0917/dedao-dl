@@ -174,10 +174,10 @@ func (h *HTTPClient) Request(method, URL string) (*http.Response, error) {
 // HTTPGet http get request
 func HTTPGet(url string) (body []byte, err error) {
 	r, err := Get(url)
-	defer r.Close()
 	if err != nil {
-
+		return
 	}
+	defer r.Close()
 	body, err = ioutil.ReadAll(r)
 	if err != nil {
 		return
@@ -202,10 +202,10 @@ func Get(url string) (io.ReadCloser, error) {
 func Headers(url string) (http.Header, error) {
 	client := NewClient(url)
 	resp, err := client.Request("GET", "")
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	return resp.Header, nil
 }
 

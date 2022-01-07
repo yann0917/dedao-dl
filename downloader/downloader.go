@@ -79,7 +79,7 @@ func Download(v Datum, stream, path string) error {
 		return nil
 	}
 
-	wgp := utils.NewWaitGroupPool(30)
+	wgp := utils.NewWaitGroupPool(10)
 
 	errs := make([]error, 0)
 	lock := sync.Mutex{}

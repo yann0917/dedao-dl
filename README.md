@@ -236,6 +236,8 @@ Available Commands:
 +----+-------+----------------------------------------------------------+---------------------+----------+
 ```
 
+`dedao-dl dl 123 -t 1` 下载课程ID 123 的所有课程, -t 下载格式, 1:mp3, 2:PDF文档, 3:markdown文档 (default 1)
+
 ## References
 
 * [geektime-dl](https://github.com/mmzou/geektime-dl)

@@ -14,14 +14,15 @@ import (
 // OutputDir OutputDir
 var OutputDir = "output"
 
+var downloadType int
 var downloadCmd = &cobra.Command{
-	Use:     "dl",
-	Short:   "下载已购买课程，并转换成 PDF & 音频",
-	Long:    `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频 & markdown`,
-	Example: "dedao-dl dl 123",
+	Use:   "dl",
+	Short: "下载已购买课程，并转换成 PDF & 音频",
+	Long: `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频 & markdown
+-t 指定下载格式, 1:mp3, 2:PDF文档, 3:markdown文档, 默认 mp3`,
+	Example: "dedao-dl dl 123 -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
 			return errors.New("课程ID错误")
@@ -62,6 +63,7 @@ var dlOdobCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(downloadCmd)
 	rootCmd.AddCommand(dlOdobCmd)
+	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 }
 
 func download(cType string, id, aid int) error {
@@ -75,59 +77,67 @@ func download(cType string, id, aid int) error {
 		if err != nil {
 			return err
 		}
-		downloadData := extractDownloadData(course, articles, aid)
-		errors := make([]error, 0)
-		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
-		if err != nil {
-			return err
-		}
-		for _, datum := range downloadData.Data {
-			if !datum.IsCanDL {
-				continue
-			}
-			stream := datum.Enid
-			if err := downloader.Download(datum, stream, path); err != nil {
-				errors = append(errors, err)
-			}
-			// use m3u8 downloader
-			// downloader, err := downloader.NewTask(path, datum.M3U8URL)
-			// if err != nil {
-			// 	errors = append(errors, err)
-			// }
-			// outName := datum.Title + ".mp3"
-			// if err := downloader.Start(25, outName); err != nil {
-			// 	errors = append(errors, err)
-			// }
-		}
-		if len(errors) > 0 {
-			return errors[0]
-		}
 
-		// 下载 PDF
-		path, err = utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
-		if err != nil {
-			return err
-		}
+		switch downloadType {
+		case 1: // mp3
+			downloadData := extractDownloadData(course, articles, aid, 1)
+			errors := make([]error, 0)
 
-		cookies := LoginedCookies()
-		for _, datum := range downloadData.Data {
-			if !datum.IsCanDL {
-				continue
+			path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
+			if err != nil {
+				return err
 			}
-			if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-				errors = append(errors, err)
-			}
-		}
-		if len(errors) > 0 {
-			return errors[0]
-		}
 
-		// 下载 Markdown
-		path, err = utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MD")
-		if err != nil {
-			return err
+			for _, datum := range downloadData.Data {
+				if !datum.IsCanDL {
+					continue
+				}
+				stream := datum.Enid
+				if err := downloader.Download(datum, stream, path); err != nil {
+					errors = append(errors, err)
+				}
+				// use m3u8 downloader
+				// downloader, err := downloader.NewTask(path, datum.M3U8URL)
+				// if err != nil {
+				// 	fmt.Println(err)
+				// 	errors = append(errors, err)
+				// }
+				// outName := datum.Title + ".mp3"
+				// if err := downloader.Start(20, outName); err != nil {
+				// 	errors = append(errors, err)
+				// }
+			}
+			if len(errors) > 0 {
+				return errors[0]
+			}
+		case 2:
+			// 下载 PDF
+			downloadData := extractDownloadData(course, articles, aid, 2)
+			errors := make([]error, 0)
+
+			path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
+			if err != nil {
+				return err
+			}
+
+			cookies := LoginedCookies()
+			for _, datum := range downloadData.Data {
+				if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+					errors = append(errors, err)
+				}
+			}
+			if len(errors) > 0 {
+				return errors[0]
+			}
+		case 3:
+
+			// 下载 Markdown
+			path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MD")
+			if err != nil {
+				return err
+			}
+			DownloadMarkdown(app.CateCourse, id, path)
 		}
-		DownloadMarkdown(app.CateCourse, id, path)
 
 	case app.CateAudioBook:
 		list, err := app.CourseList(cType)
@@ -153,7 +163,7 @@ func download(cType string, id, aid int) error {
 			if err := downloader.Download(datum, stream, path); err != nil {
 				errors = append(errors, err)
 			}
-			/// use m3u8 downloader
+			// use m3u8 downloader
 			// downloader, err := downloader.NewTask(path, datum.M3U8URL)
 			// if err != nil {
 			// 	errors = append(errors, err)
@@ -171,7 +181,7 @@ func download(cType string, id, aid int) error {
 }
 
 //生成下载数据
-func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int) downloader.Data {
+func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int, flag int) downloader.Data {
 
 	downloadData := downloader.Data{
 		Title: course.ClassInfo.Name,
@@ -179,14 +189,14 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 
 	if course.HasAudio() {
 		downloadData.Type = "audio"
-		downloadData.Data = extractCourseDownloadData(articles, aid)
+		downloadData.Data = extractCourseDownloadData(articles, aid, flag)
 	}
 
 	return downloadData
 }
 
 //生成课程下载数据
-func extractCourseDownloadData(articles *services.ArticleList, aid int) []downloader.Datum {
+func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
 
@@ -196,7 +206,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 			continue
 		}
 
-		if article.VideoStatus == 0 {
+		if article.VideoStatus == 0 && len(article.AudioAliasIds) > 0 {
 			audioIds[article.ID] = article.Audio.AliasID
 
 			var urls []downloader.URL
@@ -229,7 +239,9 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int) []downlo
 
 	}
 
-	handleStreams(audioData, audioIds)
+	if flag == 1 {
+		handleStreams(audioData, audioIds)
+	}
 
 	for _, d := range audioData {
 		data = append(data, *d)
