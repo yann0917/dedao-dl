@@ -20,9 +20,9 @@ func progressBar(size int, prefix string) *pb.ProgressBar {
 	return bar
 }
 
-//Download download data
+// Download download data
 func Download(v Datum, stream, path string) error {
-	//按大到小排序
+	// 按大到小排序
 	v.genSortedStreams()
 
 	title := utils.FileName(v.Title, "")
@@ -34,7 +34,7 @@ func Download(v Datum, stream, path string) error {
 		return fmt.Errorf("指定要下载的类型不存在：%s", stream)
 	}
 
-	//判断下载连接是否存在
+	// 判断下载连接是否存在
 	if len(data.URLs) == 0 {
 		return nil
 	}
@@ -135,7 +135,7 @@ func downloadAudio(m3u8 string, fname string) (err error) {
 	return
 }
 
-// Save save url file
+// Save url file
 func Save(
 	urlData URL, fileName string, bar *pb.ProgressBar, chunkSizeMB int,
 ) error {
@@ -267,7 +267,7 @@ func writeFile(
 	return int(written), nil
 }
 
-//PrintToPDF print to pdf
+// PrintToPDF print to pdf
 func PrintToPDF(v Datum, cookies map[string]string, path string) error {
 
 	name := utils.FileName(v.Title, "pdf")

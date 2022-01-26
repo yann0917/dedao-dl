@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine3.13 AS builder
+FROM golang:1.17-alpine3.15 AS builder
 
 LABEL stage=gobuilder
 
@@ -23,16 +23,16 @@ RUN CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -a -o dedao-
     && upx dedao-dl \
     && chmod a+x ./dedao-dl
 
-FROM alpine:3.13
+FROM alpine:3.15
 
 # Installs latest ffmpeg, Chromium and chinese font.
-RUN echo @3.13 http://mirrors.aliyun.com/alpine/v3.13/community > /etc/apk/repositories \
-    && echo @3.13 http://mirrors.aliyun.com/alpine/v3.13/main >> /etc/apk/repositories \
-    && echo @edge http://mirrors.aliyun.com/alpine/edge/testing >> /etc/apk/repositories \
+RUN echo @3.15 https://mirrors.aliyun.com/alpine/v3.15/community > /etc/apk/repositories \
+    && echo @3.15 https://mirrors.aliyun.com/alpine/v3.15/main >> /etc/apk/repositories \
+    && echo @edge https://mirrors.aliyun.com/alpine/edge/testing >> /etc/apk/repositories \
     && apk update \
-    && apk add --no-cache ffmpeg@3.13 tzdata@3.13 chromium@3.13 \
-    && apk add --no-cache --allow-untrusted harfbuzz@3.13 nss@3.13 freetype@3.13 \
-    ttf-freefont@3.13 wqy-zenhei@edge \
+    && apk add --no-cache ffmpeg@3.15 tzdata@3.15 chromium@3.15 \
+    && apk add --no-cache --allow-untrusted harfbuzz@3.15 nss@3.15 freetype@3.15 \
+    ttf-freefont@3.15 wqy-zenhei@edge \
     && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && rm -rf /var/cache/apk/*
 

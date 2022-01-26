@@ -10,14 +10,14 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-//URL for url information
+// URL for url information
 type URL struct {
 	URL  string `json:"url"`
 	Size int    `json:"size"`
 	Ext  string `json:"ext"`
 }
 
-//Stream data
+// Stream data
 type Stream struct {
 	URLs    []URL  `json:"urls"`
 	Size    int    `json:"size"`
@@ -25,7 +25,7 @@ type Stream struct {
 	name    string
 }
 
-//Datum download information
+// Datum download information
 type Datum struct {
 	ID        int    `json:"id"`
 	ClassID   int    `json:"class_id"`
@@ -40,27 +40,27 @@ type Datum struct {
 	sortedStreams []Stream
 }
 
-//Data 课程信息
+// Data 课程信息
 type Data struct {
 	Title string  `json:"title"`
 	Type  string  `json:"type"`
 	Data  []Datum `json:"articles"`
 }
 
-//VideoMediaMap 视频大小信息
+// VideoMediaMap 视频大小信息
 type VideoMediaMap struct {
 	Size int `json:"size"`
 }
 
-//AudioMediaMap 音频频大小信息
+// AudioMediaMap 音频频大小信息
 type AudioMediaMap struct {
 	Size int `json:"size"`
 }
 
-//EmptyData empty data list
+// EmptyData empty data list
 var EmptyData = make([]Datum, 0)
 
-//PrintInfo print info
+// PrintInfo print info
 func (data *Data) PrintInfo() {
 	if len(data.Data) == 0 {
 		fmt.Println(data.Type + "目录为空")

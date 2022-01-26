@@ -130,13 +130,14 @@ func download(cType string, id, aid int) error {
 				return errors[0]
 			}
 		case 3:
-
 			// 下载 Markdown
 			path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MD")
 			if err != nil {
 				return err
 			}
-			DownloadMarkdown(app.CateCourse, id, path)
+			if err := DownloadMarkdown(app.CateCourse, id, path); err != nil {
+				return err
+			}
 		}
 
 	case app.CateAudioBook:
@@ -180,7 +181,7 @@ func download(cType string, id, aid int) error {
 	return nil
 }
 
-//生成下载数据
+// 生成下载数据
 func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int, flag int) downloader.Data {
 
 	downloadData := downloader.Data{
@@ -195,7 +196,7 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 	return downloadData
 }
 
-//生成课程下载数据
+// 生成课程下载数据
 func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
@@ -249,7 +250,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 	return data
 }
 
-//生成 AudioBook 下载数据
+// 生成 AudioBook 下载数据
 func extractOdobDownloadData(lists *services.CourseList, aid int) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
