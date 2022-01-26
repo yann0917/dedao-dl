@@ -14,7 +14,7 @@ import (
 	"github.com/chromedp/chromedp/device"
 )
 
-//ColumnPrintToPDF print pdf
+// ColumnPrintToPDF print pdf
 func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) error {
 	var buf []byte
 	// create chrome instance

@@ -159,17 +159,25 @@ func DownloadMarkdown(cType string, id int, filePath string) error {
 		for _, v := range list.List {
 			detail, err := app.ArticleDetail(id, v.ID)
 			if err != nil {
+				fmt.Println(err.Error())
 				return err
 			}
 			var content []services.Content
-			jsoniter.UnmarshalFromString(detail.Content, &content)
+			err = jsoniter.UnmarshalFromString(detail.Content, &content)
+			if err != nil {
+				return err
+			}
 			res := contentsToMarkdown(content)
 			f, err := os.OpenFile(filePath+"/"+v.Title+".md", os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				fmt.Println("Error opening file")
 				return err
 			}
-			defer f.Close()
+			if err = f.Close(); err != nil {
+				if err != nil {
+					return err
+				}
+			}
 			f.WriteString(res)
 		}
 	case app.CateAudioBook:

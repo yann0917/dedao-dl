@@ -22,11 +22,11 @@ const (
 var (
 	configFilePath = filepath.Join(GetConfigDir(), ConfigName)
 
-	//Instance 配置信息 全局调用
+	// Instance 配置信息 全局调用
 	Instance = New(configFilePath)
 )
 
-//DedaoUsers dedao user
+// DedaoUsers user
 type DedaoUsers []*Dedao
 
 // ConfigsData Configs data
@@ -46,22 +46,22 @@ type configJSONExport struct {
 	Users     DedaoUsers
 }
 
-//Init 初始化配置
+// Init 初始化配置
 func (c *ConfigsData) Init() error {
 	if c.configFilePath == "" {
 		return errors.New("配置文件未找到")
 	}
 
-	//初始化默认配置
+	// 初始化默认配置
 	c.initDefaultConfig()
-	//从配置文件中加载配置
+	// 从配置文件中加载配置
 	err := c.loadConfigFromFile()
 	if err != nil {
 		return err
 	}
 
-	//初始化登陆用户信息
-	err = c.initactiveUser()
+	// 初始化登陆用户信息
+	err = c.initActiveUser()
 	if err != nil {
 		return nil
 	}
@@ -72,8 +72,9 @@ func (c *ConfigsData) Init() error {
 
 	return nil
 }
-func (c *ConfigsData) initactiveUser() error {
-	//如果已经初始化过，则跳过
+
+func (c *ConfigsData) initActiveUser() error {
+	// 如果已经初始化过，则跳过
 	if c.AcitveUID != "" && c.activeUser != nil && c.activeUser.UIDHazy == c.AcitveUID {
 		return nil
 	}
@@ -99,7 +100,7 @@ func (c *ConfigsData) initactiveUser() error {
 	return errors.New("未登陆")
 }
 
-//Save 保存配置
+// Save 保存配置
 func (c *ConfigsData) Save() error {
 	err := c.lazyOpenConfigFile()
 	if err != nil {
@@ -140,7 +141,7 @@ func (c *ConfigsData) Save() error {
 }
 
 func (c *ConfigsData) initDefaultConfig() {
-	//todo 默认配置
+	// todo 默认配置
 }
 
 func (c *ConfigsData) loadConfigFromFile() error {
@@ -166,7 +167,7 @@ func (c *ConfigsData) loadConfigFromFile() error {
 		return nil
 	}
 
-	//从配置文件中加载配置
+	// 从配置文件中加载配置
 	decoder := jsoniter.NewDecoder(c.configFile)
 	var conf configJSONExport
 	decoder.Decode(&conf)
@@ -197,7 +198,7 @@ func (c *ConfigsData) lazyOpenConfigFile() (err error) {
 	return
 }
 
-//New new config
+// New config
 func New(configFilePath string) *ConfigsData {
 	c := &ConfigsData{
 		configFilePath: configFilePath,
@@ -206,7 +207,7 @@ func New(configFilePath string) *ConfigsData {
 	return c
 }
 
-//GetConfigDir config file dir
+// GetConfigDir config file dir
 func GetConfigDir() string {
 	configDir, err := os.Getwd()
 	if err != nil {
@@ -223,7 +224,7 @@ func (c *ConfigsData) ActiveUserService() *services.Service {
 	return c.service
 }
 
-//SetUser set user
+// SetUser set user
 func (c *ConfigsData) SetUser(u *Dedao) (*Dedao, error) {
 	ser := services.NewService(&u.CookieOptions)
 	user, err := ser.User()
@@ -246,7 +247,7 @@ func (c *ConfigsData) SetUser(u *Dedao) (*Dedao, error) {
 	return dedao, nil
 }
 
-//DeleteUser delete
+// DeleteUser delete
 func (c *ConfigsData) DeleteUser(u *User) {
 	for k, user := range c.Users {
 		if user.UIDHazy == u.UIDHazy {
@@ -256,7 +257,7 @@ func (c *ConfigsData) DeleteUser(u *User) {
 	}
 }
 
-//ActiveUser active user
+// ActiveUser active user
 func (c *ConfigsData) ActiveUser() *Dedao {
 	return c.activeUser
 }
@@ -266,12 +267,12 @@ func (c *ConfigsData) setActiveUser(u *Dedao) {
 	c.activeUser = u
 }
 
-//LoginUserCount 登录用户数量
+// LoginUserCount 登录用户数量
 func (c *ConfigsData) LoginUserCount() int {
 	return len(c.Users)
 }
 
-//SwitchUser switch user
+// SwitchUser switch user
 func (c *ConfigsData) SwitchUser(u *User) error {
 	for _, user := range c.Users {
 		if user.UIDHazy == u.UIDHazy {
