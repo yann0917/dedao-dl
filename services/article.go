@@ -14,46 +14,33 @@ type ArticleDetail struct {
 
 // Content article Content
 type Content struct {
-	Aid      string `json:"aid"`
-	AliasID  string `json:"aliasId"`
-	Contents []struct {
-		Text struct {
-			Bold      bool   `json:"bold"`
-			Content   string `json:"content"`
-			Highlight bool   `json:"highlight"`
-		} `json:"text"`
-		Type string `json:"type"`
-	} `json:"contents"`
-	Desc     string   `json:"desc"`
-	Duration int64    `json:"duration"`
-	Height   int64    `json:"height"`
-	Jump     string   `json:"jump"`
-	Justify  string   `json:"justify"`
-	Legend   string   `json:"legend"`
-	Level    int      `json:"level"`
-	Size     int64    `json:"size"`
-	Text     string   `json:"text"`
-	Title    string   `json:"title"`
-	Type     string   `json:"type"`
-	URL      string   `json:"url"`
-	Width    int64    `json:"width"`
-	Labels   []string `json:"labels"`
+	Aid      string      `json:"aid"`
+	AliasID  string      `json:"aliasId"`
+	Contents interface{} `json:"contents"`
+	Desc     string      `json:"desc"`
+	Duration int64       `json:"duration"`
+	Height   int64       `json:"height"`
+	Jump     string      `json:"jump"`
+	Justify  string      `json:"justify"`
+	Legend   string      `json:"legend"`
+	Level    int         `json:"level"`
+	Size     int64       `json:"size"`
+	Text     string      `json:"text"`
+	Title    string      `json:"title"`
+	Type     string      `json:"type"`
+	Ordered  bool        `json:"ordered"`
+	URL      string      `json:"url"`
+	Width    int64       `json:"width"`
+	Labels   []string    `json:"labels"`
+}
 
-	// Title        string        `json:"title"`
-	// TemplateType string        `json:"templateType"`
-	// Content      []interface{} `json:"content"`
-	// Plaintext    string        `json:"plaintext"`
-	// CoverImage   string        `json:"coverImage"`
-	// CSSLink      string        `json:"cssLink"`
-	// Author       struct {
-	// 	Name   string `json:"name"`
-	// 	Avatar string `json:"avatar"`
-	// } `json:"author"`
-	// Message struct {
-	// 	Title     string `json:"title"`
-	// 	WriteText string `json:"writeText"`
-	// 	Tips      string `json:"tips"`
-	// } `json:"message"`
+type Contents []struct {
+	Text struct {
+		Bold      bool   `json:"bold"`
+		Content   string `json:"content"`
+		Highlight bool   `json:"highlight"`
+	} `json:"text"`
+	Type string `json:"type"`
 }
 
 // Article metadata

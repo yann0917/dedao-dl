@@ -97,11 +97,17 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 		case "audio":
 			title := strings.TrimRight(content.Title, ".mp3")
 			res += getMdHeader(1) + title + "\r\n\r\n"
-
 		case "header":
 			res += getMdHeader(content.Level) + content.Text + "\r\n\r\n"
 		case "paragraph":
-			for _, item := range content.Contents {
+			// map 转结构体
+			tmpJson, err := jsoniter.Marshal(content.Contents)
+			if err != nil {
+				return
+			}
+			cont := services.Contents{}
+			jsoniter.Unmarshal(tmpJson, &cont)
+			for _, item := range cont {
 				subContent := strings.Trim(item.Text.Content, " ")
 				switch item.Type {
 				case "text":
@@ -116,6 +122,30 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 			}
 			res = strings.Trim(res, " ")
 			res += "\r\n\r\n"
+		case "list":
+			tmpJson, err := jsoniter.Marshal(content.Contents)
+			if err != nil {
+				return
+			}
+			cont := []services.Contents{}
+			jsoniter.Unmarshal(tmpJson, &cont)
+
+			for _, item := range cont {
+				for _, item := range item {
+					subContent := strings.Trim(item.Text.Content, " ")
+					switch item.Type {
+					case "text":
+						if item.Text.Bold {
+							res += "* **" + subContent + "** "
+						} else if item.Text.Highlight {
+							res += "* *" + subContent + "* "
+						} else {
+							res += "* " + subContent
+						}
+					}
+				}
+				res += "\r\n\r\n"
+			}
 		case "elite": // 划重点
 			res += getMdHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
 
@@ -168,9 +198,15 @@ func DownloadMarkdown(cType string, id int, filePath string) error {
 				return err
 			}
 			res := contentsToMarkdown(content)
+			fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
 			f, err := os.OpenFile(filePath+"/"+v.Title+".md", os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
-				fmt.Println("Error opening file")
+				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+				return err
+			}
+			_, err = f.WriteString(res)
+			if err != nil {
+				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 				return err
 			}
 			if err = f.Close(); err != nil {
@@ -178,7 +214,7 @@ func DownloadMarkdown(cType string, id int, filePath string) error {
 					return err
 				}
 			}
-			f.WriteString(res)
+			fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 		}
 	case app.CateAudioBook:
 
