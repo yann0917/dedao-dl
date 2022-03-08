@@ -122,12 +122,12 @@ type EbookVIPInfo struct {
 
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
-	cacheFile := "ebookDetail:" + enid
-	x, ok := detail.getCache(cacheFile)
-	if ok {
-		detail = x.(*EbookDetail)
-		return
-	}
+	// cacheFile := "ebookDetail:" + enid
+	// x, ok := detail.getCache(cacheFile)
+	// if ok {
+	// 	detail = x.(*EbookDetail)
+	// 	return
+	// }
 	body, err := s.reqEbookDetail(enid)
 	if err != nil {
 		return
@@ -136,7 +136,7 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
-	detail.setCache(cacheFile)
+	// detail.setCache(cacheFile)
 	return
 }
 

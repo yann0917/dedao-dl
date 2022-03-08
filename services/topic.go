@@ -162,10 +162,10 @@ func (s *Service) TopicAll(page, limit int, all bool) (list *TopicAll, err error
 		return
 	}
 	body, err := s.reqTopicAll(page, limit, all)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
@@ -182,10 +182,10 @@ func (s *Service) TopicDetail(id string) (detail *TopicDetail, err error) {
 		return
 	}
 	body, err := s.reqTopicDetail(id)
-	defer body.Close()
 	if err != nil {
 		return
 	}
+	defer body.Close()
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}

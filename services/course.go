@@ -226,14 +226,14 @@ type FlatArticleList struct {
 
 // CourseList get course list by page
 func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
-	cacheFile := "courseList:" + category + ":" + strconv.Itoa(page)
-	list = new(CourseList)
-	list.Page = page
-	x, ok := list.getCache(cacheFile)
-	if ok {
-		list = x.(*CourseList)
-		return
-	}
+	// cacheFile := "courseList:" + category + ":" + strconv.Itoa(page)
+	// list = new(CourseList)
+	// list.Page = page
+	// x, ok := list.getCache(cacheFile)
+	// if ok {
+	// 	list = x.(*CourseList)
+	// 	return
+	// }
 	body, err := s.reqCourseList(category, order, page, limit)
 	if err != nil {
 		return
@@ -242,7 +242,7 @@ func (s *Service) CourseList(category, order string, page, limit int) (list *Cou
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	list.setCache(cacheFile)
+	// list.setCache(cacheFile)
 	return
 }
 
@@ -303,12 +303,12 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 
 // CourseInfo get course info
 func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
-	cacheFile := "courseInfo:" + enid
-	x, ok := info.getCache(cacheFile)
-	if ok {
-		info = x.(*CourseInfo)
-		return
-	}
+	// cacheFile := "courseInfo:" + enid
+	// x, ok := info.getCache(cacheFile)
+	// if ok {
+	// 	info = x.(*CourseInfo)
+	// 	return
+	// }
 	body, err := s.reqCourseInfo(enid)
 	if err != nil {
 		return
@@ -317,7 +317,7 @@ func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
-	info.setCache(cacheFile)
+	// info.setCache(cacheFile)
 	return
 }
 
