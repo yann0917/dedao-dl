@@ -170,15 +170,15 @@ type ArticleInfo struct {
 
 // ArticleList get class article list
 func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleList, err error) {
-	cacheFile := "articleList:" + id + ":" + chapterID + ":" + strconv.Itoa(maxID)
-	list = new(ArticleList)
-	list.MaxID = maxID
-	list.ChapterIDStr = chapterID
-	x, ok := list.getCache(cacheFile)
-	if ok {
-		list = x.(*ArticleList)
-		return
-	}
+	// cacheFile := "articleList:" + id + ":" + chapterID + ":" + strconv.Itoa(maxID)
+	// list = new(ArticleList)
+	// list.MaxID = maxID
+	// list.ChapterIDStr = chapterID
+	// x, ok := list.getCache(cacheFile)
+	// if ok {
+	// 	list = x.(*ArticleList)
+	// 	return
+	// }
 	body, err := s.reqArticleList(id, chapterID, maxID)
 	if err != nil {
 		return
@@ -187,7 +187,7 @@ func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleLis
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	err = list.setCache(cacheFile)
+	// err = list.setCache(cacheFile)
 	return
 }
 

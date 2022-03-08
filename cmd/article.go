@@ -121,6 +121,7 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 				}
 			}
 			res = strings.Trim(res, " ")
+			res = strings.Trim(res, "\r\n")
 			res += "\r\n\r\n"
 		case "list":
 			tmpJson, err := jsoniter.Marshal(content.Contents)
