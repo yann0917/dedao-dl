@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -11,7 +12,6 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
-	"github.com/chromedp/chromedp/device"
 )
 
 // ColumnPrintToPDF print pdf
@@ -30,15 +30,32 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 
 	err := chromedp.Run(ctx,
 		chromedp.Tasks{
-			chromedp.Emulate(device.IPadProlandscape),
+			// chromedp.Emulate(device.IPadProlandscape),
 			enableLifeCycleEvents(),
 			setCookies(cookies),
 			navigateAndWaitFor(`https://www.dedao.cn/courseArticle/`+aid, "networkIdle"),
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				s := `
+					var node = document.querySelector('.geetest_panel');
+					if (node != null ) {
+						node.style.display='none';
+					}
+				`
+				_, exp, err := runtime.Evaluate(s).Do(ctx)
+				if err != nil {
+					return err
+				}
+
+				if exp != nil {
+					return exp
+				}
+
+				return nil
+			}),
+			chromedp.ActionFunc(func(ctx context.Context) error {
+				s := `
 					document.querySelector('.iget-header').style.display='none';
 					document.querySelector('.pageControl').style.display='none';
-					// document.querySelector('.article-wrap').style.margin="0px 0px";
 				`
 				_, exp, err := runtime.Evaluate(s).Do(ctx)
 				if err != nil {
@@ -78,7 +95,8 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 			}),
 
 			chromedp.ActionFunc(func(ctx context.Context) error {
-				// time.Sleep(time.Second * 5)
+				// sleep 防止 496 NoCertificate
+				time.Sleep(time.Second * time.Duration(rand.Int31n(6)+8))
 				var err error
 				buf, _, err = page.PrintToPDF().WithPrintBackground(true).Do(ctx)
 				return err
