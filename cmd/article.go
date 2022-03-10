@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -55,7 +56,7 @@ func articleList(id int) (err error) {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "是否阅读"})
+	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "音频进度", "是否阅读"})
 	table.SetAutoWrapText(false)
 
 	for i, p := range list.List {
@@ -67,6 +68,7 @@ func articleList(id int) (err error) {
 		table.Append([]string{strconv.Itoa(i),
 			p.IDStr, p.Title,
 			utils.Unix2String(int64(p.UpdateTime)),
+			strconv.FormatFloat(p.Audio.ListenProgress, 'g', 5, 32),
 			isRead,
 		})
 	}
@@ -99,6 +101,14 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 			res += getMdHeader(1) + title + "\r\n\r\n"
 		case "header":
 			res += getMdHeader(content.Level) + content.Text + "\r\n\r\n"
+		case "blockquote":
+			texts := strings.Split(content.Text, "\n")
+			for _, text := range texts {
+				res += "> " + text + "\r\n"
+				res += "> \r\n"
+			}
+			res = strings.TrimRight(res, "> \r\n")
+			res += "\r\n\r\n"
 		case "paragraph":
 			// map 转结构体
 			tmpJson, err := jsoniter.Marshal(content.Contents)
@@ -200,7 +210,13 @@ func DownloadMarkdown(cType string, id int, filePath string) error {
 			}
 			res := contentsToMarkdown(content)
 			fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
-			f, err := os.OpenFile(filePath+"/"+v.Title+".md", os.O_CREATE|os.O_WRONLY, 0644)
+
+			filePreName := filepath.Join(filePath, v.Title)
+			fileName, err1 := utils.FilePath(filePreName, "md", false)
+			if err1 != nil {
+				return err1
+			}
+			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 				return err

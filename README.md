@@ -236,6 +236,8 @@ Available Commands:
 
 `dedao-dl dl 123 -t 1` 下载课程ID 123 的所有课程, -t 下载格式, 1:mp3, 2:PDF文档, 3:markdown文档 (default 1)
 
+注意：生成 PDF 的时候，操作过于频繁会触发 `496 NoCertificate` , 因此每次生成一次PDF sleep 8~14秒, 尽管如此，还是有极大可能触发操作频繁图形验证。
+
 ## References
 
 * [geektime-dl](https://github.com/mmzou/geektime-dl)
