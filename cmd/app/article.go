@@ -64,11 +64,12 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, aEnid string, err err
 }
 
 // ArticleDetail article detail
-func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
+func ArticleDetail(id, aid int) (detail *services.ArticleDetail, enId string, err error) {
 	info, aEnid, err := ArticleInfo(id, aid)
 	if err != nil {
 		return
 	}
+	enId = aEnid
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
 	detail, err = getService().ArticleDetail(token, aEnid, appid)
@@ -76,6 +77,17 @@ func ArticleDetail(id, aid int) (detail *services.ArticleDetail, err error) {
 		fmt.Printf("err:%#v\n", err)
 		return
 	}
+	return
+
+}
+
+// ArticleCommentList article comment list
+func ArticleCommentList(enId, sort string, page, limit int) (list *services.ArticleCommentList, err error) {
+	list, err = getService().ArticleCommentList(enId, sort, page, limit)
+	if err != nil {
+		return
+	}
+
 	return
 
 }

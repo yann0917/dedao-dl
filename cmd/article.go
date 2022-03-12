@@ -77,7 +77,7 @@ func articleList(id int) (err error) {
 }
 
 func articleDetail(id, aid int) (err error) {
-	detail, err := app.ArticleDetail(id, aid)
+	detail, _, err := app.ArticleDetail(id, aid)
 
 	if err != nil {
 		return
@@ -116,7 +116,10 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 				return
 			}
 			cont := services.Contents{}
-			jsoniter.Unmarshal(tmpJson, &cont)
+			err = jsoniter.Unmarshal(tmpJson, &cont)
+			if err != nil {
+				return ""
+			}
 			for _, item := range cont {
 				subContent := strings.Trim(item.Text.Content, " ")
 				switch item.Type {
@@ -138,8 +141,11 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 			if err != nil {
 				return
 			}
-			cont := []services.Contents{}
-			jsoniter.Unmarshal(tmpJson, &cont)
+			var cont []services.Contents
+			err = jsoniter.Unmarshal(tmpJson, &cont)
+			if err != nil {
+				return ""
+			}
 
 			for _, item := range cont {
 				for _, item := range item {
@@ -171,6 +177,18 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 	return
 }
 
+func articleCommentsToMarkdown(contents []services.ArticleComment) (res string) {
+	res = getMdHeader(2) + "热门留言\r\n\r\n"
+	for _, content := range contents {
+		res += content.NotesOwner.Name + "：" + content.Note + "\r\n\r\n"
+		if content.CommentReply != "" {
+			res += "> " + content.CommentReplyUser.Name + "(" + content.CommentReplyUser.Role + ") 回复：" + content.CommentReply + "\r\n\r\n"
+		}
+	}
+	res += "---\r\n"
+	return
+}
+
 func getMdHeader(level int) string {
 	switch level {
 	case 1:
@@ -190,7 +208,7 @@ func getMdHeader(level int) string {
 	}
 }
 
-func DownloadMarkdown(cType string, id int, filePath string) error {
+func DownloadMarkdown(cType string, id int, path string) error {
 	switch cType {
 	case app.CateCourse:
 		list, err := app.ArticleList(id, "")
@@ -198,24 +216,40 @@ func DownloadMarkdown(cType string, id int, filePath string) error {
 			return err
 		}
 		for _, v := range list.List {
-			detail, err := app.ArticleDetail(id, v.ID)
+			detail, enId, err := app.ArticleDetail(id, v.ID)
 			if err != nil {
 				fmt.Println(err.Error())
 				return err
 			}
+
 			var content []services.Content
 			err = jsoniter.UnmarshalFromString(detail.Content, &content)
 			if err != nil {
 				return err
 			}
-			res := contentsToMarkdown(content)
-			fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
 
-			filePreName := filepath.Join(filePath, v.Title)
-			fileName, err1 := utils.FilePath(filePreName, "md", false)
-			if err1 != nil {
-				return err1
+			name := utils.FileName(v.Title, "md")
+			fileName := filepath.Join(path, name)
+			fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
+			_, exist, err := utils.FileSize(fileName)
+
+			if err != nil {
+				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+				return err
 			}
+
+			if exist {
+				fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
+				return nil
+			}
+
+			res := contentsToMarkdown(content)
+			// 添加留言
+			commentList, err := app.ArticleCommentList(enId, "like", 1, 20)
+			if err == nil {
+				res += articleCommentsToMarkdown(commentList.List)
+			}
+
 			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
 				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())

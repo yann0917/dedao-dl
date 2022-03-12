@@ -17,9 +17,14 @@ import (
 // ColumnPrintToPDF print pdf
 func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) error {
 	var buf []byte
+	options := []chromedp.ExecAllocatorOption{
+		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36`),
+	}
+	options = append(chromedp.DefaultExecAllocatorOptions[:], options...)
+	c, _ := chromedp.NewExecAllocator(context.Background(), options...)
 	// create chrome instance
 	ctx, cancel := chromedp.NewContext(
-		context.Background(),
+		c,
 		chromedp.WithLogf(log.Printf),
 	)
 	defer cancel()
@@ -96,7 +101,7 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				// sleep 防止 496 NoCertificate
-				time.Sleep(time.Second * time.Duration(rand.Int31n(6)+8))
+				time.Sleep(time.Second * time.Duration(rand.Int31n(5)))
 				var err error
 				buf, _, err = page.PrintToPDF().WithPrintBackground(true).Do(ctx)
 				return err
