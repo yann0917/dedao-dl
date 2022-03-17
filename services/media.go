@@ -51,27 +51,27 @@ type Audio struct {
 }
 
 type Video struct {
-	Token            string `json:"token"`
-	TokenVersion     int    `json:"token_version"`
-	CoverImg         string `json:"cover_img"`
-	DdMediaID        int64  `json:"dd_media_id"`
-	DdMediaIDStr     string `json:"dd_media_id_str"`
-	Duration         int    `json:"duration"`
-	Bitrate480       string `json:"bitrate_480"`
-	Bitrate480Size   int    `json:"bitrate_480_size"`
-	Bitrate480Audio  string `json:"bitrate_480_audio"`
-	Bitrate720       string `json:"bitrate_720"`
-	Bitrate720Size   int    `json:"bitrate_720_size"`
-	Bitrate720Audio  string `json:"bitrate_720_audio"`
-	Bitrate1080      string `json:"bitrate_1080"`
-	Bitrate1080Size  int    `json:"bitrate_1080_size"`
-	Bitrate1080Audio string `json:"bitrate_1080_audio"`
-	IsDrm            bool   `json:"is_drm"`
-	ListenProgress   int    `json:"listen_progress"`
-	ListenFinished   bool   `json:"listen_finished"`
-	LogID            string `json:"log_id"`
-	LogType          string `json:"log_type"`
-	Caption          string `json:"caption"`
+	Token            string  `json:"token"`
+	TokenVersion     int     `json:"token_version"`
+	CoverImg         string  `json:"cover_img"`
+	DdMediaID        int64   `json:"dd_media_id"`
+	DdMediaIDStr     string  `json:"dd_media_id_str"`
+	Duration         int     `json:"duration"`
+	Bitrate480       string  `json:"bitrate_480"`
+	Bitrate480Size   int     `json:"bitrate_480_size"`
+	Bitrate480Audio  string  `json:"bitrate_480_audio"`
+	Bitrate720       string  `json:"bitrate_720"`
+	Bitrate720Size   int     `json:"bitrate_720_size"`
+	Bitrate720Audio  string  `json:"bitrate_720_audio"`
+	Bitrate1080      string  `json:"bitrate_1080"`
+	Bitrate1080Size  int     `json:"bitrate_1080_size"`
+	Bitrate1080Audio string  `json:"bitrate_1080_audio"`
+	IsDrm            bool    `json:"is_drm"`
+	ListenProgress   float64 `json:"listen_progress"`
+	ListenFinished   bool    `json:"listen_finished"`
+	LogID            string  `json:"log_id"`
+	LogType          string  `json:"log_type"`
+	Caption          string  `json:"caption"`
 }
 
 // AudioList audio baseic info list

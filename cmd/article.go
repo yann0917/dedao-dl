@@ -64,11 +64,14 @@ func articleList(id int) (err error) {
 		if p.IsRead {
 			isRead = "✔"
 		}
-
+		listenProgress := "0"
+		if p.Audio != nil {
+			listenProgress = strconv.FormatFloat(p.Audio.ListenProgress, 'g', 5, 32)
+		}
 		table.Append([]string{strconv.Itoa(i),
 			p.IDStr, p.Title,
 			utils.Unix2String(int64(p.UpdateTime)),
-			strconv.FormatFloat(p.Audio.ListenProgress, 'g', 5, 32),
+			listenProgress,
 			isRead,
 		})
 	}
