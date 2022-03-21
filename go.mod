@@ -5,8 +5,8 @@ go 1.15
 require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8
-	github.com/chromedp/cdproto v0.0.0-20220217222649-d8c14a5c6edf
-	github.com/chromedp/chromedp v0.7.8
+	github.com/chromedp/cdproto v0.0.0-20220321060548-7bc2623472b3
+	github.com/chromedp/chromedp v0.8.0
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-rod/rod v0.103.0
 	github.com/json-iterator/go v1.1.12
