@@ -8,7 +8,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20220217222649-d8c14a5c6edf
 	github.com/chromedp/chromedp v0.7.8
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/go-rod/rod v0.103.0
+	github.com/go-rod/rod v0.104.2
 	github.com/json-iterator/go v1.1.12
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
