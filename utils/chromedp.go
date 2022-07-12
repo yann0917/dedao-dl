@@ -59,8 +59,14 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 			}),
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				s := `
-					document.querySelector('.iget-header').style.display='none';
-					document.querySelector('.pageControl').style.display='none';
+					var header = document.querySelector('.iget-header');
+					if (header != null) {
+						header.style.display='none';
+					}
+					var ctl = document.querySelector('.pageControl');
+					if (ctl != null) {
+						ctl.style.display='none';
+					}
 				`
 				_, exp, err := runtime.Evaluate(s).Do(ctx)
 				if err != nil {
@@ -76,15 +82,20 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 			chromedp.ActionFunc(func(ctx context.Context) error {
 				s := `
 					var buttons = document.getElementsByTagName('button');
-					for (var i = 0; i < buttons.length; ++i){
-						if(buttons[i].innerText === " 展开目录 " || buttons[i].innerText === " 设置文本 "){
-							buttons[i].parentNode.style.display="none";
-							break;
+					if (buttons != null) {
+						for (var i = 0; i < buttons.length; ++i){
+							if(buttons[i].innerText === " 展开目录 " || buttons[i].innerText === " 设置文本 "){
+								buttons[i].parentNode.style.display="none";
+								break;
+							}
 						}
 					}
+
 					var asides = document.getElementsByTagName('aside');
-					for (var i = 0; i < asides.length; ++i){
-						asides[i].style.display="none";
+					if (asides != null ) {
+						for (var i = 0; i < asides.length; ++i){
+							asides[i].style.display="none";
+						}
 					}
 				`
 				_, exp, err := runtime.Evaluate(s).Do(ctx)
