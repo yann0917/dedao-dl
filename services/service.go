@@ -1,13 +1,16 @@
 package services
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"github.com/imroc/req/v3"
 	"github.com/mitchellh/mapstructure"
 	"github.com/yann0917/dedao-dl/request"
 	"github.com/yann0917/dedao-dl/utils"
@@ -18,7 +21,8 @@ var (
 		Scheme: "https",
 		Host:   "dedao.cn",
 	}
-	baseURL = "https://www.dedao.cn"
+	baseURL   = "https://www.dedao.cn"
+	UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 )
 
 // Response dedao success response
@@ -28,10 +32,11 @@ type Response struct {
 }
 
 type respH struct {
-	C int    `json:"c"`
-	E string `json:"e"`
-	S int    `json:"s"`
-	T int    `json:"t"`
+	C   int    `json:"c"`
+	E   string `json:"e"`
+	S   int    `json:"s"`
+	T   int    `json:"t"`
+	Apm string `json:"apm"`
 }
 
 // respC response content
@@ -49,7 +54,7 @@ func (r respC) String() string {
 
 //Service dedao service
 type Service struct {
-	client *request.HTTPClient
+	client *req.Client
 }
 
 // CookieOptions dedao cookie options
@@ -68,7 +73,7 @@ type CookieOptions struct {
 //NewService new service
 func NewService(co *CookieOptions) *Service {
 	client := request.NewClient(baseURL)
-	client.ResetCookieJar()
+	// client.ResetCookieJar()
 	cookies := []*http.Cookie{}
 	cookies = append(cookies, &http.Cookie{
 		Name:   "GAT",
@@ -110,39 +115,35 @@ func NewService(co *CookieOptions) *Service {
 		Value:  co.AliyungfTc,
 		Domain: "www." + dedaoCommURL.Host,
 	})
-	client.Client.Jar.SetCookies(dedaoCommURL, cookies)
+	client.SetBaseURL(baseURL)
+	client.SetCommonCookies(cookies...)
+	client.SetUserAgent(UserAgent)
 
 	return &Service{client: client}
 }
 
 //Cookies get cookies string
-func (s *Service) Cookies() map[string]string {
-	cookies := s.client.Client.Jar.Cookies(dedaoCommURL)
+// func (s *Service) Cookies() map[string]string {
+// 	cookies := s.client.Client.Jar.Cookies(dedaoCommURL)
 
-	cstr := map[string]string{}
+// 	cstr := map[string]string{}
 
-	for _, cookie := range cookies {
-		cstr[cookie.Name] = cookie.Value
-	}
+// 	for _, cookie := range cookies {
+// 		cstr[cookie.Name] = cookie.Value
+// 	}
 
-	return cstr
-}
+// 	return cstr
+// }
 
 func (r *Response) isSuccess() bool {
 	return r.H.C == 0
 }
 
-func deferResponseClose(s *http.Response) {
-	if s != nil {
-		defer s.Body.Close()
-	}
-}
-
-func handleHTTPResponse(resp *http.Response, err error) (io.ReadCloser, error) {
+func handleHTTPResponse(resp *req.Response, err error) (io.ReadCloser, error) {
 	if err != nil {
-		deferResponseClose(resp)
 		return nil, err
 	}
+
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, errors.New("404 NotFound")
 	}
@@ -155,6 +156,14 @@ func handleHTTPResponse(resp *http.Response, err error) (io.ReadCloser, error) {
 	if resp.StatusCode == 496 {
 		return nil, errors.New("496 NoCertificate")
 	}
+
+	data, err1 := resp.ToBytes()
+	if err1 != nil {
+		return nil, err1
+	}
+	reader := bytes.NewReader(data)
+
+	resp.Body = ioutil.NopCloser(reader)
 	return resp.Body, nil
 }
 
@@ -190,7 +199,9 @@ func ParseCookies(cookie string, v interface{}) (err error) {
 	cookieM := make(map[string]string, len(list))
 	for _, v := range list {
 		item := strings.Split(v, "=")
-		cookieM[item[0]] = item[1]
+		if len(item) > 1 {
+			cookieM[item[0]] = item[1]
+		}
 	}
 	err = mapstructure.Decode(cookieM, v)
 	return

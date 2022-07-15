@@ -14,6 +14,7 @@ import (
 
 // Cookie cookie from https://www.dedao.cn
 var Cookie string
+var qr bool
 
 // Login login
 var loginCmd = &cobra.Command{
@@ -21,15 +22,22 @@ var loginCmd = &cobra.Command{
 	Short: "登录得到 pc 端 https://www.dedao.cn",
 	Long:  `使用 dedao-dl login to login https://www.dedao.cn`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if qr {
+			err := app.LoginByQr()
+			return err
+		}
 		if Cookie == "" {
 			defaultCookie := app.GetCookie()
 			if defaultCookie == "" {
 				return errors.New("自动获取 cookie 失败，请使用参数设置 cookie")
 			}
 			Cookie = defaultCookie
+		} else {
+			err := app.LoginByCookie(Cookie)
+			return err
 		}
-		err := app.LoginByCookie(Cookie)
-		return err
+		return nil
+
 	},
 
 	PostRun: func(cmd *cobra.Command, args []string) {
@@ -82,6 +90,7 @@ func init() {
 	rootCmd.AddCommand(usersCmd)
 	rootCmd.AddCommand(suCmd)
 	loginCmd.Flags().StringVarP(&Cookie, "cookie", "c", "", "cookie from https://www.dedao.cn")
+	loginCmd.Flags().BoolVarP(&qr, "qrcode", "q", false, "scan qrcode login from https://www.dedao.cn")
 }
 
 // LoginedCookies cookie sting to map for chromedp print pdf

@@ -1,6 +1,8 @@
 package services
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 // User user info
 type User struct {

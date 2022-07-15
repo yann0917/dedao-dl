@@ -416,7 +416,7 @@ func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail,
 }
 
 // ArticlePoint get article point
-func (s *Service) ArticlePoint(id string, pType int) (detail *ArticleDetail, err error) {
+func (s *Service) ArticlePoint(id, pType string) (detail *ArticleDetail, err error) {
 	body, err := s.reqArticlePoint(id, pType)
 	if err != nil {
 		return
