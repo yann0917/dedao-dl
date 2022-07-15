@@ -71,7 +71,7 @@ docker images|grep none|awk '{print $3 }'|xargs docker rmi
 
 ## 使用方法
 
-* 电脑端登录 [得到](https://www.dedao.cn)，以便生成 cookie ☆☆☆☆☆
+* 使用 `dedao-dl login -q` **同时支持「得到App」和「微信」扫码扫码登录**，或者电脑端登录 [得到](https://www.dedao.cn) 生成 cookie 使用 `dedao-dl login -c "xxxxxxxx"` 登录 ☆☆☆☆☆
 
 `dedao-dl -h` 可查看帮助说明，每个命令都有 `-h` 参数可查看该命令的用法
 
@@ -96,7 +96,6 @@ Available Commands:
   who         查看当前登录的用户
 ```
 
-`dedao-dl login` 登录，不带任何参数的情况下，默认使用 [`go-rod/rod`](https://github.com/go-rod/rod) 从浏览器获取cookie. 如果无法自动获取 cookie，则使用 `dedao-dl login -c "xxxxxxxx"` 登录
 
 `dedao-dl cat` 获取课程分类
 
@@ -240,7 +239,6 @@ Available Commands:
 
 * [geektime-dl](https://github.com/mmzou/geektime-dl)
 * [annie](https://github.com/iawia002/annie)
-* [m3u8](https://github.com/oopsguy/m3u8)
 
 ## Stargazers over time
 

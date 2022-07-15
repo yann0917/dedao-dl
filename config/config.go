@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -66,6 +68,7 @@ func (c *ConfigsData) Init() error {
 		return nil
 	}
 
+	fmt.Printf("xxxxxx %#v\n", c.activeUser)
 	if c.activeUser != nil {
 		c.service = c.activeUser.New()
 	}
@@ -93,6 +96,10 @@ func (c *ConfigsData) initActiveUser() error {
 		}
 	}
 
+	if c.AcitveUID == "" && len(c.Users) == 0 {
+		c.activeUser = new(Dedao)
+	}
+
 	if len(c.Users) > 0 {
 		return errors.New("存在登录的用户，可以进行切换登录用户")
 	}
@@ -104,6 +111,7 @@ func (c *ConfigsData) initActiveUser() error {
 func (c *ConfigsData) Save() error {
 	err := c.lazyOpenConfigFile()
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -124,16 +132,19 @@ func (c *ConfigsData) Save() error {
 	// 减掉多余的部分
 	err = c.configFile.Truncate(int64(len(data)))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
-	_, err = c.configFile.Seek(0, os.SEEK_SET)
+	_, err = c.configFile.Seek(0, io.SeekStart)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
 	_, err = c.configFile.Write(data)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -142,6 +153,7 @@ func (c *ConfigsData) Save() error {
 
 func (c *ConfigsData) initDefaultConfig() {
 	// todo 默认配置
+	c.Save()
 }
 
 func (c *ConfigsData) loadConfigFromFile() error {
@@ -162,7 +174,7 @@ func (c *ConfigsData) loadConfigFromFile() error {
 	c.fileMu.Lock()
 	defer c.fileMu.Unlock()
 
-	_, err = c.configFile.Seek(0, os.SEEK_SET)
+	_, err = c.configFile.Seek(0, io.SeekStart)
 	if err != nil {
 		return nil
 	}
