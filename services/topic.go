@@ -1,7 +1,5 @@
 package services
 
-import "time"
-
 // TopicAll topic all
 type TopicAll struct {
 	HasMore bool         `json:"has_more"`
@@ -155,12 +153,7 @@ type NoteBaseSource struct {
 
 // TopicAll topic all
 func (s *Service) TopicAll(page, limit int, all bool) (list *TopicAll, err error) {
-	cacheFile := "topicAll"
-	x, ok := list.getCache(cacheFile)
-	if ok {
-		list = x.(*TopicAll)
-		return
-	}
+
 	body, err := s.reqTopicAll(page, limit, all)
 	if err != nil {
 		return
@@ -169,18 +162,12 @@ func (s *Service) TopicAll(page, limit int, all bool) (list *TopicAll, err error
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	list.setCache(cacheFile)
 	return
 }
 
 // TopicDetail topic detail by id hazy
 func (s *Service) TopicDetail(id string) (detail *TopicDetail, err error) {
-	cacheFile := "topicDetail:" + id
-	x, ok := detail.getCache(cacheFile)
-	if ok {
-		detail = x.(*TopicDetail)
-		return
-	}
+
 	body, err := s.reqTopicDetail(id)
 	if err != nil {
 		return
@@ -189,18 +176,12 @@ func (s *Service) TopicDetail(id string) (detail *TopicDetail, err error) {
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
-	detail.setCache(cacheFile)
 	return
 }
 
 // TopicNotesList Topic NotesList
 func (s *Service) TopicNotesList(id string) (list *NotesList, err error) {
-	cacheFile := "topicNotesList:" + id
-	x, ok := getCache(list, cacheFile)
-	if ok {
-		list = x.(*NotesList)
-		return
-	}
+
 	body, err := s.reqTopicNotesList(id)
 	if err != nil {
 		return
@@ -210,60 +191,5 @@ func (s *Service) TopicNotesList(id string) (list *NotesList, err error) {
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	setCache(list, cacheFile)
 	return
-}
-
-func (c *TopicAll) getCacheKey() string {
-	return "topicAll"
-}
-
-func (c *TopicAll) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-func (c *TopicAll) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
-}
-
-func (c *TopicDetail) getCacheKey() string {
-	return "topicDetail"
-}
-
-func (c *TopicDetail) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-func (c *TopicDetail) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 24*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
-}
-
-func (c *NotesList) getCacheKey() string {
-	return "topicNotesList20"
-}
-
-func (c *NotesList) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-func (c *NotesList) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
 }

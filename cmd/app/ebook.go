@@ -1,47 +1,76 @@
 package app
 
 import (
-	"fmt"
-	"os"
-	"strconv"
-
-	"github.com/olekukonko/tablewriter"
+	"github.com/yann0917/dedao-dl/services"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 // EbookDetail 电子书详情
-func EbookDetail(id int) (err error) {
+func EbookDetail(id int) (detail *services.EbookDetail, err error) {
 	courseDetail, err := getService().CourseDetail(CateEbook, id)
 	if err != nil {
 		return
 	}
 
 	enID := courseDetail.Enid
-	detail, err := getService().EbookDetail(enID)
-	if err != nil {
+	detail, err = getService().EbookDetail(enID)
+
+	return
+}
+
+func EbookInfo(enID string) (info *services.EbookInfo, err error) {
+	token, err1 := getService().EbookReadToken(enID)
+	if err1 != nil {
+		err = err1
 		return
 	}
 
-	out := os.Stdout
-	table := tablewriter.NewWriter(out)
-	fmt.Fprint(out, "书名："+detail.OperatingTitle+"\n")
-	fmt.Fprint(out, "单价："+detail.Price+"\n")
-	fmt.Fprint(out, "作者："+detail.BookAuthor+"\n")
-	fmt.Fprint(out, "类型："+detail.ClassifyName+"\n")
-	fmt.Fprint(out, "专家推荐指数："+detail.ProductScore+"\n")
-	fmt.Fprint(out, "豆瓣评分："+detail.DoubanScore+"\n")
-	fmt.Fprint(out, "发行日期："+detail.PublishTime+"\n")
-	fmt.Fprint(out, "出版社："+detail.Press.Name+"\n")
-	fmt.Fprintln(out)
+	info, err = getService().EbookInfo(token.Token)
+	return
+}
 
-	table.SetHeader([]string{"#", "ID", "章节名称"})
-	table.SetAutoWrapText(false)
-	// table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	// table.SetCenterSeparator("|")
-	for i, p := range detail.CatalogList {
-		table.Append([]string{strconv.Itoa(i), strconv.Itoa(p.PlayOrder),
-			p.Text,
-		})
+func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
+	token, err1 := getService().EbookReadToken(enID)
+	if err1 != nil {
+		err = err1
+		return
 	}
-	table.Render()
+
+	info, err1 := getService().EbookInfo(token.Token)
+	if err1 != nil {
+		err = err1
+		return
+	}
+	var svgContent []string
+
+	for _, order := range info.BookInfo.Orders {
+		index, count, offset := 0, 20, 20000
+		pageList, err1 := getService().EbookPages(order.ChapterID, token.Token, index, count, offset)
+		if err1 != nil {
+			err = err1
+			return
+		}
+
+		for _, item := range pageList.Pages {
+			svgContent = append(svgContent, item.Svg)
+		}
+
+		if !pageList.IsEnd {
+			index = count
+			count += 20
+			pageList, err1 = getService().EbookPages(order.ChapterID, token.Token, index, count, offset)
+			if err1 != nil {
+				err = err1
+				return
+			}
+			for _, item := range pageList.Pages {
+				svgContent = append(svgContent, item.Svg)
+			}
+		}
+	}
+	if len(svgContent) > 0 {
+		// utils.WriteFile(order.ChapterID+".svg", strings.Join(svgContent, "\n"))
+		utils.Svg2Html(title, svgContent)
+	}
 	return
 }

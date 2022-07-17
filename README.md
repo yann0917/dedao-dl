@@ -20,6 +20,7 @@
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，文稿生成 Markdown 文档，也可生成 mp3 文件
 * 每天听本书可下载音频
+* 电子书可下载 pdf(有 bug ，待解决)
 * 可切换登录账号
 
 ## 安装
@@ -27,9 +28,11 @@
 ### 安装依赖
 
 * chromedp
-  > 生成 PDF 需要借助 [chromedp](https://github.com/chromedp/chromedp), 该功能必须安装 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/) 浏览器
+  > 课程生成 PDF 需要借助 [chromedp](https://github.com/chromedp/chromedp), 该功能必须安装 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/) 浏览器
 * ffmpeg
   > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成
+* wkhtmltopdf
+  > 电子书转 PDF 需要借助[wkhtmltopdf](https://wkhtmltopdf.org/downloads.html)
 
 ### 使用 `go get` 安装
 
@@ -85,6 +88,7 @@ Available Commands:
   cat         获取课程分类
   course      获取我购买过课程
   dl          下载已购买课程, 并转换成 PDF & 音频 & markdown
+  dle         下载电子书
   dlo         下载每天听本书音频
   ebook       获取我的电子书架
   help        Help about any command
@@ -234,6 +238,8 @@ Available Commands:
 `dedao-dl dl 123 -t 1` 下载课程ID 123 的所有课程, -t 下载格式, 1:mp3, 2:PDF文档, 3:markdown文档 (default 1)
 
 注意：生成 PDF 的时候，操作过于频繁会触发 `496 NoCertificate` , 因此每次生成一次PDF sleep 0~5秒, 尽管如此，还是有极大可能触发操作频繁图形验证。
+
+`dedao-dl dle 123` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id.
 
 ## References
 

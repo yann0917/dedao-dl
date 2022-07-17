@@ -230,9 +230,50 @@ func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqEbookPages 获取页面详情
+func (s *Service) reqEbookPages(chapterID, token string, index, count, offset int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBodyJsonMarshal(map[string]interface{}{
+			"chapter_id":  chapterID,
+			"count":       count,
+			"index":       index,
+			"offset":      offset,
+			"orientation": 1,
+			"config": map[string]interface{}{
+				"density":         1,
+				"direction":       0,
+				"font_name":       "pingfang",
+				"font_scale":      1,
+				"font_size":       20,
+				"height":          1123,
+				"line_height":     "2em",
+				"margin_bottom":   60,
+				"margin_left":     30,
+				"margin_right":    30,
+				"margin_top":      60,
+				"paragraph_space": "1em",
+				"platform":        1,
+				"width":           794,
+			},
+			"token": token,
+		}).
+		Post("/ebk_web/v1/get_pages")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqEbookInfo 请求电子书vip info
 func (s *Service) reqEbookVIPInfo() (io.ReadCloser, error) {
-	resp, err := s.client.R().Post("/api/pc/ebook2/v1/vip/info")
+	resp, err := s.client.R().
+		Post("/api/pc/ebook2/v1/vip/info")
+	return handleHTTPResponse(resp, err)
+}
+
+//
+// reqOdobVIPInfo 请求每天听本书书 vip info
+func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		Post("pc/odob/v2/vipuser/vip_card_info")
+
 	return handleHTTPResponse(resp, err)
 }
 

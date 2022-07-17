@@ -1,10 +1,5 @@
 package services
 
-import (
-	"strconv"
-	"time"
-)
-
 // ArticleDetail article content
 // GET query params token,sign,appid
 type ArticleDetail struct {
@@ -354,15 +349,7 @@ type ArticleComment struct {
 
 // ArticleList get class article list
 func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleList, err error) {
-	// cacheFile := "articleList:" + id + ":" + chapterID + ":" + strconv.Itoa(maxID)
-	// list = new(ArticleList)
-	// list.MaxID = maxID
-	// list.ChapterIDStr = chapterID
-	// x, ok := list.getCache(cacheFile)
-	// if ok {
-	// 	list = x.(*ArticleList)
-	// 	return
-	// }
+
 	body, err := s.reqArticleList(id, chapterID, maxID)
 	if err != nil {
 		return
@@ -371,18 +358,12 @@ func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleLis
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	// err = list.setCache(cacheFile)
 	return
 }
 
 // ArticleInfo get article info
 func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
-	// cacheFile := "articleInfo:" + enid
-	// x, ok := info.getCache(cacheFile)
-	// if ok {
-	// 	info = x.(*ArticleInfo)
-	// 	return
-	// }
+
 	body, err := s.reqArticleInfo(enid)
 	if err != nil {
 		return
@@ -391,18 +372,12 @@ func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
-	// err = info.setCache(cacheFile)
 	return
 }
 
 // ArticleDetail get article detail
 func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail, err error) {
-	// cacheFile := "articleDetail:" + id
-	// x, ok := detail.getCache(cacheFile)
-	// if ok {
-	// 	detail = x.(*ArticleDetail)
-	// 	return
-	// }
+
 	body, err := s.reqArticleDetail(token, appID)
 	if err != nil {
 		return
@@ -411,7 +386,6 @@ func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail,
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
-	// err = detail.setCache(cacheFile)
 	return
 }
 
@@ -430,15 +404,7 @@ func (s *Service) ArticlePoint(id, pType string) (detail *ArticleDetail, err err
 
 // ArticleCommentList get article comment list
 func (s *Service) ArticleCommentList(id, sort string, page, limit int) (list *ArticleCommentList, err error) {
-	// cacheFile := "articleList:" + id + ":" + chapterID + ":" + strconv.Itoa(maxID)
-	// list = new(ArticleList)
-	// list.MaxID = maxID
-	// list.ChapterIDStr = chapterID
-	// x, ok := list.getCache(cacheFile)
-	// if ok {
-	// 	list = x.(*ArticleList)
-	// 	return
-	// }
+
 	body, err := s.reqArticleCommentList(id, sort, page, limit)
 	if err != nil {
 		return
@@ -447,63 +413,5 @@ func (s *Service) ArticleCommentList(id, sort string, page, limit int) (list *Ar
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	// err = list.setCache(cacheFile)
 	return
-}
-
-func (c *ArticleList) getCacheKey() string {
-	return "articleList:" + c.ChapterIDStr + ":" + strconv.Itoa(c.MaxID)
-}
-
-func (c *ArticleList) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *ArticleList) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
-}
-
-func (c *ArticleDetail) getCacheKey() string {
-	return "articleDetail"
-}
-
-func (c *ArticleDetail) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *ArticleDetail) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
-}
-
-func (c *ArticleInfo) getCacheKey() string {
-	return "articleInfo"
-}
-
-func (c *ArticleInfo) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *ArticleInfo) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
 }

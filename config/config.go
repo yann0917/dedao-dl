@@ -54,8 +54,6 @@ func (c *ConfigsData) Init() error {
 		return errors.New("配置文件未找到")
 	}
 
-	// 初始化默认配置
-	c.initDefaultConfig()
 	// 从配置文件中加载配置
 	err := c.loadConfigFromFile()
 	if err != nil {
@@ -68,7 +66,6 @@ func (c *ConfigsData) Init() error {
 		return nil
 	}
 
-	fmt.Printf("xxxxxx %#v\n", c.activeUser)
 	if c.activeUser != nil {
 		c.service = c.activeUser.New()
 	}
@@ -149,11 +146,6 @@ func (c *ConfigsData) Save() error {
 	}
 
 	return nil
-}
-
-func (c *ConfigsData) initDefaultConfig() {
-	// todo 默认配置
-	c.Save()
 }
 
 func (c *ConfigsData) loadConfigFromFile() error {
