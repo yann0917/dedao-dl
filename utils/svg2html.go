@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/JoshVarga/svgparser"
@@ -15,8 +16,10 @@ import (
 type HtmlEle struct {
 	X       string `json:"x"`
 	Y       string `json:"y"`
+	ID      string `json:"id"`
 	Width   string `json:"width"`
 	Height  string `json:"height"`
+	Offset  string `json:"offset"`
 	Href    string `json:"href"`
 	Name    string `json:"name"`
 	Style   string `json:"style"`
@@ -51,7 +54,8 @@ func Svg2Html(title string, contents []string) (err error) {
 			return err1
 		}
 
-		lineContent := make(map[string][]HtmlEle)
+		lineContent := make(map[float64][]HtmlEle)
+		offset := ""
 
 		for _, children := range element.Children {
 
@@ -60,14 +64,6 @@ func Svg2Html(title string, contents []string) (err error) {
 			content := children.Content
 
 			if y, ok := attr["y"]; ok {
-				// cont += content
-				// if newline, ok := attr["newline"]; ok && newline == "true" && children.Name == "text" {
-				// 	cont += "<br/>"
-				// 	ele.Content = cont
-				// 	cont = ""
-				// } else {
-				// 	ele.Content = ""
-				// }
 				if children.Name == "text" {
 					ele.Content = content
 				} else {
@@ -80,6 +76,15 @@ func Svg2Html(title string, contents []string) (err error) {
 				ele.Width = attr["width"]
 				ele.Height = attr["height"]
 
+				// id &offset 设置标题 margin-left
+				if _, ok := attr["id"]; ok {
+					ele.ID = attr["id"]
+					if _, ok := attr["offset"]; ok {
+						offset = attr["offset"]
+					}
+				}
+				ele.Offset = offset
+
 				if _, ok := attr["href"]; ok && children.Name == "image" {
 					ele.Href = attr["href"]
 				} else {
@@ -90,37 +95,59 @@ func Svg2Html(title string, contents []string) (err error) {
 
 				if (children.Name == "text" && ele.Content != "") ||
 					children.Name == "image" {
-					lineContent[y] = append(lineContent[y], ele)
+					yInt, _ := strconv.ParseFloat(y, 64)
+					lineContent[yInt] = append(lineContent[yInt], ele)
 				}
 			}
 		}
 
-		keys := make([]string, 0, len(lineContent))
+		keys := make([]float64, 0, len(lineContent))
 		for k := range lineContent {
 			keys = append(keys, k)
 		}
-		sort.Strings(keys)
-		cont := ""
-		for _, item := range lineContent {
+		sort.Float64s(keys)
+
+		for _, v := range keys {
+			cont := ""
 			result += `
 		<p>`
-			for i, v := range item {
-				switch v.Name {
+			id := ""
+			if lineContent[v][0].ID != "" {
+				id = lineContent[v][0].ID
+			}
+
+			for i, item := range lineContent[v] {
+
+				style := item.Style
+				// if id != "" {
+				// 	style += " margin-left:" + item.Offset + "px;"
+				// }
+				w, h := 0.0, 0.0
+				w, _ = strconv.ParseFloat(item.Width, 64)
+				h, _ = strconv.ParseFloat(item.Height, 64)
+				// 794x1123
+				if w > 794 {
+					w = 794
+				}
+				if h > 1123 {
+					h = 1123
+				}
+				switch item.Name {
 				case "image":
-					result += `<img width="` + v.Width + `" height="` + v.Height + `" src="` + v.Href + `"/>`
+					result += `<img width="` + strconv.FormatFloat(w, 'f', 0, 64) + `" height="` + strconv.FormatFloat(h, 'f', 0, 64) + `" src="` + item.Href + `"/>`
 				case "text":
-					cont += v.Content
-					if i == len(item)-1 {
-						result += `<span style="` + v.Style + `">` + cont + `</span>`
+					cont += item.Content
+					if i == len(lineContent[v])-1 {
+						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
 					}
 				}
 			}
-			cont = ""
 			result += `</p>`
 		}
 	}
 	result += `</body>
 	</html>`
+
 	path, err := Mkdir(OutputDir, "Ebook")
 	if err != nil {
 		return err
@@ -130,10 +157,12 @@ func Svg2Html(title string, contents []string) (err error) {
 	if err != nil {
 		return err
 	}
-
+	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
 	if err = WriteFileWithTrunc(fileName, result); err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 		return
 	}
+	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	err = Html2PDF(title)
 	return
 }
@@ -159,32 +188,33 @@ func Html2PDF(filename string) (err error) {
 		return
 	}
 
+	fileName, err = FilePath(filePreName, "pdf", false)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
+
 	pdfg.AddPage(wkhtmltopdf.NewPageReader(bytes.NewReader(htmlfile)))
 	pdfg.Dpi.Set(300)
 	pdfg.NoCollate.Set(false)
 	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
 
-	pdfg.MarginBottom.Set(40)
-	pdfg.MarginLeft.Set(30)
+	pdfg.MarginTop.Set(20)
+	pdfg.MarginBottom.Set(20)
+	pdfg.MarginLeft.Set(20)
 
 	err = pdfg.Create()
 	if err != nil {
 		fmt.Printf("pdfg create err: %#v\n", err)
 		return
-		// log.Fatal(err)
-	}
-
-	fileName, err = FilePath(filePreName, "pdf", false)
-	if err != nil {
-		return err
 	}
 
 	// Write buffer contents to file on disk
 	err = pdfg.WriteFile(fileName)
 	if err != nil {
-		fmt.Printf("pdfg WriteFile err: %#v\n", err)
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 		return
-		// log.Fatal(err)
 	}
+	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	return
 }

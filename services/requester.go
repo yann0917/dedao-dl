@@ -232,6 +232,10 @@ func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
 
 // reqEbookPages 获取页面详情
 func (s *Service) reqEbookPages(chapterID, token string, index, count, offset int) (io.ReadCloser, error) {
+	// A4纸的尺寸为210mm*297mm(宽*高)，这是国际化组织的ISO216定义的标准尺寸。
+	// 	设定的分辨率是72像素/英寸时，A4纸的尺寸的图像的像素是595×842，在ps中的大小为1.43M。
+	// 设定的分辨率是150像素/英寸时，A4纸的尺寸的图像的像素是1240×1754，在ps中的大小为6.22M。
+	// 设定的分辨率是300像素/英寸时，A4纸的尺寸的图像的像素是2479×3508，在ps中的大小为24.9M。
 	resp, err := s.client.R().
 		SetBodyJsonMarshal(map[string]interface{}{
 			"chapter_id":  chapterID,
@@ -245,15 +249,15 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 				"font_name":       "pingfang",
 				"font_scale":      1,
 				"font_size":       20,
-				"height":          1123,
+				"height":          3508,
 				"line_height":     "2em",
 				"margin_bottom":   60,
 				"margin_left":     30,
 				"margin_right":    30,
 				"margin_top":      60,
-				"paragraph_space": "1em",
+				"paragraph_space": "2em",
 				"platform":        1,
-				"width":           794,
+				"width":           2479,
 			},
 			"token": token,
 		}).
