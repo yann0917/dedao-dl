@@ -1,9 +1,5 @@
 package services
 
-import (
-	"time"
-)
-
 const (
 	// CateCourse 课程
 	CateCourse = "bauhinia"
@@ -35,12 +31,7 @@ type CourseCategoryList struct {
 
 // CourseType get course type list
 func (s *Service) CourseType() (list *CourseCategoryList, err error) {
-	// cacheFile := "courseTypeList"
-	// x, ok := list.getCache(cacheFile)
-	// if ok {
-	// 	list = x.(*CourseCategoryList)
-	// 	return
-	// }
+
 	body, err := s.reqCourseType()
 	if err != nil {
 		return
@@ -50,7 +41,6 @@ func (s *Service) CourseType() (list *CourseCategoryList, err error) {
 		return
 	}
 
-	// list.setCache(cacheFile)
 	return
 }
 
@@ -67,23 +57,4 @@ func (s *Service) CourseCount(category string) (count int, err error) {
 		}
 	}
 	return
-}
-
-func (c *CourseCategoryList) getCacheKey() string {
-	return "courseType"
-}
-
-func (c *CourseCategoryList) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *CourseCategoryList) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
 }

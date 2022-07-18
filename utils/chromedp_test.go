@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"testing"
 )
 
@@ -11,6 +12,6 @@ func TestPrintToPdf(t *testing.T) {
 	if err != nil {
 		t.Fatal("PrintToPDF test is failure", err)
 	} else {
-		// os.Remove(filename)
+		os.Remove(filename)
 	}
 }

@@ -60,9 +60,31 @@ var dlOdobCmd = &cobra.Command{
 	},
 }
 
+var dlEbookCmd = &cobra.Command{
+	Use:     "dle",
+	Short:   "下载电子书",
+	Long:    `使用 dedao-dl dle 下载电子书`,
+	Example: "dedao-dl dle 123",
+	PreRunE: AuthFunc,
+	RunE: func(cmd *cobra.Command, args []string) error {
+
+		id, err := strconv.Atoi(args[0])
+		if err != nil {
+			return errors.New("电子书ID错误")
+		}
+		aid := 0
+		if len(args) > 1 {
+			return errors.New("参数错误")
+		}
+		err = download(app.CateEbook, id, aid)
+		return err
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(downloadCmd)
 	rootCmd.AddCommand(dlOdobCmd)
+	rootCmd.AddCommand(dlEbookCmd)
 	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 }
 
@@ -155,19 +177,27 @@ func download(cType string, id, aid int) error {
 			if err := downloader.Download(datum, stream, path); err != nil {
 				errors = append(errors, err)
 			}
-			// use m3u8 downloader
-			// downloader, err := downloader.NewTask(path, datum.M3U8URL)
-			// if err != nil {
-			// 	errors = append(errors, err)
-			// }
-			// outName := datum.Title + ".mp3"
-			// if err := downloader.Start(25, outName); err != nil {
-			// 	errors = append(errors, err)
-			// }
 		}
 		if len(errors) > 0 {
 			return errors[0]
 		}
+
+	case app.CateEbook:
+		detail, err := app.EbookDetail(id)
+		if err != nil {
+			return err
+		}
+
+		title := strconv.Itoa(id) + "_"
+		if detail.Title != "" {
+			title += detail.Title
+		} else if detail.OperatingTitle != "" {
+			title += detail.OperatingTitle
+		}
+
+		title += "_" + detail.BookAuthor
+		app.EbookPage(title, detail.Enid)
+
 	}
 	return nil
 }

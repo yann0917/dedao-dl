@@ -2,8 +2,6 @@ package services
 
 import (
 	"math"
-	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -287,28 +285,23 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 				detail = &v
 				return
 			}
-		case CateAudioBook:
+		case CateEbook, CateAudioBook:
 			if v.ID == id {
 				detail = &v
 				return
 			}
 		default:
-			err = errors.New("Please make sure to enter the correct course ID")
+			err = errors.New("please make sure to enter the correct course ID")
 			return
 		}
 	}
-	err = errors.New("You have not purchased the course, cannot get course information")
+	err = errors.New("you have not purchased the course, cannot get course information")
 	return
 }
 
 // CourseInfo get course info
 func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
-	// cacheFile := "courseInfo:" + enid
-	// x, ok := info.getCache(cacheFile)
-	// if ok {
-	// 	info = x.(*CourseInfo)
-	// 	return
-	// }
+
 	body, err := s.reqCourseInfo(enid)
 	if err != nil {
 		return
@@ -317,7 +310,6 @@ func (s *Service) CourseInfo(enid string) (info *CourseInfo, err error) {
 	if err = handleJSONParse(body, &info); err != nil {
 		return
 	}
-	// info.setCache(cacheFile)
 	return
 }
 
@@ -334,44 +326,6 @@ func (c *CourseInfo) IsSubscribe() bool {
 // HasAudio include audio
 func (c *Course) HasAudio() bool {
 	return c.AudioDetail.LogType == "audio"
-}
-
-func (c *CourseList) getCacheKey() string {
-	return "courseList:" + strconv.Itoa(c.Page)
-}
-
-func (c *CourseList) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *CourseList) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
-}
-
-func (c *CourseInfo) getCacheKey() string {
-	return "courseInfo"
-}
-
-func (c *CourseInfo) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
-	if err != nil {
-		return nil, false
-	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *CourseInfo) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
 }
 
 func EnlightenClub() (detail Course) {

@@ -178,7 +178,7 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 	// fmt.Printf("result.C:=%#v", result.C)
 	if !result.isSuccess() {
 		//未登录或者登录凭证无效
-		err = errors.New("服务异常，请稍后重试")
+		err = errors.New("服务异常，请稍后重试。errMsg:" + result.H.E)
 		return err
 	}
 	err = utils.UnmarshalJSON(result.C, v)

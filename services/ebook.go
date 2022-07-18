@@ -1,7 +1,5 @@
 package services
 
-import "time"
-
 // Catelog ebook catalog
 type Catelog struct {
 	Level     int    `json:"level"`
@@ -84,12 +82,32 @@ type EbookToc struct {
 	Text      string `json:"text"`
 }
 
+type EbookInfoPage struct {
+	Cid         string `json:"cid"`
+	EndOffset   int    `json:"end_offset"`
+	PageNum     int    `json:"page_num"`
+	StartOffset int    `json:"start_offset"`
+}
+
+type EbookPage struct {
+	IsEnd bool `json:"is_end"`
+	Pages []struct {
+		BeginOffset           int64  `json:"begin_offset"`
+		EndOffset             int64  `json:"end_offset"`
+		IsFirst               bool   `json:"is_first"`
+		IsLast                bool   `json:"is_last"`
+		Svg                   string `json:"svg"`
+		ViewHeighToChapterTop int64  `json:"view_heigh_to_chapter_top"`
+	} `json:"pages"`
+}
+
 // EbookInfo ebook info
 type EbookInfo struct {
 	BookInfo struct {
-		EbookBlock [][]EbookBlock `json:"block"`
-		Orders     []EbookOrders  `json:"orders"`
-		Toc        []EbookToc     `json:"toc"`
+		EbookBlock [][]EbookBlock  `json:"block"`
+		Orders     []EbookOrders   `json:"orders"`
+		Toc        []EbookToc      `json:"toc"`
+		Pages      []EbookInfoPage `json:"pages"`
 	} `json:"bookInfo"`
 }
 
@@ -122,12 +140,7 @@ type EbookVIPInfo struct {
 
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
-	// cacheFile := "ebookDetail:" + enid
-	// x, ok := detail.getCache(cacheFile)
-	// if ok {
-	// 	detail = x.(*EbookDetail)
-	// 	return
-	// }
+
 	body, err := s.reqEbookDetail(enid)
 	if err != nil {
 		return
@@ -136,7 +149,6 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 	if err = handleJSONParse(body, &detail); err != nil {
 		return
 	}
-	// detail.setCache(cacheFile)
 	return
 }
 
@@ -154,7 +166,6 @@ func (s *Service) EbookReadToken(enid string) (t *Token, err error) {
 }
 
 // EbookInfo get ebook info
-//
 // include book block, book TOC, epubPath etc
 func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
 	body, err := s.reqEbookInfo(token)
@@ -181,21 +192,14 @@ func (s *Service) EbookVIPInfo() (info *EbookVIPInfo, err error) {
 	return
 }
 
-func (c *EbookDetail) getCacheKey() string {
-	return "ebookDetail"
-}
-
-func (c *EbookDetail) getCache(fileName string) (interface{}, bool) {
-	err := LoadCacheFile(fileName)
+func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
+	body, err := s.reqEbookPages(chapterID, token, index, count, offset)
 	if err != nil {
-		return nil, false
+		return
 	}
-	x, ok := Cache.Get(cacheKey(c))
-	return x, ok
-}
-
-func (c *EbookDetail) setCache(fileName string) error {
-	Cache.Set(cacheKey(c), c, 1*time.Hour)
-	err := SaveCacheFile(fileName)
-	return err
+	defer body.Close()
+	if err = handleJSONParse(body, &pages); err != nil {
+		return
+	}
+	return
 }

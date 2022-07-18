@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -10,9 +11,12 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/yann0917/dedao-dl/request"
 )
+
+var OutputDir = "output"
 
 // MAXLENGTH Maximum length of file name
 const MAXLENGTH = 80
@@ -21,7 +25,7 @@ const MAXLENGTH = 80
 const TimeFormat = "2006-01-02 15:04:05"
 
 // FileName filter invalid string
-func FileName(name string, ext string) string {
+func FileName(name, ext string) string {
 	rep := strings.NewReplacer("\n", " ", "/", " ", "|", "-", ": ", "：", ":", "：", "'", "’", "\t", " ")
 	name = rep.Replace(name)
 
@@ -167,4 +171,50 @@ func Contains(s []int, n int) bool {
 		}
 	}
 	return false
+}
+
+func StringToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(
+		&struct {
+			string
+			Cap int
+		}{s, len(s)},
+	))
+}
+
+func BytesToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func CheckFileExist(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func WriteFileWithTrunc(filename, content string) (err error) {
+
+	var f *os.File
+	if CheckFileExist(filename) {
+		f, err = os.OpenFile(filename, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0666)
+
+		if err != nil {
+			return
+		}
+	} else {
+		f, err = os.Create(filename) //创建文件
+		if err != nil {
+			return
+		}
+	}
+	defer f.Close()
+	_, err = io.WriteString(f, content)
+	if err != nil {
+		return
+	}
+
+	f.Sync()
+	return
+
 }
