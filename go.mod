@@ -11,7 +11,7 @@ require (
 	github.com/chromedp/chromedp v0.8.2
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-rod/rod v0.108.1
-	github.com/imroc/req/v3 v3.14.0
+	github.com/imroc/req/v3 v3.14.2
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.12
 	github.com/mattn/go-runewidth v0.0.13 // indirect
