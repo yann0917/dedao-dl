@@ -44,6 +44,10 @@ func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
 		return
 	}
 	var svgContent []string
+	// fmt.Printf("%#v\n", info.BookInfo.Pages)
+	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
+	// fmt.Printf("%#v\n", info.BookInfo.Toc)
+	// fmt.Printf("%#v\n", info.BookInfo.Orders)
 	for _, order := range info.BookInfo.Orders {
 
 		index, count, offset := 0, 20, 0
@@ -56,7 +60,7 @@ func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
 
 	}
 	if len(svgContent) > 0 {
-		utils.Svg2Html(title, svgContent)
+		err = utils.Svg2Html(title, svgContent)
 	}
 	return
 }
@@ -83,6 +87,7 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 
 		svgList = append(svgList, list...)
 	}
-	// utils.WriteFileWithTrunc(chapterID+".svg", strings.Join(svgList, "\n"))
+	// FIXME: debug
+	// err = utils.SaveFile(chapterID, "", strings.Join(svgList, "\n"))
 	return
 }

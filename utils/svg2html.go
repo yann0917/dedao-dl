@@ -24,6 +24,9 @@ type HtmlEle struct {
 	Name    string `json:"name"`
 	Style   string `json:"style"`
 	Content string `json:"content"`
+	Class   string `json:"class"`
+	Alt     string `json:"alt"`
+	Len     string `json:"len"`
 }
 
 func Svg2Html(title string, contents []string) (err error) {
@@ -41,6 +44,9 @@ func Svg2Html(title string, contents []string) (err error) {
 		url("https://imgcdn.umiwi.com/ttf/fangzhengkaiti_gbk.ttf"); }
 		@font-face { font-family: "PingFang SC";
 		src:local("PingFang SC"); }
+		@font-face { font-family: "Source Code Pro";
+		src:local("Source Code Pro"),
+		url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
 		</style>
 	</head>
 	<body>`
@@ -58,17 +64,22 @@ func Svg2Html(title string, contents []string) (err error) {
 		offset := ""
 
 		for _, children := range element.Children {
-
+			// fmt.Printf("%#v\n", children)
 			var ele HtmlEle
 			attr := children.Attributes
 			content := children.Content
 
 			if y, ok := attr["y"]; ok {
 				if children.Name == "text" {
-					ele.Content = content
+					if content == "" && attr["len"] == "1" {
+						ele.Content = " "
+					} else {
+						ele.Content = content
+					}
 				} else {
 					ele.Content = ""
 				}
+				ele.Len = attr["len"]
 
 				ele.Style = attr["style"]
 				ele.X = attr["x"]
@@ -93,7 +104,7 @@ func Svg2Html(title string, contents []string) (err error) {
 
 				ele.Name = children.Name
 
-				if (children.Name == "text" && ele.Content != "") ||
+				if (children.Name == "text") ||
 					children.Name == "image" {
 					yInt, _ := strconv.ParseFloat(y, 64)
 					lineContent[yInt] = append(lineContent[yInt], ele)
@@ -107,6 +118,9 @@ func Svg2Html(title string, contents []string) (err error) {
 		}
 		sort.Float64s(keys)
 
+		// html 强制分页
+		result += `
+		<div style="page-break-after: always;">`
 		for _, v := range keys {
 			cont := ""
 			result += `
@@ -117,20 +131,22 @@ func Svg2Html(title string, contents []string) (err error) {
 			}
 
 			for i, item := range lineContent[v] {
+				// TODO： image class=epub-footnote 是注释图片
 
 				style := item.Style
+				style = strings.Replace(style, "fill", "color", -1)
 				// if id != "" {
 				// 	style += " margin-left:" + item.Offset + "px;"
 				// }
 				w, h := 0.0, 0.0
 				w, _ = strconv.ParseFloat(item.Width, 64)
 				h, _ = strconv.ParseFloat(item.Height, 64)
-				// 794x1123
-				if w > 794 {
-					w = 794
+				// 1240x1754
+				if w > 1240 {
+					w = 1240
 				}
-				if h > 1123 {
-					h = 1123
+				if h > 1754 {
+					h = 1754
 				}
 				switch item.Name {
 				case "image":
@@ -144,6 +160,7 @@ func Svg2Html(title string, contents []string) (err error) {
 			}
 			result += `</p>`
 		}
+		result += `</div>`
 	}
 	result += `</body>
 	</html>`
@@ -212,6 +229,25 @@ func Html2PDF(filename string) (err error) {
 	// Write buffer contents to file on disk
 	err = pdfg.WriteFile(fileName)
 	if err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		return
+	}
+	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+	return
+}
+
+func SaveFile(title, ext, content string) (err error) {
+	path, err := Mkdir(OutputDir, "Ebook")
+	if err != nil {
+		return err
+	}
+
+	fileName, err := FilePath(filepath.Join(path, FileName(title, ext)), ext, false)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
+	if err = WriteFileWithTrunc(fileName, content); err != nil {
 		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 		return
 	}
