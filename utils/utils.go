@@ -59,11 +59,13 @@ func LimitLength(s string, length int) string {
 func FilePath(name, ext string, escape bool) (string, error) {
 	var outputPath string
 
-	var fileName string
+	fileName := name
 	if escape {
 		fileName = FileName(name, ext)
 	} else {
-		fileName = fmt.Sprintf("%s.%s", name, ext)
+		if ext != "" {
+			fileName = fmt.Sprintf("%s.%s", name, ext)
+		}
 	}
 	outputPath = filepath.Join(fileName)
 	return outputPath, nil
