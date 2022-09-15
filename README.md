@@ -20,7 +20,7 @@
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，文稿生成 Markdown 文档，也可生成 mp3 文件
 * 每天听本书可下载音频
-* 电子书可下载 pdf(有 bug ，待解决)
+* 电子书可下载 pdf
 * 可切换登录账号
 
 ## 安装
@@ -45,6 +45,7 @@ dedao-dl支持markdown文本下载，pdf下载，以及音频下载，请按照�
 进入[下载列表](https://github.com/yann0917/dedao-dl/releases),下载对应的系统版本，下载后即可使用。
 
 ### 使用 `go` 安装
+
 安装go，版本需大于1.18，并设置GOPATH环境变量, 并在PATH中添加$GOPATH/bin
 
 使用如下命令安装：
@@ -53,7 +54,7 @@ dedao-dl支持markdown文本下载，pdf下载，以及音频下载，请按照�
 
 ### 使用 Docker 运行
 
-> 为了加快 build 速度，`alpine` 镜像源已修改为阿里镜像。
+> 为了加快 build 速度，`alpine` 镜像源已修改为阿里镜像。(docker 内没有安装 wkhtmltopdf 不能下载电子书)
 
 如果不想在本地安装 `ffmpeg` 和 `chromedp` 则提供了 `docker` 环境，参考以下命令构建并使用容器执行相关命令。
 
@@ -67,6 +68,9 @@ docker run -v `pwd`/config.json:/app/config.json -it --rm dedao login -c "Cookie
 docker run -v `pwd`/config.json:/app/config.json -it --rm dedao cat
 # 查看课程
 docker run -v `pwd`/config.json:/app/config.json -it --rm dedao course
+
+# 查看电子书
+docker run -v `pwd`/config.json:/app/config.json -it --rm dedao ebook
 
 # 下载课程
 docker run -v `pwd`/output:/app/output -v `pwd`/config.json:/app/config.json -it --rm dedao dl xxx
