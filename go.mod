@@ -11,7 +11,7 @@ require (
 	github.com/chromedp/chromedp v0.8.5
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-rod/rod v0.109.3
-	github.com/imroc/req/v3 v3.22.0
+	github.com/imroc/req/v3 v3.23.0
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/lucas-clemente/quic-go v0.29.0 // indirect
