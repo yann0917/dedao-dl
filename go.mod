@@ -10,7 +10,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20220901095120-1a01299a2163
 	github.com/chromedp/chromedp v0.8.5
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/go-rod/rod v0.109.3
+	github.com/go-rod/rod v0.111.0
 	github.com/imroc/req/v3 v3.22.0
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/json-iterator/go v1.1.12
