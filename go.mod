@@ -7,8 +7,8 @@ require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.7.2
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.0
-	github.com/chromedp/cdproto v0.0.0-20220901095120-1a01299a2163
-	github.com/chromedp/chromedp v0.8.5
+	github.com/chromedp/cdproto v0.0.0-20220924210414-0e3390be1777
+	github.com/chromedp/chromedp v0.8.6
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-rod/rod v0.109.3
 	github.com/imroc/req/v3 v3.22.0
@@ -28,5 +28,4 @@ require (
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
 )
