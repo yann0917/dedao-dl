@@ -8,17 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cheggaaa/pb/v3"
 	"github.com/yann0917/dedao-dl/request"
 	"github.com/yann0917/dedao-dl/utils"
 )
-
-func progressBar(size int, prefix string) *pb.ProgressBar {
-	bar := pb.New(size).
-		SetMaxWidth(1000).
-		SetRefreshRate(time.Millisecond * 10)
-	return bar
-}
 
 // Download download data
 func Download(v Datum, stream, path string) error {
@@ -65,17 +57,13 @@ func Download(v Datum, stream, path string) error {
 		return nil
 	}
 
-	bar := progressBar(data.Size, title)
-	bar.Start()
-
 	chunkSizeMB := 1
 
 	if len(data.URLs) == 1 {
-		err := Save(data.URLs[0], filePreName, bar, chunkSizeMB)
+		err := Save(data.URLs[0], filePreName, chunkSizeMB)
 		if err != nil {
 			return err
 		}
-		bar.Finish()
 		return nil
 	}
 
@@ -98,15 +86,15 @@ func Download(v Datum, stream, path string) error {
 		parts[index] = partFilePath
 
 		wgp.Add()
-		go func(url URL, fileName string, bar *pb.ProgressBar) {
+		go func(url URL, fileName string) {
 			defer wgp.Done()
-			err := Save(url, fileName, bar, chunkSizeMB)
+			err := Save(url, fileName, chunkSizeMB)
 			if err != nil {
 				lock.Lock()
 				errs = append(errs, err)
 				lock.Unlock()
 			}
-		}(url, partFileName, bar)
+		}(url, partFileName)
 	}
 
 	wgp.Wait()
@@ -115,7 +103,6 @@ func Download(v Datum, stream, path string) error {
 		return errs[0]
 	}
 
-	bar.Finish()
 	switch v.Type {
 	case "audio":
 		err = utils.MergeAudio(parts, fileName)
@@ -136,9 +123,7 @@ func downloadAudio(m3u8 string, fname string) (err error) {
 }
 
 // Save url file
-func Save(
-	urlData URL, fileName string, bar *pb.ProgressBar, chunkSizeMB int,
-) error {
+func Save(urlData URL, fileName string, chunkSizeMB int) error {
 	if urlData.Size == 0 {
 		size, err := request.Size(urlData.URL)
 		if err != nil {
@@ -156,14 +141,9 @@ func Save(
 	if err != nil {
 		return err
 	}
-	if bar == nil {
-		bar = progressBar(urlData.Size, fileName)
-		bar.Start()
-	}
 	// Skip segment file
 	// TODO: Live video URLs will not return the size
 	if exists && fileSize == urlData.Size {
-		bar.Add(fileSize)
 		return nil
 	}
 	tempFilePath := filePath + ".download"
@@ -181,7 +161,6 @@ func Save(
 		// range start from 0, 0-1023 means the first 1024 bytes of the file
 		headers["Range"] = fmt.Sprintf("bytes=%d-", tempFileSize)
 		file, fileError = os.OpenFile(tempFilePath, os.O_APPEND|os.O_WRONLY, 0644)
-		bar.Add(tempFileSize)
 	} else {
 		file, fileError = os.Create(tempFilePath)
 	}
@@ -191,7 +170,7 @@ func Save(
 
 	// close and rename temp file at the end of this function
 	defer func() {
-		// must close the file before rename or it will cause
+		// must close the file before rename, or it will cause
 		// `The process cannot access the file because it is being used by another process.` error.
 		file.Close()
 		if err == nil {
@@ -217,7 +196,7 @@ func Save(
 			headers["Range"] = fmt.Sprintf("bytes=%d-%d", start, end)
 			temp := start
 			for i := 0; ; i++ {
-				written, err := writeFile(urlData.URL, file, headers, bar)
+				written, err := writeFile(urlData.URL, file, headers)
 				if err == nil {
 					break
 				} else if i+1 >= 3 {
@@ -232,7 +211,7 @@ func Save(
 	} else {
 		temp := tempFileSize
 		for i := 0; ; i++ {
-			written, err := writeFile(urlData.URL, file, headers, bar)
+			written, err := writeFile(urlData.URL, file, headers)
 			if err == nil {
 				break
 			} else if i+1 >= 3 {
@@ -247,9 +226,7 @@ func Save(
 	return nil
 }
 
-func writeFile(
-	url string, file *os.File, headers map[string]string, bar *pb.ProgressBar,
-) (int, error) {
+func writeFile(url string, file *os.File, headers map[string]string) (int, error) {
 	res, err := request.Get(url)
 	if err != nil {
 		return 0, err
@@ -257,7 +234,6 @@ func writeFile(
 	defer res.Close()
 
 	writer := io.MultiWriter(file)
-	bar.SetWriter(writer)
 	// Note that io.Copy reads 32kb(maximum) from input and writes them to output, then repeats.
 	// So don't worry about memory.
 	written, copyErr := io.Copy(writer, res)

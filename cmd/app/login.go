@@ -2,14 +2,11 @@ package app
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/go-rod/rod"
 	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
-	"github.com/yann0917/dedao-dl/utils"
 )
 
 // LoginByCookie login by cookie
@@ -27,15 +24,15 @@ func LoginByCookie(cookie string) (err error) {
 }
 
 // GetCookie get cookie string
-func GetCookie() (cookie string) {
-	_ = rod.Try(func() {
-		cookie = utils.Get(config.BaseURL)
-		if !strings.Contains(cookie, "ISID=") {
-			return
-		}
-	})
-	return
-}
+// func GetCookie() (cookie string) {
+// 	_ = rod.Try(func() {
+// 		cookie = utils.Get(config.BaseURL)
+// 		if !strings.Contains(cookie, "ISID=") {
+// 			return
+// 		}
+// 	})
+// 	return
+// }
 
 func LoginByQr() error {
 	token, err := getService().LoginAccessToken()
@@ -57,15 +54,16 @@ func LoginByQr() error {
 				return err
 			}
 			if check.Data.Status == 1 {
-				LoginByCookie(cookie)
+				err = LoginByCookie(cookie)
 				fmt.Println("扫码成功")
 				return nil
 			} else if check.Data.Status == 2 {
+
 				err = errors.New("登录失败，二维码已过期")
 				return err
 			}
 		case <-ticker.C:
-		//10分钟后二维码失效
+		// 10分钟后二维码失效
 		case <-time.After(600 * time.Second):
 			err = errors.New("登录失败，二维码已过期")
 			return err

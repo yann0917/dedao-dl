@@ -27,16 +27,16 @@ var loginCmd = &cobra.Command{
 			return err
 		}
 		if Cookie == "" {
-			defaultCookie := app.GetCookie()
-			if defaultCookie == "" {
-				return errors.New("自动获取 cookie 失败，请使用参数设置 cookie")
-			}
-			Cookie = defaultCookie
+			// defaultCookie := app.GetCookie()
+			// if defaultCookie == "" {
+			// 	return errors.New("自动获取 cookie 失败，请使用参数设置 cookie")
+			// }
+			// Cookie = defaultCookie
+			return errors.New("请使用参数设置 cookie")
 		} else {
 			err := app.LoginByCookie(Cookie)
 			return err
 		}
-		return nil
 
 	},
 

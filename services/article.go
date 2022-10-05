@@ -161,6 +161,7 @@ type ArticleInfo struct {
 	PaymentAudioID    int          `json:"payment_audio_id"`
 	ResourceID        int          `json:"resource_id"`
 	ResourceType      int          `json:"resource_type"`
+	Audio             Audio        `json:"audio"`
 }
 
 type ArticleCommentList struct {
@@ -362,9 +363,10 @@ func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleLis
 }
 
 // ArticleInfo get article info
-func (s *Service) ArticleInfo(enid string) (info *ArticleInfo, err error) {
+// enid article enid, aType 1-course article, 2-odob article
+func (s *Service) ArticleInfo(enid string, aType int) (info *ArticleInfo, err error) {
 
-	body, err := s.reqArticleInfo(enid)
+	body, err := s.reqArticleInfo(enid, aType)
 	if err != nil {
 		return
 	}

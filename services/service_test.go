@@ -117,7 +117,7 @@ func TestArticleDetail(t *testing.T) {
 
 func TestArticleInfo(t *testing.T) {
 	enid := "R2Mo65zY4QZ3VnmvraKqEdNAa98jGB"
-	result, err := service.ArticleInfo(enid)
+	result, err := service.ArticleInfo(enid, 1)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}

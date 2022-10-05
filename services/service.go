@@ -52,7 +52,7 @@ func (r respC) String() string {
 	return string(r)
 }
 
-//Service dedao service
+// Service dedao service
 type Service struct {
 	client *req.Client
 }
@@ -70,7 +70,7 @@ type CookieOptions struct {
 	CookieStr     string `json:"cookieStr"`
 }
 
-//NewService new service
+// NewService new service
 func NewService(co *CookieOptions) *Service {
 	client := request.NewClient(baseURL)
 	// client.ResetCookieJar()
@@ -122,7 +122,7 @@ func NewService(co *CookieOptions) *Service {
 	return &Service{client: client}
 }
 
-//Cookies get cookies string
+// Cookies get cookies string
 // func (s *Service) Cookies() map[string]string {
 // 	cookies := s.client.Client.Jar.Cookies(dedaoCommURL)
 
@@ -177,7 +177,7 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 	}
 	// fmt.Printf("result.C:=%#v", result.C)
 	if !result.isSuccess() {
-		//未登录或者登录凭证无效
+		// 未登录或者登录凭证无效
 		err = errors.New("服务异常，请稍后重试。errMsg:" + result.H.E)
 		return err
 	}

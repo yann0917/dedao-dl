@@ -12,6 +12,6 @@ func TestPrintToPdf(t *testing.T) {
 	if err != nil {
 		t.Fatal("PrintToPDF test is failure", err)
 	} else {
-		os.Remove(filename)
+		_ = os.Remove(filename)
 	}
 }

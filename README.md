@@ -1,6 +1,6 @@
 # dedao-dl
 
-> 🦉 用 go 写的一个 《得到》 APP 课程下载工具，使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
+> 🦉 用 go 写的一个 《得到》 APP 课程下载工具，扫码或者使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
 
@@ -19,14 +19,15 @@
 * 可查看已购买的锦囊
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，文稿生成 Markdown 文档，也可生成 mp3 文件
-* 每天听本书可下载音频
+* 每天听本书可下载音频，文稿生成 Markdown 文档
 * 电子书可下载 pdf
 * 可切换登录账号
 
 ## 安装
 
 ### 安装依赖
-dedao-dl支持markdown文本下载，pdf下载，以及音频下载，请按照自己的下载需求，安装下列依赖：
+
+`dedao-dl` 支持markdown文本下载，pdf下载，以及音频下载，请按照自己的下载需求，安装下列依赖：
 
 #### pdf下载
 * google chrome
@@ -114,7 +115,6 @@ Available Commands:
   users       查看登录过的用户列表
   who         查看当前登录的用户
 ```
-
 
 `dedao-dl cat` 获取课程分类
 
@@ -255,6 +255,8 @@ Available Commands:
 注意：生成 PDF 的时候，操作过于频繁会触发 `496 NoCertificate` , 因此每次生成一次PDF sleep 0~5秒, 尽管如此，还是有极大可能触发操作频繁图形验证。
 
 `dedao-dl dle 123` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id.
+
+`dedao-dl dl0 123 -t 1` 下载听书ID 123 的音频或文稿, -t 下载格式, 1:mp3, 3:markdown文档 (default 1)
 
 ## References
 

@@ -45,7 +45,7 @@ func (s *Service) reqGetLoginAccessToken() (string, error) {
 
 // reqGetQrcode 扫码登录二维码
 // token: X-Oauth-Access-Token from /loginapi/getAccessToken
-func (s *Service) reqGetQrcode(token string) (qr *QrCodeReqp, err error) {
+func (s *Service) reqGetQrcode(token string) (qr *QrCodeResp, err error) {
 	_, err = s.client.R().
 		SetHeader("X-Oauth-Access-Token", token).
 		SetResult(&qr).
@@ -162,11 +162,17 @@ func (s *Service) reqArticleCommentList(enId, sort string, page, limit int) (io.
 }
 
 // reqArticleInfo 请求文章 token
-func (s *Service) reqArticleInfo(ID string) (io.ReadCloser, error) {
+// id article id or odob audioAliasID
+func (s *Service) reqArticleInfo(ID string, aType int) (io.ReadCloser, error) {
+	param := make(map[string]string)
+	switch aType {
+	case 1:
+		param["detail_id"] = ID
+	case 2:
+		param["audio_alias_id"] = ID
+	}
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]string{
-			"detail_id": ID,
-		}).Post("/pc/bauhinia/pc/article/info")
+		SetBodyJsonMarshal(param).Post("/pc/bauhinia/pc/article/info")
 	return handleHTTPResponse(resp, err)
 }
 

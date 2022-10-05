@@ -2,9 +2,9 @@ package utils
 
 import (
 	"context"
-	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -124,7 +124,7 @@ func ColumnPrintToPDF(aid string, filename string, cookies map[string]string) er
 		return err
 	}
 
-	return ioutil.WriteFile(filename, buf, 0644)
+	return os.WriteFile(filename, buf, 0644)
 }
 
 func setCookies(cookies map[string]string) chromedp.ActionFunc {
@@ -165,10 +165,11 @@ func navigateAndWaitFor(url string, eventName string) chromedp.ActionFunc {
 
 // waitFor blocks until eventName is received.
 // Examples of events you can wait for:
-//     init, DOMContentLoaded, firstPaint,
-//     firstContentfulPaint, firstImagePaint,
-//     firstMeaningfulPaintCandidate,
-//     load, networkAlmostIdle, firstMeaningfulPaint, networkIdle
+//
+//	init, DOMContentLoaded, firstPaint,
+//	firstContentfulPaint, firstImagePaint,
+//	firstMeaningfulPaintCandidate,
+//	load, networkAlmostIdle, firstMeaningfulPaint, networkIdle
 //
 // This is not super reliable, I've already found incidental cases where
 // networkIdle was sent before load. It's probably smart to see how

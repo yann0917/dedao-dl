@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -36,7 +35,7 @@ func HTTPGet(url string) (body []byte, err error) {
 	}
 
 	defer r.Body.Close()
-	body, err = ioutil.ReadAll(r.Body)
+	body, err = io.ReadAll(r.Body)
 	if err != nil {
 		return
 	}

@@ -1,4 +1,4 @@
 package config
 
 // VERSION version of dedao-dl
-const VERSION = "0.0.1"
+const VERSION = "1.1.2"

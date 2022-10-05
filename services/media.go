@@ -74,7 +74,7 @@ type Video struct {
 	Caption          string  `json:"caption"`
 }
 
-// AudioList audio baseic info list
+// AudioList audio basic info list
 type AudioList struct {
 	List []Audio `json:"list"`
 }

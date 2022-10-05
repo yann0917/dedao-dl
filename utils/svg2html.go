@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -199,7 +199,7 @@ func Html2PDF(filename string) (err error) {
 
 	pdfg, _ := wkhtmltopdf.NewPDFGenerator()
 
-	htmlfile, err := ioutil.ReadFile(fileName)
+	htmlfile, err := os.ReadFile(fileName)
 	if err != nil {
 		fmt.Printf("htmlfile err: %#v\n", err)
 		return

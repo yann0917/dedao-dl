@@ -5,7 +5,7 @@ import (
 	"github.com/yann0917/dedao-dl/utils"
 )
 
-type QrCodeReqp struct {
+type QrCodeResp struct {
 	ErrCode int    `json:"errCode"`
 	ErrMsg  string `json:"errMsg"`
 	Data    struct {
@@ -22,7 +22,7 @@ type CheckLoginResp struct {
 	} `json:"data"`
 }
 
-// get login access token
+// LoginAccessToken get login access token
 func (s *Service) LoginAccessToken() (token string, err error) {
 	token, err = s.reqGetLoginAccessToken()
 	if err != nil {
@@ -33,7 +33,7 @@ func (s *Service) LoginAccessToken() (token string, err error) {
 	return
 }
 
-func (s *Service) GetQrcode(token string) (resp *QrCodeReqp, err error) {
+func (s *Service) GetQrcode(token string) (resp *QrCodeResp, err error) {
 	resp, err = s.reqGetQrcode(token)
 	if err != nil {
 		err = errors.Wrap(err, "request login err")

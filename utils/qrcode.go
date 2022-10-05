@@ -40,7 +40,7 @@ type qrcodeRecoveryLevels struct {
 }
 
 var (
-	ConsoleColors consoleColors = consoleColors{
+	ConsoleColors = consoleColors{
 		NormalBlack:   "\033[38;5;0m  \033[0m",
 		NormalRed:     "\033[38;5;1m  \033[0m",
 		NormalGreen:   "\033[38;5;2m  \033[0m",

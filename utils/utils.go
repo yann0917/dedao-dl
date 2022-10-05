@@ -205,7 +205,7 @@ func WriteFileWithTrunc(filename, content string) (err error) {
 			return
 		}
 	} else {
-		f, err = os.Create(filename) //创建文件
+		f, err = os.Create(filename)
 		if err != nil {
 			return
 		}
@@ -216,7 +216,7 @@ func WriteFileWithTrunc(filename, content string) (err error) {
 		return
 	}
 
-	f.Sync()
+	err = f.Sync()
 	return
 
 }

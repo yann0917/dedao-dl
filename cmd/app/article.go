@@ -34,7 +34,6 @@ func ArticleList(id int, chapterID string) (list *services.ArticleList, err erro
 }
 
 // ArticleInfo article info
-//
 // get article token, audio token, media security token etc
 func ArticleInfo(id, aid int) (info *services.ArticleInfo, aEnid string, err error) {
 	list, err := ArticleList(id, "")
@@ -56,7 +55,7 @@ func ArticleInfo(id, aid int) (info *services.ArticleInfo, aEnid string, err err
 		return
 	}
 
-	info, err = getService().ArticleInfo(aEnid)
+	info, err = getService().ArticleInfo(aEnid, 1)
 	if err != nil {
 		return
 	}
@@ -88,6 +87,34 @@ func ArticleCommentList(enId, sort string, page, limit int) (list *services.Arti
 		return
 	}
 
+	return
+
+}
+
+// OdobArticleInfo article info
+// get article token, audio token, media security token etc.
+func OdobArticleInfo(aEnid string) (info *services.ArticleInfo, err error) {
+	info, err = getService().ArticleInfo(aEnid, 2)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// OdobArticleDetail odob article detail
+func OdobArticleDetail(aEnid string) (detail *services.ArticleDetail, err error) {
+	info, err := OdobArticleInfo(aEnid)
+	if err != nil {
+		return
+	}
+
+	token := info.DdArticleToken
+	appid := "1632426125495894021"
+	detail, err = getService().ArticleDetail(token, aEnid, appid)
+	if err != nil {
+		fmt.Printf("err:%#v\n", err)
+		return
+	}
 	return
 
 }

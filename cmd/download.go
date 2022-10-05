@@ -40,10 +40,11 @@ var downloadCmd = &cobra.Command{
 }
 
 var dlOdobCmd = &cobra.Command{
-	Use:     "dlo",
-	Short:   "下载每天听本书音频",
-	Long:    `使用 dedao-dl dlo 下载每天听本书音频`,
-	Example: "dedao-dl dlo 123",
+	Use:   "dlo",
+	Short: "下载每天听本书音频 & 文稿",
+	Long: `使用 dedao-dl dlo 下载每天听本书音频, 并转换成 PDF(未实现) & 音频 & markdown
+-t 指定下载格式, 1:mp3, 2:PDF文档, 3:markdown文档, 默认 mp3`,
+	Example: "dedao-dl dlo 123 -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -86,6 +87,7 @@ func init() {
 	rootCmd.AddCommand(dlOdobCmd)
 	rootCmd.AddCommand(dlEbookCmd)
 	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
+	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 }
 
 func download(cType string, id, aid int) error {
@@ -154,32 +156,47 @@ func download(cType string, id, aid int) error {
 		}
 
 	case app.CateAudioBook:
-		list, err := app.CourseList(cType)
-		if err != nil {
-			return err
-		}
 		fileName := "每天听本书"
-		downloadData := downloader.Data{
-			Title: fileName,
-		}
-		downloadData.Type = "audio"
-		downloadData.Data = extractOdobDownloadData(list, id)
-		errors := make([]error, 0)
-		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
-		if err != nil {
+		switch downloadType {
+		case 1:
+			list, err := app.CourseList(cType)
+			if err != nil {
+				return err
+			}
+			downloadData := downloader.Data{
+				Title: fileName,
+			}
+			downloadData.Type = "audio"
+			downloadData.Data = extractOdobDownloadData(list, id)
+			errors := make([]error, 0)
+			path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
+			if err != nil {
+				return err
+			}
+			for _, datum := range downloadData.Data {
+				if !datum.IsCanDL {
+					continue
+				}
+				stream := datum.Enid
+				if err := downloader.Download(datum, stream, path); err != nil {
+					errors = append(errors, err)
+				}
+			}
+			if len(errors) > 0 {
+				return errors[0]
+			}
+		case 2:
+			err := errors.New("得到 Web 端暂未开放每天听本书，PDF 无法下载。")
 			return err
-		}
-		for _, datum := range downloadData.Data {
-			if !datum.IsCanDL {
-				continue
+		case 3:
+			// 下载 Markdown
+			path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MD")
+			if err != nil {
+				return err
 			}
-			stream := datum.Enid
-			if err := downloader.Download(datum, stream, path); err != nil {
-				errors = append(errors, err)
+			if err := DownloadMarkdown(app.CateAudioBook, id, path); err != nil {
+				return err
 			}
-		}
-		if len(errors) > 0 {
-			return errors[0]
 		}
 
 	case app.CateEbook:

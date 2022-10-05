@@ -1,6 +1,6 @@
 package services
 
-// Chapter chapter
+// Chapter metadata
 type Chapter struct {
 	ID          int           `json:"id"`
 	IDStr       string        `json:"id_str"`

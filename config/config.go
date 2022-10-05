@@ -3,9 +3,7 @@ package config
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"sync"
 
@@ -281,13 +279,13 @@ func (c *ConfigsData) SwitchUser(u *User) error {
 	for _, user := range c.Users {
 		if user.UIDHazy == u.UIDHazy {
 			c.setActiveUser(user)
-			c.Save()
-			// remove cache file
-			dir, _ := ioutil.ReadDir("./.cache")
-			for _, d := range dir {
-				os.RemoveAll(path.Join([]string{".cache", d.Name()}...))
-			}
-			return nil
+			err := c.Save()
+			// // remove cache file
+			// dir, _ := ioutil.ReadDir("./.cache")
+			// for _, d := range dir {
+			// 	os.RemoveAll(path.Join([]string{".cache", d.Name()}...))
+			// }
+			return err
 		}
 	}
 

@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Course course metadata
+// Course metadata
 type Course struct {
 	Enid           string        `json:"enid"`
 	ID             int           `json:"id"`

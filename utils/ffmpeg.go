@@ -55,9 +55,12 @@ func MergeToMP4(paths []string, mergedFilePath string, filename string) error {
 	// write ffmpeg input file list
 	mergeFile, _ := os.Create(mergeFilePath)
 	for _, path := range paths {
-		mergeFile.Write([]byte(fmt.Sprintf("file '%s'\n", path))) // nolint
+		_, _ = mergeFile.Write([]byte(fmt.Sprintf("file '%s'\n", path))) // nolint
 	}
-	mergeFile.Close() // nolint
+	err := mergeFile.Close() // nolint
+	if err != nil {
+		return err
+	}
 
 	cmd := exec.Command(
 		"ffmpeg", "-y", "-f", "concat", "-safe", "-1",
