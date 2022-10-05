@@ -1,7 +1,9 @@
 package services
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"testing"
 )
@@ -37,11 +39,12 @@ func TestNewService(t *testing.T) {
 	if err != nil {
 		fmt.Printf("%#v \n", err)
 	}
-	defer resp.Body.Close()
-
 	var user User
+	data := resp.Body()
 
-	handleJSONParse(resp.Body, &user)
+	reader := bytes.NewReader(data)
+	result := io.NopCloser(reader)
+	handleJSONParse(result, &user)
 	fmt.Println(user)
 }
 

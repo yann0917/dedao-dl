@@ -39,6 +39,7 @@ func LoginByQr() error {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("token:%#v\n", token)
 	code, err := getService().GetQrcode(token)
 	if err != nil {
 		return err
