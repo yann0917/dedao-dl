@@ -213,7 +213,9 @@ func download(cType string, id, aid int) error {
 		}
 
 		title += "_" + detail.BookAuthor
-		app.EbookPage(title, detail.Enid)
+		if _, err := app.EbookPage(title, detail.Enid); err != nil {
+			return err
+		}
 
 	}
 	return nil

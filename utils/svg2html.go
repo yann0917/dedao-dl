@@ -56,25 +56,32 @@ func Svg2Html(title string, contents []string) (err error) {
 
 		element, err1 := svgparser.Parse(reader, false)
 		if err1 != nil {
-			fmt.Println(err)
-			return err1
+			err = err1
+			return
 		}
 
 		lineContent := make(map[float64][]HtmlEle)
 		offset := ""
 
 		for _, children := range element.Children {
-			// fmt.Printf("%#v\n", children)
 			var ele HtmlEle
 			attr := children.Attributes
 			content := children.Content
 
 			if y, ok := attr["y"]; ok {
 				if children.Name == "text" {
-					if content == "" && attr["len"] == "1" {
-						ele.Content = " "
-					} else {
+					if content != "" {
 						ele.Content = content
+					} else {
+						if children.Children != nil {
+							for _, child := range children.Children {
+								if child.Name == "a" {
+									ele.Content += child.Content
+								}
+							}
+						} else {
+							ele.Content = "&nbsp;"
+						}
 					}
 				} else {
 					ele.Content = ""
@@ -101,7 +108,11 @@ func Svg2Html(title string, contents []string) (err error) {
 				} else {
 					ele.Href = ""
 				}
-
+				if _, ok := attr["alt"]; ok && children.Name == "image" {
+					ele.Alt = strings.ReplaceAll(attr["alt"], "\"", "&quot;")
+				} else {
+					ele.Alt = ""
+				}
 				ele.Name = children.Name
 
 				if (children.Name == "text") ||
@@ -143,15 +154,23 @@ func Svg2Html(title string, contents []string) (err error) {
 				h, _ = strconv.ParseFloat(item.Height, 64)
 				// 1240x1754
 				if w > 1240 {
+					h = 1240 * h / w
 					w = 1240
 				}
-				if h > 1754 {
-					h = 1754
-				}
+
 				switch item.Name {
 				case "image":
-					result += `<img width="` + strconv.FormatFloat(w, 'f', 0, 64) + `" height="` + strconv.FormatFloat(h, 'f', 0, 64) + `" src="` + item.Href + `"/>`
+					result += `<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+						`" height="` + strconv.FormatFloat(h, 'f', 0, 64) +
+						`" src="` + item.Href +
+						`" alt="` + item.Alt + `"/>`
 				case "text":
+					if item.Content == "<" {
+						item.Content = "&lt;"
+					}
+					if item.Content == ">" {
+						item.Content = "&gt;"
+					}
 					cont += item.Content
 					if i == len(lineContent[v])-1 {
 						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
