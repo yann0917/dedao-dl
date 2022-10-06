@@ -14,8 +14,7 @@ func (s *Service) reqGetLoginAccessToken() (string, error) {
 		fmt.Printf("%#v\n", err.Error())
 		return "", err
 	}
-
-	setCookie := index.GetHeaderValues("Set-Cookie")
+	setCookie := index.Header().Values("Set-Cookie")
 	cookies := strings.Split(strings.Join(setCookie, "; "), "; ")
 	csrfToken := ""
 	for _, v := range cookies {
@@ -35,11 +34,7 @@ func (s *Service) reqGetLoginAccessToken() (string, error) {
 		fmt.Printf("%#v\n", err.Error())
 		return "", err
 	}
-	accessToken, err := resp.ToString()
-	if err != nil {
-		fmt.Printf("%#v\n", err.Error())
-		return "", err
-	}
+	accessToken := resp.String()
 	return accessToken, err
 }
 
@@ -75,7 +70,7 @@ func (s *Service) reqCheckLogin(token, qrCode string) (check *CheckLoginResp, co
 		fmt.Printf("%#v\n", err.Error())
 		return
 	}
-	cookies := resp.GetHeaderValues("Set-Cookie")
+	cookies := resp.Header().Values("Set-Cookie")
 	cookie = strings.Join(cookies, "; ")
 	return
 }
@@ -103,7 +98,7 @@ func (s *Service) reqCourseType() (io.ReadCloser, error) {
 
 // reqCourseList 请求课程列表
 func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
-	resp, err := s.client.R().SetBodyJsonMarshal(map[string]interface{}{
+	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"order":           order,
 		"filter_complete": 0,
@@ -116,7 +111,7 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 // reqCourseInfo 请求课程介绍
 func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"detail_id": ID,
 			"is_login":  1,
 		}).
@@ -128,7 +123,7 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 // chapterID = "" 获取所有的文章列表，否则只获取该章节的文章列表
 func (s *Service) reqArticleList(ID, chapterID string, maxID int) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"chapter_id":      chapterID,
 			"count":           30,
 			"detail_id":       ID,
@@ -149,7 +144,7 @@ func (s *Service) reqArticleList(ID, chapterID string, maxID int) (io.ReadCloser
 // sort like-最热 create-最新
 func (s *Service) reqArticleCommentList(enId, sort string, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"detail_enid":  enId,
 			"note_type":    2,
 			"only_replied": false,
@@ -172,7 +167,7 @@ func (s *Service) reqArticleInfo(ID string, aType int) (io.ReadCloser, error) {
 		param["audio_alias_id"] = ID
 	}
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(param).Post("/pc/bauhinia/pc/article/info")
+		SetBody(param).Post("/pc/bauhinia/pc/article/info")
 	return handleHTTPResponse(resp, err)
 }
 
@@ -201,7 +196,7 @@ func (s *Service) reqArticlePoint(enid string, pType string) (io.ReadCloser, err
 // reqAudioByAlias 请求音频详情
 func (s *Service) reqAudioByAlias(ids string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"ids":            ids,
 			"get_extra_data": 1,
 		}).
@@ -221,7 +216,7 @@ func (s *Service) reqEbookDetail(enid string) (io.ReadCloser, error) {
 // reqEbookReadToken 请求电子书阅读 token
 func (s *Service) reqEbookReadToken(enid string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]string{
+		SetBody(map[string]string{
 			"id": enid,
 		}).
 		Post("/api/pc/ebook2/v1/pc/read/token")
@@ -243,7 +238,7 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 	// 设定的分辨率是150像素/英寸时，A4纸的尺寸的图像的像素是1240×1754，在ps中的大小为6.22M。
 	// 设定的分辨率是300像素/英寸时，A4纸的尺寸的图像的像素是2479×3508，在ps中的大小为24.9M。
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"chapter_id":  chapterID,
 			"count":       count,
 			"index":       index,
@@ -290,7 +285,7 @@ func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 func (s *Service) reqTopicAll(page, limit int, all bool) (io.ReadCloser, error) {
 	r := s.client.R()
 	if !all {
-		r = r.SetBodyJsonMarshal(map[string]int{
+		r = r.SetBody(map[string]int{
 			"page_id": page,
 			"limit":   limit,
 		})
@@ -302,7 +297,7 @@ func (s *Service) reqTopicAll(page, limit int, all bool) (io.ReadCloser, error) 
 // reqTopicAll 请求话题详情
 func (s *Service) reqTopicDetail(topicID string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"incr_view_count": true,
 			"topic_id_hazy":   topicID,
 		}).Post("/pc/ledgers/topic/detail")
@@ -312,7 +307,7 @@ func (s *Service) reqTopicDetail(topicID string) (io.ReadCloser, error) {
 // reqTopicNotesList 请求话题笔记列表
 func (s *Service) reqTopicNotesList(topicID string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBodyJsonMarshal(map[string]interface{}{
+		SetBody(map[string]interface{}{
 			"count":         40,
 			"is_elected":    true,
 			"page_id":       0,

@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/imroc/req/v3"
+	"github.com/go-resty/resty/v2"
+	// "github.com/imroc/req/v3"
 	"github.com/mitchellh/mapstructure"
-	"github.com/yann0917/dedao-dl/request"
 	"github.com/yann0917/dedao-dl/utils"
 )
 
@@ -54,7 +53,8 @@ func (r respC) String() string {
 
 // Service dedao service
 type Service struct {
-	client *req.Client
+	client *resty.Client
+	// client *req.Client
 }
 
 // CookieOptions dedao cookie options
@@ -72,8 +72,6 @@ type CookieOptions struct {
 
 // NewService new service
 func NewService(co *CookieOptions) *Service {
-	client := request.NewClient(baseURL)
-	// client.ResetCookieJar()
 	cookies := []*http.Cookie{}
 	cookies = append(cookies, &http.Cookie{
 		Name:   "GAT",
@@ -115,56 +113,41 @@ func NewService(co *CookieOptions) *Service {
 		Value:  co.AliyungfTc,
 		Domain: "www." + dedaoCommURL.Host,
 	})
-	client.SetBaseURL(baseURL)
-	client.SetCommonCookies(cookies...)
-	client.SetUserAgent(UserAgent)
+	client := resty.New()
+	// client.SetDebug(true)
+	client.SetBaseURL(baseURL).
+		SetCookies(cookies).
+		SetHeader("User-Agent", UserAgent)
 
 	return &Service{client: client}
 }
-
-// Cookies get cookies string
-// func (s *Service) Cookies() map[string]string {
-// 	cookies := s.client.Client.Jar.Cookies(dedaoCommURL)
-
-// 	cstr := map[string]string{}
-
-// 	for _, cookie := range cookies {
-// 		cstr[cookie.Name] = cookie.Value
-// 	}
-
-// 	return cstr
-// }
 
 func (r *Response) isSuccess() bool {
 	return r.H.C == 0
 }
 
-func handleHTTPResponse(resp *req.Response, err error) (io.ReadCloser, error) {
+func handleHTTPResponse(resp *resty.Response, err error) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode() == http.StatusNotFound {
 		return nil, errors.New("404 NotFound")
 	}
-	if resp.StatusCode == http.StatusBadRequest {
+	if resp.StatusCode() == http.StatusBadRequest {
 		return nil, errors.New("400 BadRequest")
 	}
-	if resp.StatusCode == http.StatusUnauthorized {
+	if resp.StatusCode() == http.StatusUnauthorized {
 		return nil, errors.New("401 Unauthorized")
 	}
-	if resp.StatusCode == 496 {
+	if resp.StatusCode() == 496 {
 		return nil, errors.New("496 NoCertificate")
 	}
 
-	data, err1 := resp.ToBytes()
-	if err1 != nil {
-		return nil, err1
-	}
+	data := resp.Body()
 	reader := bytes.NewReader(data)
-
-	resp.Body = ioutil.NopCloser(reader)
-	return resp.Body, nil
+	result := io.NopCloser(reader)
+	return result, nil
 }
 
 func handleJSONParse(reader io.Reader, v interface{}) error {

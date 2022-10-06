@@ -256,7 +256,7 @@ Available Commands:
 
 `dedao-dl dle 123` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id.
 
-`dedao-dl dl0 123 -t 1` 下载听书ID 123 的音频或文稿, -t 下载格式, 1:mp3, 3:markdown文档 (default 1)
+`dedao-dl dlo 123 -t 1` 下载听书ID 123 的音频或文稿, -t 下载格式, 1:mp3, 3:markdown文档 (default 1)
 
 ## References
 
