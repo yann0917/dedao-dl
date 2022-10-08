@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/downloader"
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -159,15 +160,11 @@ func download(cType string, id, aid int) error {
 		fileName := "每天听本书"
 		switch downloadType {
 		case 1:
-			list, err := app.CourseList(cType)
-			if err != nil {
-				return err
-			}
 			downloadData := downloader.Data{
 				Title: fileName,
 			}
 			downloadData.Type = "audio"
-			downloadData.Data = extractOdobDownloadData(list, id)
+			downloadData.Data = extractOdobDownloadData(id)
 			errors := make([]error, 0)
 			path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 			if err != nil {
@@ -291,44 +288,53 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 }
 
 // 生成 AudioBook 下载数据
-func extractOdobDownloadData(lists *services.CourseList, aid int) []downloader.Datum {
+func extractOdobDownloadData(aid int) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
 
 	audioData := make([]*downloader.Datum, 0)
-	for _, article := range lists.List {
-		if aid > 0 && article.ID != aid {
-			continue
+	article := config.Instance.GetIDMap(app.CateAudioBook, aid)
+	aliasID := article["audio_alias_id"].(string)
+	if aliasID == "" {
+		list, err := app.CourseList(app.CateAudioBook)
+		if err != nil {
+			return nil
 		}
-		audioIds[article.ID] = article.AudioDetail.AliasID
-
-		var urls []downloader.URL
-		key := article.Enid
-		streams := map[string]downloader.Stream{
-			key: {
-				URLs:    urls,
-				Size:    article.AudioDetail.Size,
-				Quality: key,
-			},
+		for _, course := range list.List {
+			if aid > 0 && course.ID == aid {
+				article = app.GetCourseIDMap(&course)
+				break
+			}
 		}
-		isCanDL := true
-		if !article.HasPlayAuth {
-			isCanDL = false
-		}
-		datum := &downloader.Datum{
-			ID:      article.ID,
-			Enid:    article.Enid,
-			ClassID: article.ClassID,
-			Title:   article.Title,
-			IsCanDL: isCanDL,
-			M3U8URL: article.AudioDetail.Mp3PlayURL,
-			Streams: streams,
-			Type:    "audio",
-		}
-
-		audioData = append(audioData, datum)
 	}
 
+	audioIds[aid] = article["audio_alias_id"].(string)
+
+	var urls []downloader.URL
+	key := article["enid"].(string)
+	streams := map[string]downloader.Stream{
+		key: {
+			URLs:    urls,
+			Size:    int(article["audio_size"].(float64)),
+			Quality: key,
+		},
+	}
+	isCanDL := true
+	if !article["has_play_auth"].(bool) {
+		isCanDL = false
+	}
+	datum := &downloader.Datum{
+		ID:      aid,
+		Enid:    article["enid"].(string),
+		ClassID: int(article["class_id"].(float64)),
+		Title:   article["title"].(string),
+		IsCanDL: isCanDL,
+		M3U8URL: article["audio_mp3_play_url"].(string),
+		Streams: streams,
+		Type:    "audio",
+	}
+
+	audioData = append(audioData, datum)
 	handleStreams(audioData, audioIds)
 
 	for _, d := range audioData {

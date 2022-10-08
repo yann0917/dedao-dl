@@ -11,6 +11,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
 )
@@ -266,59 +267,66 @@ func DownloadMarkdown(cType string, id int, path string) error {
 			fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 		}
 	case app.CateAudioBook:
-		list, err := app.CourseList(cType)
+		info := config.Instance.GetIDMap(app.CateAudioBook, id)
+		aliasID := info["audio_alias_id"].(string)
+		if aliasID == "" {
+			list, err := app.CourseList(cType)
+			if err != nil {
+				return err
+			}
+			for _, v := range list.List {
+				if v.AudioDetail.SourceID == id {
+					aliasID = v.AudioDetail.AliasID
+					break
+				}
+			}
+		}
+		detail, err := app.OdobArticleDetail(aliasID)
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+
+		var content []services.Content
+		err = jsoniter.UnmarshalFromString(detail.Content, &content)
 		if err != nil {
 			return err
 		}
-		for _, v := range list.List {
-			if v.AudioDetail.SourceID == id {
-				detail, err := app.OdobArticleDetail(v.AudioDetail.AliasID)
-				if err != nil {
-					fmt.Println(err.Error())
-					return err
-				}
 
-				var content []services.Content
-				err = jsoniter.UnmarshalFromString(detail.Content, &content)
-				if err != nil {
-					return err
-				}
+		name := utils.FileName(info["title"].(string), "md")
+		fileName := filepath.Join(path, name)
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
+		_, exist, err := utils.FileSize(fileName)
 
-				name := utils.FileName(v.Title, "md")
-				fileName := filepath.Join(path, name)
-				fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
-				_, exist, err := utils.FileSize(fileName)
+		if err != nil {
+			fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+			return err
+		}
 
-				if err != nil {
-					fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-					return err
-				}
+		if exist {
+			fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
+			return nil
+		}
 
-				if exist {
-					fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
-					return nil
-				}
+		res := contentsToMarkdown(content)
 
-				res := contentsToMarkdown(content)
-
-				f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
-				if err != nil {
-					fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-					return err
-				}
-				_, err = f.WriteString(res)
-				if err != nil {
-					fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-					return err
-				}
-				if err = f.Close(); err != nil {
-					if err != nil {
-						return err
-					}
-				}
-				fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+			return err
+		}
+		_, err = f.WriteString(res)
+		if err != nil {
+			fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+			return err
+		}
+		if err = f.Close(); err != nil {
+			if err != nil {
+				return err
 			}
 		}
+		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+
 	case app.CateAce:
 
 	}

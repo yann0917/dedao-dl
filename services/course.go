@@ -224,14 +224,6 @@ type FlatArticleList struct {
 
 // CourseList get course list by page
 func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
-	// cacheFile := "courseList:" + category + ":" + strconv.Itoa(page)
-	// list = new(CourseList)
-	// list.Page = page
-	// x, ok := list.getCache(cacheFile)
-	// if ok {
-	// 	list = x.(*CourseList)
-	// 	return
-	// }
 	body, err := s.reqCourseList(category, order, page, limit)
 	if err != nil {
 		return
@@ -240,7 +232,6 @@ func (s *Service) CourseList(category, order string, page, limit int) (list *Cou
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
-	// list.setCache(cacheFile)
 	return
 }
 

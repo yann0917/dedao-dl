@@ -11,12 +11,12 @@ import (
 
 // ArticleList 已购课程文章列表
 func ArticleList(id int, chapterID string) (list *services.ArticleList, err error) {
-	courseDetail, err := getService().CourseDetail(CateCourse, id)
+	info, err := CourseDetail(CateCourse, id)
 	if err != nil {
 		return
 	}
-	enid := courseDetail.Enid
-	count := courseDetail.PublishNum
+	enid := info["enid"].(string)
+	count := info["publish_num"].(float64)
 	page := int(math.Ceil(float64(count) / 30.0))
 	maxID := 0
 	var lists []services.ArticleIntro
