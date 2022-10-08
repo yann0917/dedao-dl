@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -9,12 +10,11 @@ import (
 
 // EbookDetail 电子书详情
 func EbookDetail(id int) (detail *services.EbookDetail, err error) {
-	courseDetail, err := getService().CourseDetail(CateEbook, id)
+	courseDetail, err := CourseDetail(CateEbook, id)
 	if err != nil {
 		return
 	}
-
-	enID := courseDetail.Enid
+	enID := courseDetail["enid"].(string)
 	detail, err = getService().EbookDetail(enID)
 
 	return
@@ -43,7 +43,7 @@ func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
 		err = err1
 		return
 	}
-	var svgContent []string
+	var svgContent []*utils.SvgContent
 	// fmt.Printf("%#v\n", info.BookInfo.Pages)
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
@@ -56,9 +56,27 @@ func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
 			err = err1
 			return
 		}
-		svgContent = append(svgContent, svgList...)
 
+		href, text, level := "", "", 0
+		for _, ebookToc := range info.BookInfo.Toc {
+			if strings.Contains(ebookToc.Href, order.ChapterID) {
+				href = ebookToc.Href
+				level = ebookToc.Level
+				text = ebookToc.Text
+				break
+			}
+		}
+
+		svgContent = append(svgContent, &utils.SvgContent{
+			Contents:   svgList,
+			ChapterID:  order.ChapterID,
+			PathInEpub: order.PathInEpub,
+			TocLevel:   level,
+			TocHref:    href,
+			TocText:    text,
+		})
 	}
+
 	if len(svgContent) > 0 {
 		err = utils.Svg2Html(title, svgContent)
 	}
@@ -75,7 +93,7 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	for _, item := range pageList.Pages {
 		svgList = append(svgList, item.Svg)
 	}
-	fmt.Printf("IsEnd:%#v\n", pageList.IsEnd)
+	// fmt.Printf("IsEnd:%#v\n", pageList.IsEnd)
 	if !pageList.IsEnd {
 		index = count
 		count += 20

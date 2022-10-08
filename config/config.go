@@ -28,6 +28,7 @@ var (
 
 // DedaoUsers user
 type DedaoUsers []*Dedao
+type CourseIDMap map[int]map[string]interface{}
 
 // ConfigsData Configs data
 type ConfigsData struct {
@@ -39,11 +40,17 @@ type ConfigsData struct {
 	configFile     *os.File
 	fileMu         sync.Mutex
 	service        *services.Service
+	CourseIDMap    CourseIDMap
+	OdobIDMap      CourseIDMap
+	EBookIDMap     CourseIDMap
 }
 
 type configJSONExport struct {
-	AcitveUID string
-	Users     DedaoUsers
+	AcitveUID   string
+	Users       DedaoUsers
+	CourseIDMap CourseIDMap
+	OdobIDMap   CourseIDMap
+	EBookIDMap  CourseIDMap
 }
 
 // Init 初始化配置
@@ -114,9 +121,13 @@ func (c *ConfigsData) Save() error {
 	defer c.fileMu.Unlock()
 
 	// 保存配置的数据
-	var conf configJSONExport
-	conf.AcitveUID = c.AcitveUID
-	conf.Users = c.Users
+	conf := configJSONExport{
+		AcitveUID:   c.AcitveUID,
+		Users:       c.Users,
+		CourseIDMap: c.CourseIDMap,
+		OdobIDMap:   c.OdobIDMap,
+		EBookIDMap:  c.EBookIDMap,
+	}
 
 	data, err := jsoniter.MarshalIndent(conf, "", " ")
 
@@ -176,6 +187,9 @@ func (c *ConfigsData) loadConfigFromFile() error {
 
 	c.AcitveUID = conf.AcitveUID
 	c.Users = conf.Users
+	c.CourseIDMap = conf.CourseIDMap
+	c.OdobIDMap = conf.OdobIDMap
+	c.EBookIDMap = conf.EBookIDMap
 	return nil
 }
 
@@ -280,14 +294,34 @@ func (c *ConfigsData) SwitchUser(u *User) error {
 		if user.UIDHazy == u.UIDHazy {
 			c.setActiveUser(user)
 			err := c.Save()
-			// // remove cache file
-			// dir, _ := ioutil.ReadDir("./.cache")
-			// for _, d := range dir {
-			// 	os.RemoveAll(path.Join([]string{".cache", d.Name()}...))
-			// }
 			return err
 		}
 	}
 
 	return errors.New("用户不存在")
+}
+
+// SetIDMap set course id => enid map, or odob id => alias_id map
+func (c *ConfigsData) SetIDMap(category string, m CourseIDMap) error {
+	switch category {
+	case services.CateCourse:
+		c.CourseIDMap = m
+	case services.CateAudioBook:
+		c.OdobIDMap = m
+	case services.CateEbook:
+		c.EBookIDMap = m
+	}
+	return c.Save()
+}
+
+func (c *ConfigsData) GetIDMap(category string, id int) (info map[string]interface{}) {
+	switch category {
+	case services.CateCourse:
+		info = c.CourseIDMap[id]
+	case services.CateAudioBook:
+		info = c.OdobIDMap[id]
+	case services.CateEbook:
+		info = c.EBookIDMap[id]
+	}
+	return
 }
