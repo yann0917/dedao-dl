@@ -33,7 +33,10 @@ func CourseList(category string) (list *services.CourseList, err error) {
 // CourseInfo 已购课程列表
 func CourseInfo(id int) (info *services.CourseInfo, err error) {
 	idMap := config.Instance.GetIDMap(CateCourse, id)
-	enID := idMap["enid"].(string)
+	enID := ""
+	if enid, ok := idMap["enid"].(string); ok {
+		enID = enid
+	}
 	if enID == "" {
 		courseDetail, err1 := CourseDetail(CateCourse, id)
 		if err1 != nil {
@@ -52,7 +55,10 @@ func CourseInfo(id int) (info *services.CourseInfo, err error) {
 // CourseDetail 已购课程详情
 func CourseDetail(category string, id int) (idMap map[string]interface{}, err error) {
 	idMap = config.Instance.GetIDMap(category, id)
-	enID := idMap["enid"].(string)
+	enID := ""
+	if enid, ok := idMap["enid"].(string); ok {
+		enID = enid
+	}
 	if enID == "" {
 		detail, err1 := getService().CourseDetail(category, id)
 		if err1 != nil {
