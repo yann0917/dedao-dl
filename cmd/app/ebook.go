@@ -31,19 +31,17 @@ func EbookInfo(enID string) (info *services.EbookInfo, err error) {
 	return
 }
 
-func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
+func EbookPage(enID string) (info *services.EbookInfo, svgContent []*utils.SvgContent, err error) {
 	token, err1 := getService().EbookReadToken(enID)
 	if err1 != nil {
 		err = err1
 		return
 	}
 
-	info, err1 := getService().EbookInfo(token.Token)
-	if err1 != nil {
-		err = err1
+	info, err = getService().EbookInfo(token.Token)
+	if err != nil {
 		return
 	}
-	var svgContent []*utils.SvgContent
 	// fmt.Printf("%#v\n", info.BookInfo.Pages)
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
@@ -77,9 +75,6 @@ func EbookPage(title, enID string) (pages *services.EbookPage, err error) {
 		})
 	}
 
-	if len(svgContent) > 0 {
-		err = utils.Svg2Html(title, svgContent)
-	}
 	return
 }
 

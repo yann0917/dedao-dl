@@ -63,10 +63,11 @@ var dlOdobCmd = &cobra.Command{
 }
 
 var dlEbookCmd = &cobra.Command{
-	Use:     "dle",
-	Short:   "下载电子书",
-	Long:    `使用 dedao-dl dle 下载电子书`,
-	Example: "dedao-dl dle 123",
+	Use:   "dle",
+	Short: "下载电子书",
+	Long: `使用 dedao-dl dle 下载电子书
+-t 指定下载格式, 1:html, 2:PDF文档, 3:epub(开发中), 默认 html`,
+	Example: "dedao-dl dle 123 -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
@@ -89,6 +90,7 @@ func init() {
 	rootCmd.AddCommand(dlEbookCmd)
 	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
+	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub(开发中)")
 }
 
 func download(cType string, id, aid int) error {
@@ -210,7 +212,33 @@ func download(cType string, id, aid int) error {
 		}
 
 		title += "_" + detail.BookAuthor
-		if _, err := app.EbookPage(title, detail.Enid); err != nil {
+		info, svgContent, err := app.EbookPage(detail.Enid)
+		if err != nil {
+			return err
+		}
+		switch downloadType {
+		case 1:
+			var toc []*utils.EbookToc
+			for _, ebookToc := range info.BookInfo.Toc {
+				toc = append(toc, &utils.EbookToc{
+					Href:      ebookToc.Href,
+					Level:     ebookToc.Level,
+					PlayOrder: ebookToc.PlayOrder,
+					Offset:    ebookToc.Offset,
+					Text:      ebookToc.Text,
+				})
+			}
+			if err = utils.Svg2Html(title, svgContent, toc); err != nil {
+				return err
+			}
+
+		case 2:
+			if err = utils.Svg2Pdf(title, svgContent); err != nil {
+				return err
+			}
+
+		case 3:
+			err = errors.New("epub 格式开发中... ")
 			return err
 		}
 
