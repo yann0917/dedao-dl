@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"io"
@@ -219,4 +220,8 @@ func WriteFileWithTrunc(filename, content string) (err error) {
 	err = f.Sync()
 	return
 
+}
+
+func MD5str(s string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
 }

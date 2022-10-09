@@ -90,7 +90,7 @@ func init() {
 	rootCmd.AddCommand(dlEbookCmd)
 	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
-	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub(开发中)")
+	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub")
 }
 
 func download(cType string, id, aid int) error {
@@ -238,7 +238,15 @@ func download(cType string, id, aid int) error {
 			}
 
 		case 3:
-			err = errors.New("epub 格式开发中... ")
+			var opts utils.EpubOptions
+			opts.Title = title
+			opts.Author = detail.BookAuthor
+			opts.Description = detail.BookIntro
+
+			if err = utils.Svg2Epub(title, svgContent, opts); err != nil {
+				return err
+			}
+
 			return err
 		}
 
