@@ -46,6 +46,8 @@ type SvgContent struct {
 	TocText    string
 }
 
+const footNoteImgW = 16
+
 func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {
 	result := GenHeadHtml()
 	for k, svgContent := range svgContents {
@@ -81,7 +83,7 @@ func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err err
 				}
 
 				for i, item := range lineContent[v] {
-					// TODO： image class=epub-footnote 是注释图片
+					// image class=epub-footnote 是注释图片
 					style := item.Style
 					style = strings.Replace(style, "fill", "color", -1)
 
@@ -102,11 +104,15 @@ func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err err
 							`" src="` + item.Href +
 							`" alt="` + item.Alt +
 							`" title="` + item.Alt
-						if w < 18 {
-							img += `" style="vertical-align:top;" class="epub-footnote`
+						if w < footNoteImgW {
+							img += `" style="vertical-align:top; display:inline-block;" class="epub-footnote`
 						}
 						img += `"/>`
-						result += img
+						if w < footNoteImgW {
+							cont += img
+						} else {
+							result += img
+						}
 
 					case "text":
 						if item.Content == "<" {
@@ -116,25 +122,25 @@ func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err err
 							item.Content = "&gt;"
 						}
 						cont += item.Content
-						if i == len(lineContent[v])-1 {
-							matchH := false
-							if strings.Contains(strings.Trim(svgContent.TocText, ""), strings.Trim(cont, "")) {
-								matchH = true
-							}
-							if matchH {
-								result += GenTocLevelHtml(svgContent.TocLevel, true)
-							} else {
-								result += `
-	<p>`
-							}
-							result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
-							if matchH {
-								result += GenTocLevelHtml(svgContent.TocLevel, false)
-							} else {
-								result += `</p>`
-							}
-						}
+					}
 
+					if i == len(lineContent[v])-1 {
+						matchH := false
+						if strings.Contains(strings.Trim(svgContent.TocText, ""), strings.Trim(cont, "")) {
+							matchH = true
+						}
+						if matchH {
+							result += GenTocLevelHtml(svgContent.TocLevel, true)
+						} else {
+							result += `
+	<p>`
+						}
+						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
+						if matchH {
+							result += GenTocLevelHtml(svgContent.TocLevel, false)
+						} else {
+							result += `</p>`
+						}
 					}
 
 				}
@@ -209,7 +215,7 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 				}
 
 				for i, item := range lineContent[v] {
-					// TODO： image class=epub-footnote 是注释图片
+					// image class=epub-footnote 是注释图片
 					style := item.Style
 					style = strings.Replace(style, "fill", "color", -1)
 
@@ -226,22 +232,23 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 					case "image":
 						img := `
 	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
-							// `" height="` + strconv.FormatFloat(h, 'f', 0, 64) +
 							`" src="` + item.Href +
 							`" alt="` + item.Alt +
 							`" title="` + item.Alt
-						if w < 18 {
-							img += `" style="vertical-align:top;" class="epub-footnote`
+						if w < footNoteImgW {
+							img += `" style="vertical-align:top; display:inline-block;" class="epub-footnote`
 						}
 						img += `"/>`
-
+						if w < footNoteImgW {
+							cont += img
+						}
 						// create cover.html
 						if k == 0 {
 							cover = GenHeadHtml() + img + `</body></html>`
 						}
 
 						// filter cover content
-						if k != 0 {
+						if k != 0 && w >= footNoteImgW {
 							result += img
 						}
 
@@ -253,25 +260,24 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 							item.Content = "&gt;"
 						}
 						cont += item.Content
-						if i == len(lineContent[v])-1 {
-							matchH := false
-							if strings.Contains(strings.Trim(svgContent.TocText, ""), strings.Trim(cont, "")) {
-								matchH = true
-							}
-							if matchH {
-								result += GenTocLevelHtml(svgContent.TocLevel, true)
-							} else {
-								result += `
-	<p>`
-							}
-							result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
-							if matchH {
-								result += GenTocLevelHtml(svgContent.TocLevel, false)
-							} else {
-								result += `</p>`
-							}
+					}
+					if i == len(lineContent[v])-1 {
+						matchH := false
+						if strings.Contains(strings.Trim(svgContent.TocText, ""), strings.Trim(cont, "")) {
+							matchH = true
 						}
-
+						if matchH {
+							result += GenTocLevelHtml(svgContent.TocLevel, true)
+						} else {
+							result += `
+	<p>`
+						}
+						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
+						if matchH {
+							result += GenTocLevelHtml(svgContent.TocLevel, false)
+						} else {
+							result += `</p>`
+						}
 					}
 
 				}
@@ -332,91 +338,6 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 	}
 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	err = os.Remove(dir + "/" + coverPath)
-	return
-}
-
-func Html2PDF(filename, cover string) (err error) {
-	path, err := Mkdir(OutputDir, "Ebook")
-	if err != nil {
-		return err
-	}
-
-	filePreName := filepath.Join(path, FileName(filename, ""))
-
-	fileName, err := FilePath(filePreName, "html", false)
-	if err != nil {
-		return err
-	}
-
-	pdfg, _ := wkhtmltopdf.NewPDFGenerator()
-
-	htmlfile, err := os.ReadFile(fileName)
-	if err != nil {
-		fmt.Printf("htmlfile err: %#v\n", err)
-		return
-	}
-
-	fileName, err = FilePath(filePreName, "pdf", false)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
-
-	// see https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
-	page := wkhtmltopdf.NewPageReader(bytes.NewReader(htmlfile))
-	page.FooterFontSize.Set(10)
-	page.FooterRight.Set("[page]")
-	page.DisableSmartShrinking.Set(true)
-
-	page.EnableLocalFileAccess.Set(true)
-	pdfg.AddPage(page)
-
-	coverPath, _ := FilePath(filepath.Join(path, FileName(cover, "")), "", false)
-	pdfg.Cover.EnableLocalFileAccess.Set(true)
-	dir, _ := CurrentDir()
-	pdfg.Cover.Input = "file://" + dir + "/" + coverPath
-
-	pdfg.Dpi.Set(300)
-
-	pdfg.TOC.Include = true
-	pdfg.TOC.TocHeaderText.Set("目 录")
-	pdfg.TOC.TocLevelIndentation.Set(15)
-	pdfg.TOC.TocTextSizeShrink.Set(0.9)
-	pdfg.TOC.DisableDottedLines.Set(false)
-	pdfg.TOC.EnableTocBackLinks.Set(true)
-
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-	pdfg.MarginTop.Set(15)
-	pdfg.MarginBottom.Set(15)
-	pdfg.MarginLeft.Set(15)
-	pdfg.MarginRight.Set(15)
-
-	// debug wkhtmltopdf
-	// errBuf := new(bytes.Buffer)
-	// pdfg.SetStderr(errBuf)
-	// done := false
-	// defer func() { done = true }()
-	// go func() {
-	// 	for !done {
-	// 		time.Sleep(500 * time.Millisecond)
-	// 		fmt.Println(errBuf.String())
-	// 	}
-	// }()
-
-	err = pdfg.Create()
-	if err != nil {
-		fmt.Printf("pdfg create err: %#v\n", err)
-		return
-	}
-
-	// Write buffer contents to file on disk
-	err = pdfg.WriteFile(fileName)
-	if err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-		return
-	}
-	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	return
 }
 
@@ -536,7 +457,7 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 func GenLineContentByElement(element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
-	for _, children := range element.Children {
+	for k, children := range element.Children {
 		var ele HtmlEle
 		attr := children.Attributes
 		content := children.Content
@@ -566,7 +487,15 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 			ele.Y = attr["y"]
 			ele.Width = attr["width"]
 			ele.Height = attr["height"]
+			yInt, _ := strconv.ParseFloat(y, 64)
 
+			// footnote image with text in one line
+			w, _ := strconv.ParseFloat(ele.Width, 64)
+			if children.Name == "image" && w < footNoteImgW {
+				attrPre := element.Children[k-1].Attributes
+				yInt, _ = strconv.ParseFloat(attrPre["y"], 64)
+				ele.Y = attrPre["y"]
+			}
 			// id &offset 设置标题 margin-left
 			if _, ok := attr["id"]; ok {
 				ele.ID = attr["id"]
@@ -590,7 +519,6 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 
 			if (children.Name == "text") ||
 				children.Name == "image" {
-				yInt, _ := strconv.ParseFloat(y, 64)
 				lineContent[yInt] = append(lineContent[yInt], ele)
 			}
 		}

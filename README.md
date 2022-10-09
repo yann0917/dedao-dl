@@ -204,7 +204,7 @@ Available Commands:
 
 注意：生成 PDF 的时候，操作过于频繁会触发 `496 NoCertificate` , 因此每次生成一次PDF sleep 0~5秒, 尽管如此，还是有极大可能触发操作频繁图形验证。
 
-`dedao-dl dle 123 -t 1` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id,  下载格式, 1:html, 2:PDF文档, 3:epub(开发中) (default 1)
+`dedao-dl dle 123 -t 1` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id,  下载格式, 1:html, 2:PDF文档, 3:epub (default 1)
 
 `dedao-dl dlo 123 -t 1` 下载听书ID 123 的音频或文稿, 先通过 `dedao-dl odob` 获取要下载的听书 id, -t 下载格式, 1:mp3, 3:markdown文档 (default 1)
 
