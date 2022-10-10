@@ -9,7 +9,7 @@ require (
 	github.com/bmaupin/go-epub v1.0.1
 	github.com/chromedp/cdproto v0.0.0-20220930195933-357956813629
 	github.com/chromedp/chromedp v0.8.6
-	github.com/gabriel-vasile/mimetype v1.3.1
+	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/json-iterator/go v1.1.12
