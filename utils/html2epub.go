@@ -6,14 +6,11 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sort"
-	"strconv"
 	"strings"
 	"time"
 
 	"errors"
 
-	"github.com/JoshVarga/svgparser"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bmaupin/go-epub"
 	"github.com/gabriel-vasile/mimetype"
@@ -49,154 +46,6 @@ type HtmlToEpub struct {
 	imgIdx       int
 }
 
-func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err error) {
-	var htmlAll []HtmlContent
-	cover := ""
-	for k, svgContent := range svgContents {
-		result := GenHeadHtml()
-		for _, content := range svgContent.Contents {
-			reader := strings.NewReader(content)
-
-			element, err1 := svgparser.Parse(reader, false)
-			if err1 != nil {
-				err = err1
-				return
-			}
-
-			lineContent := GenLineContentByElement(element)
-
-			keys := make([]float64, 0, len(lineContent))
-			for k := range lineContent {
-				keys = append(keys, k)
-			}
-			sort.Float64s(keys)
-
-			for _, v := range keys {
-				cont, id := "", ""
-				if lineContent[v][0].ID != "" {
-					id = lineContent[v][0].ID
-				}
-
-				for i, item := range lineContent[v] {
-					style := item.Style
-					style = strings.Replace(style, "fill", "color", -1)
-
-					w, h := 0.0, 0.0
-					w, _ = strconv.ParseFloat(item.Width, 64)
-					h, _ = strconv.ParseFloat(item.Height, 64)
-
-					if w > 900 {
-						h = 900 * h / w
-						w = 900
-					}
-
-					switch item.Name {
-					case "image":
-						img := ""
-						if w < footNoteImgW {
-							// epub popup comment
-							footnoteId := "footnote-" + strconv.Itoa(k) + "-" + strconv.Itoa(i)
-							img = `
-	<a epub:type="noteref" href="#` + footnoteId + `"> <img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
-								`" src="` + item.Href +
-								`" alt="` + item.Alt +
-								`" class="epub-footnote"` + `/> </a>`
-							result += `<aside epub:type="footnote" id="` + footnoteId + `">` + item.Alt + `</aside>`
-							cont += img
-						} else {
-							img = `
-	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
-								`" src="` + item.Href +
-								`" alt="` + item.Alt + `"/>`
-						}
-						if k == 0 {
-							cover = item.Href
-						}
-
-						// filter cover content
-						if k != 0 && w >= footNoteImgW {
-							result += img
-						}
-
-					case "text":
-						if item.Content == "<" {
-							item.Content = "&lt;"
-						}
-						if item.Content == ">" {
-							item.Content = "&gt;"
-						}
-						cont += item.Content
-					}
-					if i == len(lineContent[v])-1 {
-						matchH := false
-						if strings.Contains(strings.Trim(svgContent.TocText, ""), strings.Trim(cont, "")) {
-							matchH = true
-						}
-						if matchH {
-							result += GenTocLevelHtml(svgContent.TocLevel, true)
-						} else {
-							result += `
-	<p>`
-						}
-						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
-						if matchH {
-							result += GenTocLevelHtml(svgContent.TocLevel, false)
-						} else {
-							result += `</p>`
-						}
-					}
-				}
-			}
-		}
-		result += `
-</body>
-</html>`
-		htmlAll = append(htmlAll, HtmlContent{
-			Content:    result,
-			ChapterID:  svgContent.ChapterID,
-			PathInEpub: svgContent.PathInEpub,
-			TocLevel:   svgContent.TocLevel,
-			TocHref:    svgContent.TocHref,
-			TocText:    svgContent.TocText,
-		})
-	}
-
-	path, err := Mkdir(OutputDir, "Ebook")
-	if err != nil {
-		return err
-	}
-
-	fileName, err := FilePath(filepath.Join(path, FileName(title, "")), "epub", false)
-
-	imageDir, err := Mkdir(OutputDir, "Ebook", "images")
-	if err != nil {
-		return err
-	}
-	opt.ImagesDir = imageDir
-	fontDir, err := Mkdir(OutputDir, "Ebook", "ttf")
-	if err != nil {
-		return err
-	}
-	opt.FontsDir = fontDir
-	h2e := HtmlToEpub{
-		EpubOptions: opt,
-	}
-
-	if coverByte, err := request.HTTPGet(cover); err == nil {
-		h2e.DefaultCover = coverByte
-	}
-
-	h2e.HTML = htmlAll
-	h2e.Output = fileName
-	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
-	if err = h2e.Run(); err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-	}
-	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
-
-	return err
-}
-
 func (h *HtmlToEpub) Run() (err error) {
 	if len(h.HTML) == 0 {
 		return errors.New("no .html file given")
@@ -210,9 +59,8 @@ func (h *HtmlToEpub) run() (err error) {
 		return
 	}
 
-	refs := make(map[string]string)
 	for _, html := range h.HTML {
-		err = h.add(html, refs)
+		err = h.add(html)
 		if err != nil {
 			err = fmt.Errorf("parse %#v failed: %s", html, err)
 			return
@@ -262,7 +110,8 @@ func (h *HtmlToEpub) setCover() (err error) {
 	return
 }
 
-func (h *HtmlToEpub) add(html HtmlContent, refs map[string]string) (err error) {
+func (h *HtmlToEpub) add(html HtmlContent) (err error) {
+	refs := make(map[string]string)
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html.Content))
 	if err != nil {
 		return
@@ -278,15 +127,19 @@ func (h *HtmlToEpub) add(html HtmlContent, refs map[string]string) (err error) {
 		return
 	}
 
-	// fmt.Println(h.PTitle)
 	// FIXME: bug
 	switch html.TocLevel {
 	case 0, 1:
-		h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, "", "")
+		h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, html.ChapterID, "")
+		if err != nil {
+			return
+		}
 	case 2, 3, 4, 5, 6:
-		h.PTitle[html.TocLevel], err = h.book.AddSubSection(h.PTitle[html.TocLevel-1], content, html.TocText, "", "")
+		h.PTitle[html.TocLevel], err = h.book.AddSubSection(h.PTitle[html.TocLevel-1], content, html.TocText, html.ChapterID, "")
+		if err != nil {
+			return
+		}
 	}
-
 	return
 }
 
@@ -326,11 +179,17 @@ func (h *HtmlToEpub) saveImages(doc *goquery.Document) map[string]string {
 }
 
 // TODO:
-func (h *HtmlToEpub) saveFonts(doc *goquery.Document) map[string]string {
-	downloads := make(map[string]string)
+func (h *HtmlToEpub) getFontURLs(html HtmlContent) (downloads map[string]string, err error) {
+	downloads = make(map[string]string)
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html.Content))
+	if err != nil {
+		return
+	}
 
-	tasks := request.NewDownloadTasks()
 	doc.Find("head>style").Each(func(i int, font *goquery.Selection) {
+		fmt.Printf("%#v\n", font.Text())
+		val, ok := font.Attr("font-family")
+		fmt.Printf("%#v, %#v\n", val, ok)
 		src, _ := font.Attr("url")
 		if !strings.HasPrefix(src, "http") {
 			return
@@ -347,18 +206,12 @@ func (h *HtmlToEpub) saveFonts(doc *goquery.Document) map[string]string {
 			return
 		}
 		_ = os.MkdirAll(h.FontsDir, 0766)
-		localFile = filepath.Join(h.ImagesDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
+		localFile = filepath.Join(h.FontsDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
 
-		tasks.Add(src, localFile)
 		downloads[src] = localFile
 	})
-	request.Batch(tasks, 3, time.Minute*2).ForEach(func(t *request.DownloadTask) {
-		if t.Err != nil {
-			log.Printf("download %s fail: %s", t.Link, t.Err)
-		}
-	})
 
-	return downloads
+	return
 }
 
 func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, downloads map[string]string) {
@@ -370,14 +223,6 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 	internalRef, exist := refs[src]
 	if exist {
 		img.SetAttr("src", internalRef)
-		return
-	}
-
-	alt, _ := img.Attr("alt")
-
-	alt, exist = refs[alt]
-	if exist {
-		img.SetAttr("alt", alt)
 		return
 	}
 
@@ -435,6 +280,7 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 
 	img.SetAttr("src", internalRef)
 }
+
 func (h *HtmlToEpub) openLocalFile(htmlFile string, ref string) (fd *os.File, err error) {
 	fd, err = os.Open(ref)
 	if err == nil {
