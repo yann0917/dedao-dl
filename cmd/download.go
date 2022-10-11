@@ -153,7 +153,7 @@ func download(cType string, id, aid int) error {
 			if err != nil {
 				return err
 			}
-			if err := DownloadMarkdown(app.CateCourse, id, path); err != nil {
+			if err := DownloadMarkdown(app.CateCourse, id, aid, path); err != nil {
 				return err
 			}
 		}
@@ -193,7 +193,7 @@ func download(cType string, id, aid int) error {
 			if err != nil {
 				return err
 			}
-			if err := DownloadMarkdown(app.CateAudioBook, id, path); err != nil {
+			if err := DownloadMarkdown(app.CateAudioBook, id, 0, path); err != nil {
 				return err
 			}
 		}
