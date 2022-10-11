@@ -207,7 +207,7 @@ func getMdHeader(level int) string {
 	}
 }
 
-func DownloadMarkdown(cType string, id int, path string) error {
+func DownloadMarkdown(cType string, id, aid int, path string) error {
 	switch cType {
 	case app.CateCourse:
 		list, err := app.ArticleList(id, "")
@@ -215,6 +215,9 @@ func DownloadMarkdown(cType string, id int, path string) error {
 			return err
 		}
 		for _, v := range list.List {
+			if aid > 0 && v.ID != aid {
+				continue
+			}
 			detail, enId, err := app.ArticleDetail(id, v.ID)
 			if err != nil {
 				fmt.Println(err.Error())
