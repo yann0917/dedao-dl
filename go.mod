@@ -11,7 +11,6 @@ require (
 	github.com/chromedp/chromedp v0.8.6
 	github.com/gabriel-vasile/mimetype v1.3.1
 	github.com/go-resty/resty/v2 v2.7.0
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-runewidth v0.0.14 // indirect
@@ -21,7 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/spf13/cobra v1.5.0
+	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/net v0.0.0-20221004154528-8021a29435af // indirect
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0
