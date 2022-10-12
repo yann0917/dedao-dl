@@ -130,9 +130,11 @@ func (h *HtmlToEpub) add(html HtmlContent) (err error) {
 	// FIXME: bug
 	switch html.TocLevel {
 	case 0, 1:
-		h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, html.ChapterID, "")
-		if err != nil {
-			return
+		if html.ChapterID != "cover.xhtml" {
+			h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, html.ChapterID, "")
+			if err != nil {
+				return
+			}
 		}
 	case 2, 3, 4, 5, 6:
 		h.PTitle[html.TocLevel], err = h.book.AddSubSection(h.PTitle[html.TocLevel-1], content, html.TocText, html.ChapterID, "")
