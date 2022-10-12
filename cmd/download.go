@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"sort"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -216,6 +217,8 @@ func download(cType string, id, aid int) error {
 		if err != nil {
 			return err
 		}
+		sort.Sort(svgContent)
+
 		switch downloadType {
 		case 1:
 			var toc []*utils.EbookToc

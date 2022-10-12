@@ -31,7 +31,7 @@ func EbookInfo(enID string) (info *services.EbookInfo, err error) {
 	return
 }
 
-func EbookPage(enID string) (info *services.EbookInfo, svgContent []*utils.SvgContent, err error) {
+func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgContents, err error) {
 	token, err1 := getService().EbookReadToken(enID)
 	if err1 != nil {
 		err = err1
@@ -46,35 +46,42 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent []*utils.SvgCo
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
 	// fmt.Printf("%#v\n", info.BookInfo.Orders)
-	for _, order := range info.BookInfo.Orders {
-
-		index, count, offset := 0, 20, 0
-		svgList, err1 := generateEbookPages(order.ChapterID, token.Token, index, count, offset)
-		if err1 != nil {
-			err = err1
-			return
-		}
-
-		href, text, level := "", "", 0
-		for _, ebookToc := range info.BookInfo.Toc {
-			if strings.Contains(ebookToc.Href, order.ChapterID) {
-				href = ebookToc.Href
-				level = ebookToc.Level
-				text = ebookToc.Text
-				break
+	wgp := utils.NewWaitGroupPool(10)
+	for i, order := range info.BookInfo.Orders {
+		wgp.Add()
+		go func(i int, order services.EbookOrders) {
+			defer func() {
+				wgp.Done()
+			}()
+			index, count, offset := 0, 20, 0
+			svgList, err1 := generateEbookPages(order.ChapterID, token.Token, index, count, offset)
+			if err1 != nil {
+				err = err1
+				return
 			}
-		}
 
-		svgContent = append(svgContent, &utils.SvgContent{
-			Contents:   svgList,
-			ChapterID:  order.ChapterID,
-			PathInEpub: order.PathInEpub,
-			TocLevel:   level,
-			TocHref:    href,
-			TocText:    text,
-		})
+			href, text, level := "", "", 0
+			for _, ebookToc := range info.BookInfo.Toc {
+				if strings.Contains(ebookToc.Href, order.ChapterID) {
+					href = ebookToc.Href
+					level = ebookToc.Level
+					text = ebookToc.Text
+					break
+				}
+			}
+
+			svgContent = append(svgContent, &utils.SvgContent{
+				Contents:   svgList,
+				ChapterID:  order.ChapterID,
+				PathInEpub: order.PathInEpub,
+				TocLevel:   level,
+				TocHref:    href,
+				TocText:    text,
+				OrderIndex: i,
+			})
+		}(i, order)
 	}
-
+	wgp.Wait()
 	return
 }
 

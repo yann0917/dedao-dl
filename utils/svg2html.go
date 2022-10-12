@@ -48,7 +48,13 @@ type SvgContent struct {
 	TocLevel   int
 	TocHref    string
 	TocText    string
+	OrderIndex int
 }
+type SvgContents []*SvgContent
+
+func (a SvgContents) Len() int           { return len(a) }
+func (a SvgContents) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a SvgContents) Less(i, j int) bool { return a[i].OrderIndex < a[j].OrderIndex } // 从小到大排序
 
 const (
 	footNoteImgW     = 20 // 脚注图片≈11x11px & 特殊字图片≈19x19
