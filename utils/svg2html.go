@@ -15,21 +15,22 @@ import (
 )
 
 type HtmlEle struct {
-	X        string `json:"x"`
-	Y        string `json:"y"`
-	ID       string `json:"id"`
-	Width    string `json:"width"`
-	Height   string `json:"height"`
-	Offset   string `json:"offset"`
-	Href     string `json:"href"`
-	Name     string `json:"name"`
-	Style    string `json:"style"`
-	Content  string `json:"content"`
-	Class    string `json:"class"`
-	Alt      string `json:"alt"`
-	Len      string `json:"len"`
-	IsBold   bool   `json:"is_bold"`
-	IsItalic bool   `json:"is_italic"`
+	X         string `json:"x"`
+	Y         string `json:"y"`
+	ID        string `json:"id"`
+	Width     string `json:"width"`
+	Height    string `json:"height"`
+	Offset    string `json:"offset"`
+	Href      string `json:"href"`
+	Name      string `json:"name"`
+	Style     string `json:"style"`
+	Content   string `json:"content"`
+	Class     string `json:"class"`
+	Alt       string `json:"alt"`
+	Len       string `json:"len"`
+	IsBold    bool   `json:"is_bold"`
+	IsItalic  bool   `json:"is_italic"`
+	TextAlign string `json:"text_align"` // left; center; right
 }
 
 type EbookToc struct {
@@ -62,6 +63,8 @@ const (
 	eBookTypeHtml = "html"
 	eBookTypePdf  = "pdf"
 	eBookTypeEpub = "epub"
+
+	reqEbookPageWidth = 40000
 )
 
 func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {
@@ -294,7 +297,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 		sort.Float64s(keys)
 
 		for _, v := range keys {
-			cont, id, contWOTag := "", "", ""
+			cont, id, contWOTag, firstX := "", "", "", 0.0
 			if lineContent[v][0].ID != "" {
 				id = lineContent[v][0].ID
 			}
@@ -302,6 +305,13 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 			for i, item := range lineContent[v] {
 				// image class=epub-footnote 是注释图片
 				style := item.Style
+
+				if i == 0 {
+					firstX, _ = strconv.ParseFloat(item.X, 64)
+				}
+				centerL := (reqEbookPageWidth / 2) * 0.9
+				centerH := (reqEbookPageWidth / 2) * 1.1
+				rightL := (reqEbookPageWidth) * 0.9
 
 				w, h := 0.0, 0.0
 				w, _ = strconv.ParseFloat(item.Width, 64)
@@ -321,11 +331,16 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 							`" src="` + item.Href +
 							`" alt="` + item.Alt +
-							`" title="` + item.Alt
+							`" title="` + item.Alt + `"/>`
 						if w < footNoteImgW {
-							img += `" style="vertical-align:top;" class="` + item.Class
+							img = `
+	<sup><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+								`" src="` + item.Href +
+								`" alt="` + item.Alt +
+								`" title="` + item.Alt +
+								`" class="` + item.Class +
+								`"/></sup>`
 						}
-						img += `"/>`
 					case eBookTypeEpub:
 						img = `
 	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
@@ -373,6 +388,11 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					}
 
 				case "text":
+					if firstX >= centerL && firstX <= centerH {
+						style = style + "display: block;text-align:center;"
+					} else if firstX >= rightL {
+						style = style + "display: block;text-align:right;"
+					}
 					if item.Content == "<" {
 						item.Content = "&lt;"
 					}
@@ -393,31 +413,32 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 						cont += `</b>`
 					}
 					contWOTag += item.Content
-					if i == len(lineContent[v])-1 {
-						matchH := false
-						tocText := strings.ReplaceAll(svgContent.TocText, " ", "")
-						contWOTag = strings.ReplaceAll(contWOTag, "&nbsp;", "")
-						if len(svgContent.TocText) > 0 &&
-							len(contWOTag) > 1 &&
-							strings.Contains(tocText, contWOTag) {
-							matchH = true
-						}
-						if matchH {
-							result += GenTocLevelHtml(svgContent.TocLevel, true)
-						} else {
-							result += `
-	<p>`
-						}
-						if i > 1 && style == "" {
-							style = lineContent[v][i-1].Style
-						}
-						result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
-						if matchH {
-							result += GenTocLevelHtml(svgContent.TocLevel, false)
-						} else {
-							result += `</p>`
-						}
+				}
+				if i == len(lineContent[v])-1 {
+					matchH := false
+					tocText := strings.ReplaceAll(svgContent.TocText, " ", "")
+					contWOTag = strings.ReplaceAll(contWOTag, "&nbsp;", "")
+					if len(svgContent.TocText) > 0 &&
+						len(contWOTag) > 1 &&
+						strings.Contains(tocText, contWOTag) {
+						matchH = true
 					}
+					if matchH {
+						result += GenTocLevelHtml(svgContent.TocLevel, true)
+					} else {
+						result += `
+	<p>`
+					}
+					if i > 1 && item.Name == "image" {
+						style = lineContent[v][i-1].Style
+					}
+					result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
+					if matchH {
+						result += GenTocLevelHtml(svgContent.TocLevel, false)
+					} else {
+						result += `</p>`
+					}
+
 				}
 			}
 		}
