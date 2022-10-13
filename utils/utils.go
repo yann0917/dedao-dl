@@ -225,3 +225,8 @@ func WriteFileWithTrunc(filename, content string) (err error) {
 func MD5str(s string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
 }
+
+func TimeCost(start time.Time) {
+	tc := time.Since(start)
+	fmt.Printf("time cost = %v\n", tc)
+}

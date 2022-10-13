@@ -109,7 +109,6 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 	}
 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
 	buf := new(bytes.Buffer)
-	pdfg, _ := wkhtmltopdf.NewPDFGenerator()
 	cover := ""
 	for k, svgContent := range svgContents {
 		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, []*EbookToc{})
@@ -130,51 +129,7 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 		return
 	}
 
-	page := wkhtmltopdf.NewPageReader(buf)
-	page.FooterFontSize.Set(10)
-	page.FooterRight.Set("[page]")
-	page.DisableSmartShrinking.Set(true)
-
-	page.EnableLocalFileAccess.Set(true)
-	pdfg.AddPage(page)
-
-	pdfg.Cover.EnableLocalFileAccess.Set(true)
-	dir, _ := CurrentDir()
-
-	pdfg.Cover.Input = "file://" + filepath.Join(dir, coverPath)
-
-	pdfg.Dpi.Set(300)
-
-	pdfg.TOC.Include = true
-	pdfg.TOC.TocHeaderText.Set("目 录")
-	pdfg.TOC.HeaderFontSize.Set(18)
-
-	pdfg.TOC.TocLevelIndentation.Set(15)
-	pdfg.TOC.TocTextSizeShrink.Set(0.9)
-	pdfg.TOC.DisableDottedLines.Set(false)
-	pdfg.TOC.EnableTocBackLinks.Set(true)
-
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-	pdfg.MarginTop.Set(15)
-	pdfg.MarginBottom.Set(15)
-	pdfg.MarginLeft.Set(15)
-	pdfg.MarginRight.Set(15)
-
-	err = pdfg.Create()
-	if err != nil {
-		fmt.Printf("pdfg create err: %#v\n", err)
-		return
-	}
-
-	// Write buffer contents to file on disk
-	err = pdfg.WriteFile(fileName)
-	if err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-		return
-	}
-	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
-	err = os.Remove(dir + "/" + coverPath)
+	err = genPdf(buf, fileName, coverPath)
 	return
 }
 
@@ -230,6 +185,58 @@ func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err err
 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 
 	return err
+}
+
+func genPdf(buf *bytes.Buffer, fileName, coverPath string) (err error) {
+	pdfg, _ := wkhtmltopdf.NewPDFGenerator()
+
+	page := wkhtmltopdf.NewPageReader(buf)
+	page.FooterFontSize.Set(10)
+	page.FooterRight.Set("[page]")
+	page.DisableSmartShrinking.Set(true)
+
+	page.EnableLocalFileAccess.Set(true)
+	pdfg.AddPage(page)
+
+	pdfg.Cover.EnableLocalFileAccess.Set(true)
+
+	dir, _ := CurrentDir()
+	coverPath = filepath.Join(dir, coverPath)
+	pdfg.Cover.Input = "file://" + coverPath
+
+	pdfg.Dpi.Set(300)
+
+	pdfg.TOC.Include = true
+	pdfg.TOC.TocHeaderText.Set("目 录")
+	pdfg.TOC.HeaderFontSize.Set(18)
+
+	pdfg.TOC.TocLevelIndentation.Set(15)
+	pdfg.TOC.TocTextSizeShrink.Set(0.9)
+	pdfg.TOC.DisableDottedLines.Set(false)
+	pdfg.TOC.EnableTocBackLinks.Set(true)
+
+	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
+
+	pdfg.MarginTop.Set(15)
+	pdfg.MarginBottom.Set(15)
+	pdfg.MarginLeft.Set(15)
+	pdfg.MarginRight.Set(15)
+
+	err = pdfg.Create()
+	if err != nil {
+		fmt.Printf("pdfg create err: %#v\n", err)
+		return
+	}
+
+	// Write buffer contents to file on disk
+	err = pdfg.WriteFile(fileName)
+	if err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		return
+	}
+	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+	err = os.Remove(coverPath)
+	return
 }
 
 func SaveFile(title, ext, content string) (err error) {
@@ -331,13 +338,18 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 				switch item.Name {
 				case "image":
 					img := ""
+					if firstX >= centerL && firstX <= centerH {
+						style = style + "display: block;text-align:center;"
+					} else if firstX >= rightL {
+						style = style + "display: block;text-align:right;"
+					}
 					switch eType {
 					case eBookTypeHtml, eBookTypePdf:
 						img = `
-	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+	<div style="` + style + `"><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 							`" src="` + item.Href +
 							`" alt="` + item.Alt +
-							`" title="` + item.Alt + `"/>`
+							`" title="` + item.Alt + `"/></div>`
 						if w < footNoteImgW {
 							img = `
 	<sup><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
@@ -349,9 +361,9 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 						}
 					case eBookTypeEpub:
 						img = `
-	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+	<div style="` + style + `"><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 							`" src="` + item.Href +
-							`" alt="` + item.Alt + `"/>`
+							`" alt="` + item.Alt + `"/></div>`
 						if w < footNoteImgW {
 							// epub popup comment
 							if len(item.Class) > 0 {
