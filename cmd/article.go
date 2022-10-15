@@ -189,22 +189,18 @@ func articleCommentsToMarkdown(contents []services.ArticleComment) (res string) 
 }
 
 func getMdHeader(level int) string {
-	switch level {
-	case 1:
-		return "# "
-	case 2:
-		return "## "
-	case 3:
-		return "### "
-	case 4:
-		return "#### "
-	case 5:
-		return "##### "
-	case 6:
-		return "###### "
-	default:
-		return ""
+	heads := map[int]string{
+		1: "# ",
+		2: "## ",
+		3: "### ",
+		4: "#### ",
+		5: "##### ",
+		6: "###### ",
 	}
+	if s, ok := heads[level]; ok {
+		return s
+	}
+	return ""
 }
 
 func DownloadMarkdown(cType string, id, aid int, path string) error {

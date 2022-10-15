@@ -346,10 +346,13 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					switch eType {
 					case eBookTypeHtml, eBookTypePdf:
 						img = `
-	<div style="` + style + `"><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 							`" src="` + item.Href +
 							`" alt="` + item.Alt +
-							`" title="` + item.Alt + `"/></div>`
+							`" title="` + item.Alt + `"/>`
+						if len(style) > 0 {
+							img = `<div style=">` + style + `">` + img + `</div>`
+						}
 						if w < footNoteImgW {
 							img = `
 	<sup><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
@@ -361,9 +364,12 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 						}
 					case eBookTypeEpub:
 						img = `
-	<div style="` + style + `"><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+	<img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 							`" src="` + item.Href +
-							`" alt="` + item.Alt + `"/></div>`
+							`" alt="` + item.Alt + `"/>`
+						if len(style) > 0 {
+							img = `<div style=">` + style + `">` + img + `</div>`
+						}
 						if w < footNoteImgW {
 							// epub popup comment
 							if len(item.Class) > 0 {
