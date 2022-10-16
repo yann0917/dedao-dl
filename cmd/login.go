@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 	"github.com/yann0917/dedao-dl/config"
-	"github.com/yann0917/dedao-dl/services"
 )
 
 // Cookie cookie from https://www.dedao.cn
@@ -76,7 +75,7 @@ var suCmd = &cobra.Command{
 			return errors.New("please input UID")
 		}
 		uid := args[0]
-		err := switchAccount(uid)
+		err := app.SwitchAccount(uid)
 		return err
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
@@ -91,13 +90,6 @@ func init() {
 	rootCmd.AddCommand(suCmd)
 	loginCmd.Flags().StringVarP(&Cookie, "cookie", "c", "", "cookie from https://www.dedao.cn")
 	loginCmd.Flags().BoolVarP(&qr, "qrcode", "q", false, "scan qrcode login from https://www.dedao.cn")
-}
-
-// LoginedCookies cookie sting to map for chromedp print pdf
-func LoginedCookies() (cookies map[string]string) {
-	Cookie := config.Instance.ActiveUser().CookieStr
-	services.ParseCookies(Cookie, &cookies)
-	return
 }
 
 // current login user
@@ -122,17 +114,4 @@ func users() {
 	}
 	table.Render()
 
-}
-
-func switchAccount(uid string) (err error) {
-	if config.Instance.LoginUserCount() == 0 {
-		err = errors.New("cannot found account's")
-		return
-	}
-	err = config.Instance.SwitchUser(&config.User{UIDHazy: uid})
-
-	if err != nil {
-		return err
-	}
-	return
 }

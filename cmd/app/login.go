@@ -23,23 +23,12 @@ func LoginByCookie(cookie string) (err error) {
 	return
 }
 
-// GetCookie get cookie string
-// func GetCookie() (cookie string) {
-// 	_ = rod.Try(func() {
-// 		cookie = utils.Get(config.BaseURL)
-// 		if !strings.Contains(cookie, "ISID=") {
-// 			return
-// 		}
-// 	})
-// 	return
-// }
-
 func LoginByQr() error {
 	token, err := getService().LoginAccessToken()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("token:%#v\n", token)
+	// fmt.Printf("token:%#v\n", token)
 	code, err := getService().GetQrcode(token)
 	if err != nil {
 		return err
@@ -70,4 +59,17 @@ func LoginByQr() error {
 			return err
 		}
 	}
+}
+
+func SwitchAccount(uid string) (err error) {
+	if config.Instance.LoginUserCount() == 0 {
+		err = errors.New("cannot found account's")
+		return
+	}
+	err = config.Instance.SwitchUser(&config.User{UIDHazy: uid})
+
+	if err != nil {
+		return err
+	}
+	return
 }
