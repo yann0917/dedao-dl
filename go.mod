@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/JoshVarga/svgparser v0.0.0-20200804023048-5eaba627a7d1
 	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.7.2
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.8.1
 	github.com/bmaupin/go-epub v1.0.1
 	github.com/chromedp/cdproto v0.0.0-20221011223153-490dc4d81f7c
 	github.com/chromedp/chromedp v0.8.6
