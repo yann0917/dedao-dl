@@ -15,21 +15,26 @@ import (
 )
 
 type HtmlEle struct {
-	X         string `json:"x"`
-	Y         string `json:"y"`
-	ID        string `json:"id"`
-	Width     string `json:"width"`
-	Height    string `json:"height"`
-	Offset    string `json:"offset"`
-	Href      string `json:"href"`
-	Name      string `json:"name"`
-	Style     string `json:"style"`
-	Content   string `json:"content"`
-	Class     string `json:"class"`
-	Alt       string `json:"alt"`
-	Len       string `json:"len"`
-	IsBold    bool   `json:"is_bold"`
-	IsItalic  bool   `json:"is_italic"`
+	X        string `json:"x"`
+	Y        string `json:"y"`
+	ID       string `json:"id"`
+	Width    string `json:"width"`
+	Height   string `json:"height"`
+	Offset   string `json:"offset"`
+	Href     string `json:"href"`
+	Name     string `json:"name"`
+	Style    string `json:"style"`
+	Content  string `json:"content"`
+	Class    string `json:"class"`
+	Alt      string `json:"alt"`
+	Len      string `json:"len"`
+	IsBold   bool   `json:"is_bold"`
+	IsItalic bool   `json:"is_italic"`
+	IsFn     bool   `json:"is_fn"` // footnote
+	Fn       struct {
+		Href  string `json:"href"`
+		Style string `json:"style"`
+	} `json:"fn"`
 	TextAlign string `json:"text_align"` // left; center; right
 }
 
@@ -58,6 +63,7 @@ func (a SvgContents) Less(i, j int) bool { return a[i].OrderIndex < a[j].OrderIn
 
 const (
 	footNoteImgW     = 20 // 脚注图片≈11x11px & 特殊字图片≈19x19
+	footNoteImgH     = 20 // 行内图片高度=20
 	svgShapePath     = "path"
 	svgShapePolygon  = "polygon"
 	svgShapePolyline = "polyline"
@@ -353,7 +359,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 						if len(style) > 0 {
 							img = `<div style=">` + style + `">` + img + `</div>`
 						}
-						if w < footNoteImgW {
+						if (w < footNoteImgW || h < footNoteImgH) && len(item.Class) > 0 {
 							img = `
 	<sup><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 								`" src="` + item.Href +
@@ -429,7 +435,23 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					if item.IsItalic {
 						cont += `<i>`
 					}
+					if item.IsFn {
+						cont += `<sup>`
+					}
+					if item.Fn.Href != "" {
+						cont += `<a id=` + item.ID + ` href=` + item.Fn.Href
+						if item.Fn.Style != "" {
+							cont += ` style="` + item.Fn.Style + `"`
+						}
+						cont += `>`
+					}
 					cont += item.Content
+					if item.Fn.Href != "" {
+						cont += `</a>`
+					}
+					if item.IsFn {
+						cont += `</sup>`
+					}
 					if item.IsItalic {
 						cont += `</i>`
 					}
@@ -487,6 +509,7 @@ func GenHeadHtml() (result string) {
 		@font-face { font-family: "FZFangSong-Z02"; src:local("FZFangSong-Z02"), url("https://imgcdn.umiwi.com/ttf/fangzhengfangsong_gbk.ttf"); }
 		@font-face { font-family: "FZKai-Z03"; src:local("FZKai-Z03"), url("https://imgcdn.umiwi.com/ttf/fangzhengkaiti_gbk.ttf"); }
 		@font-face { font-family: "PingFang SC"; src:local("PingFang SC"); }
+		@font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
 		@font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
 		table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
 		img { page-break-inside: avoid; max-width: 100% !important;}
@@ -543,12 +566,14 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 func GenLineContentByElement(element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
+	lastY, lastTop := "", ""
+
 	for k, children := range element.Children {
 		var ele HtmlEle
 		attr := children.Attributes
 		content := children.Content
 
-		if y, ok := attr["y"]; ok {
+		if _, ok := attr["y"]; ok {
 			if children.Name == "text" {
 				if content != "" {
 					ele.Content = content
@@ -557,10 +582,34 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 						for _, child := range children.Children {
 							if child.Name == "a" {
 								ele.Content += child.Content
+								attrC := child.Attributes
+								if href, ok := attrC["href"]; ok {
+									hrefArr := strings.Split(href, "/")
+									href = hrefArr[len(hrefArr)-1:][0]
+									tagArr := strings.Split(href, "#")
+									// footnote jump back and forth
+									if strings.Contains(tagArr[1], "a") {
+										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], "a", "b", -1)
+									} else {
+										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], "b", "a", -1)
+									}
+									attr["id"] = tagArr[0] + "_" + tagArr[1]
+									ele.Fn.Style = attrC["style"]
+								}
 							}
 						}
 					} else {
 						ele.Content = "&nbsp;"
+					}
+				}
+				if _, ok := attr["top"]; ok {
+					topInt, _ := strconv.ParseFloat(attr["top"], 64)
+					lastTopInt, _ := strconv.ParseFloat(lastTop, 64)
+					if topInt < lastTopInt {
+						ele.IsFn = true
+						attr["style"] = ""
+					} else {
+						lastTop = attr["top"]
 					}
 				}
 			} else {
@@ -583,12 +632,21 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				}
 			}
 			ele.X = attr["x"]
-			ele.Y = attr["y"]
+
+			if ele.IsFn {
+				ele.Y = lastY
+			} else {
+				ele.Y = attr["y"]
+				if children.Name == "text" {
+					lastY = attr["y"]
+				}
+			}
+
 			ele.Width = attr["width"]
 			ele.Height = attr["height"]
 
 			// footnote image with text in one line
-			yInt, _ := strconv.ParseFloat(y, 64)
+			yInt, _ := strconv.ParseFloat(ele.Y, 64)
 			w, _ := strconv.ParseFloat(ele.Width, 64)
 			if children.Name == "image" && w < footNoteImgW {
 				attrPre := element.Children[k-1].Attributes
