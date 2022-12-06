@@ -321,12 +321,23 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 				id = lineContent[v][0].ID
 			}
 
+			lineStyle, currentSpanStyle := "", ""
+			hasUncloseSpan := false
+
 			for i, item := range lineContent[v] {
 				// image class=epub-footnote 是注释图片
 				style := item.Style
 
 				if i == 0 {
 					firstX, _ = strconv.ParseFloat(item.X, 64)
+					lastIndex := len(lineContent[v]) - 1
+					if lineContent[v][lastIndex].Name != "image" {
+						lineStyle = lineContent[v][lastIndex].Style
+					} else if lastIndex-1 >= 0 {
+						lineStyle = lineContent[v][lastIndex-1].Style
+					} else {
+						lineStyle = item.Style
+					}
 				}
 				centerL := (reqEbookPageWidth / 2) * 0.9
 				centerH := (reqEbookPageWidth / 2) * 1.1
@@ -418,6 +429,18 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					}
 
 				case "text":
+					if hasUncloseSpan && item.Style != currentSpanStyle {
+						cont += `</span>`
+						hasUncloseSpan = false
+					}
+
+					keepStyle := item.Style != lineStyle
+					if keepStyle && !hasUncloseSpan {
+						cont += `<span style="` + item.Style + `">`
+						currentSpanStyle = item.Style
+						hasUncloseSpan = true
+					}
+
 					if firstX >= centerL && firstX <= centerH {
 						style = style + "display: block;text-align:center;"
 					} else if firstX >= rightL {
@@ -605,7 +628,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				if _, ok := attr["top"]; ok {
 					topInt, _ := strconv.ParseFloat(attr["top"], 64)
 					lastTopInt, _ := strconv.ParseFloat(lastTop, 64)
-					if topInt < lastTopInt {
+					if topInt < lastTopInt && attr["len"] == "1" {
 						ele.IsFn = true
 						attr["style"] = ""
 					} else {
