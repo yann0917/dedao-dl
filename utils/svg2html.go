@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -591,6 +592,8 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 	offset := ""
 	lastY, lastTop := "", ""
 
+	fnA, fnB := parseFootNoteDelimiter(element)
+
 	for k, children := range element.Children {
 		var ele HtmlEle
 		attr := children.Attributes
@@ -607,14 +610,15 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 								ele.Content += child.Content
 								attrC := child.Attributes
 								if href, ok := attrC["href"]; ok {
+									// href="/OEBPS/Text/chapter_00001.xhtml#abc123
 									hrefArr := strings.Split(href, "/")
 									href = hrefArr[len(hrefArr)-1:][0]
 									tagArr := strings.Split(href, "#")
 									// footnote jump back and forth
-									if strings.Contains(tagArr[1], "a") {
-										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], "a", "b", -1)
+									if strings.Contains(tagArr[1], fnA) {
+										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnA, fnB, -1)
 									} else {
-										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], "b", "a", -1)
+										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnB, fnA, -1)
 									}
 									attr["id"] = tagArr[0] + "_" + tagArr[1]
 									ele.Fn.Style = attrC["style"]
@@ -628,7 +632,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				if _, ok := attr["top"]; ok {
 					topInt, _ := strconv.ParseFloat(attr["top"], 64)
 					lastTopInt, _ := strconv.ParseFloat(lastTop, 64)
-					if topInt < lastTopInt && attr["len"] == "1" {
+					if topInt < lastTopInt && ele.Fn.Href != "" {
 						ele.IsFn = true
 						attr["style"] = ""
 					} else {
@@ -700,6 +704,44 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 			if (children.Name == "text") ||
 				children.Name == "image" {
 				lineContent[yInt] = append(lineContent[yInt], ele)
+			}
+		}
+	}
+	return
+}
+
+func parseFootNoteDelimiter(element *svgparser.Element) (a, b string) {
+	end := false
+	for _, children := range element.Children {
+		if children.Name == "text" &&
+			children.Content == "" &&
+			children.Children != nil {
+			for _, child := range children.Children {
+				if child.Name == "a" {
+					attr := child.Attributes
+					if href, ok := attr["href"]; ok {
+						// href="/OEBPS/Text/chapter_00001.xhtml#abc123
+						hrefArr := strings.Split(href, "/")
+						href = hrefArr[len(hrefArr)-1:][0]
+						tagArr := strings.Split(href, "#")
+						reg := regexp.MustCompile(`([a-zA-Z]+)`)
+						params := reg.FindStringSubmatch(tagArr[1])
+						if len(params) > 1 {
+							if a == "" {
+								a = params[0]
+							} else {
+								if a != params[0] {
+									b = params[0]
+									end = true
+									break
+								}
+							}
+						}
+					}
+				}
+			}
+			if end {
+				break
 			}
 		}
 	}
