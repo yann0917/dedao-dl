@@ -77,7 +77,7 @@ const (
 	eBookTypePdf  = "pdf"
 	eBookTypeEpub = "epub"
 
-	reqEbookPageWidth = 40000
+	reqEbookPageWidth = 60000
 )
 
 func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {

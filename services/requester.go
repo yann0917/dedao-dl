@@ -246,7 +246,7 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 				"font_name":       "pingfang",
 				"font_scale":      1,
 				"font_size":       16,
-				"height":          90000,
+				"height":          200000,
 				"line_height":     "2em",
 				"margin_bottom":   20,
 				"margin_left":     20,
@@ -254,7 +254,7 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 				"margin_top":      0,
 				"paragraph_space": "1em",
 				"platform":        1,
-				"width":           40000,
+				"width":           60000,
 			},
 			"token": token,
 		}).
