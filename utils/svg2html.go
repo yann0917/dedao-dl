@@ -615,12 +615,17 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 									href = hrefArr[len(hrefArr)-1:][0]
 									tagArr := strings.Split(href, "#")
 									// footnote jump back and forth
-									if strings.Contains(tagArr[1], fnA) {
-										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnA, fnB, -1)
+									if len(tagArr) > 1 {
+										if strings.Contains(tagArr[1], fnA) {
+											ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnA, fnB, -1)
+										} else {
+											ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnB, fnA, -1)
+										}
+										attr["id"] = tagArr[0] + "_" + tagArr[1]
 									} else {
-										ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnB, fnA, -1)
+										ele.Fn.Href = "#" + tagArr[0]
+										attr["id"] = tagArr[0]
 									}
-									attr["id"] = tagArr[0] + "_" + tagArr[1]
 									ele.Fn.Style = attrC["style"]
 								}
 							}
@@ -725,7 +730,12 @@ func parseFootNoteDelimiter(element *svgparser.Element) (a, b string) {
 						href = hrefArr[len(hrefArr)-1:][0]
 						tagArr := strings.Split(href, "#")
 						reg := regexp.MustCompile(`([a-zA-Z]+)`)
-						params := reg.FindStringSubmatch(tagArr[1])
+						var params []string
+						if len(tagArr) > 1 {
+							params = reg.FindStringSubmatch(tagArr[1])
+						} else {
+							params = reg.FindStringSubmatch(tagArr[0])
+						}
 						if len(params) > 1 {
 							if a == "" {
 								a = params[0]
