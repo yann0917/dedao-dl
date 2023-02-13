@@ -31,7 +31,8 @@ type HtmlEle struct {
 	Len      string `json:"len"`
 	IsBold   bool   `json:"is_bold"`
 	IsItalic bool   `json:"is_italic"`
-	IsFn     bool   `json:"is_fn"` // footnote
+	IsFn     bool   `json:"is_fn"`  // footnote: sup tag
+	IsSub    bool   `json:"is_sub"` // sub tag
 	Fn       struct {
 		Href  string `json:"href"`
 		Style string `json:"style"`
@@ -462,6 +463,9 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					if item.IsFn {
 						cont += `<sup>`
 					}
+					if item.IsSub {
+						cont += `<sub>`
+					}
 					if item.Fn.Href != "" {
 						cont += `<a id=` + item.ID + ` href=` + item.Fn.Href
 						if item.Fn.Style != "" {
@@ -475,6 +479,9 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 					}
 					if item.IsFn {
 						cont += `</sup>`
+					}
+					if item.IsSub {
+						cont += `</sub>`
 					}
 					if item.IsItalic {
 						cont += `</i>`
@@ -590,7 +597,7 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 func GenLineContentByElement(element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
-	lastY, lastTop := "", ""
+	lastY, lastTop, lastH := "", "", ""
 
 	fnA, fnB := parseFootNoteDelimiter(element)
 
@@ -636,12 +643,22 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				}
 				if _, ok := attr["top"]; ok {
 					topInt, _ := strconv.ParseFloat(attr["top"], 64)
+					heightInt, _ := strconv.ParseFloat(attr["height"], 64)
+					lenInt, _ := strconv.ParseFloat(attr["len"], 64)
 					lastTopInt, _ := strconv.ParseFloat(lastTop, 64)
-					if topInt < lastTopInt && ele.Fn.Href != "" {
-						ele.IsFn = true
+					lastHInt, _ := strconv.ParseFloat(lastH, 64)
+
+					// 中文字符 len=3, FIXME: 英文字符无法根据 len 区分是否是下标
+					if heightInt < lastHInt && heightInt < 20 && lenInt < 3 {
+						if topInt < lastTopInt {
+							ele.IsFn = true
+						} else {
+							ele.IsSub = true
+						}
 						attr["style"] = ""
 					} else {
 						lastTop = attr["top"]
+						lastH = attr["height"]
 					}
 				}
 			} else {
@@ -665,7 +682,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 			}
 			ele.X = attr["x"]
 
-			if ele.IsFn {
+			if ele.IsFn || ele.IsSub {
 				ele.Y = lastY
 			} else {
 				ele.Y = attr["y"]
