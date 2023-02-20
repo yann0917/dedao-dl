@@ -4,10 +4,10 @@ go 1.19
 
 require (
 	github.com/JoshVarga/svgparser v0.0.0-20200804023048-5eaba627a7d1
-	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.8.2
+	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.0
 	github.com/bmaupin/go-epub v1.0.1
-	github.com/chromedp/cdproto v0.0.0-20230109101555-6b041c6303cc
+	github.com/chromedp/cdproto v0.0.0-20230213000208-1903a0cd6c4c
 	github.com/chromedp/chromedp v0.8.7
 	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/go-resty/resty/v2 v2.7.0
@@ -27,7 +27,7 @@ require (
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.1.0 // indirect
-	github.com/gofrs/uuid v4.3.1+incompatible // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 )
