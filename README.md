@@ -4,6 +4,8 @@
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
 
+欢迎体验桌面客户端 [dedao-gui](https://github.com/yann0917/dedao-gui)
+
 ## 特别声明
 
 仅供个人学习使用，请尊重版权，内容版权均为得到所有，请勿传播内容！！！
