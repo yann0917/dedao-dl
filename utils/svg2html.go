@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -210,7 +211,12 @@ func genPdf(buf *bytes.Buffer, fileName, coverPath string) (err error) {
 
 	dir, _ := CurrentDir()
 	coverPath = filepath.Join(dir, coverPath)
-	pdfg.Cover.Input = "file://" + coverPath
+
+	if runtime.GOOS == "windows" {
+		pdfg.Cover.Input = coverPath
+	} else {
+		pdfg.Cover.Input = "file://" + coverPath
+	}
 
 	pdfg.Dpi.Set(300)
 
