@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/config"
 )

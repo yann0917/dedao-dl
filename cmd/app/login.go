@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
 )

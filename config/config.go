@@ -3,12 +3,14 @@ package config
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
 
+	"errors"
+
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/services"
 )
 
@@ -198,7 +200,7 @@ func (c *ConfigsData) lazyOpenConfigFile() (err error) {
 		return nil
 	}
 	c.fileMu.Lock()
-	os.MkdirAll(filepath.Dir(c.configFilePath), 0700)
+	err = os.MkdirAll(filepath.Dir(c.configFilePath), 0700)
 	c.configFile, err = os.OpenFile(c.configFilePath, os.O_CREATE|os.O_RDWR, 0600)
 	c.fileMu.Unlock()
 
@@ -208,6 +210,10 @@ func (c *ConfigsData) lazyOpenConfigFile() (err error) {
 		}
 		if os.IsExist(err) {
 			return
+		}
+		if fi, _ := os.Stat(c.configFilePath); fi.IsDir() {
+			err = errors.New(c.configFilePath + "配置文件不能是目录")
+			log.Fatalln(err)
 		}
 		return
 	}

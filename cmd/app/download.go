@@ -8,8 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	"errors"
+
 	jsoniter "github.com/json-iterator/go"
-	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/downloader"
 	"github.com/yann0917/dedao-dl/services"

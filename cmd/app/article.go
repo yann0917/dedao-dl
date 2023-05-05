@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
 )

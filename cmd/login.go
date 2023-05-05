@@ -4,8 +4,9 @@ import (
 	"os"
 	"strconv"
 
+	"errors"
+
 	"github.com/olekukonko/tablewriter"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 	"github.com/yann0917/dedao-dl/config"

@@ -1,9 +1,5 @@
 package services
 
-import (
-	"github.com/pkg/errors"
-)
-
 // User user info
 type User struct {
 	Nickname        string  `json:"nickname"`
@@ -92,7 +88,6 @@ type OdobVipUser struct {
 func (s *Service) User() (user *User, err error) {
 	body, err := s.reqUser()
 	if err != nil {
-		err = errors.Wrap(err, "request user err")
 		return
 	}
 	defer body.Close()
@@ -111,7 +106,6 @@ type Token struct {
 func (s *Service) Token() (t *Token, err error) {
 	body, err := s.reqToken()
 	if err != nil {
-		err = errors.Wrap(err, "request token err")
 		return
 	}
 	defer body.Close()

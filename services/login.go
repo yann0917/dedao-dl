@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/pkg/errors"
 	"github.com/yann0917/dedao-dl/utils"
 )
 
@@ -26,7 +25,6 @@ type CheckLoginResp struct {
 func (s *Service) LoginAccessToken() (token string, err error) {
 	token, err = s.reqGetLoginAccessToken()
 	if err != nil {
-		err = errors.Wrap(err, "request login err")
 		return
 	}
 
@@ -36,7 +34,6 @@ func (s *Service) LoginAccessToken() (token string, err error) {
 func (s *Service) GetQrcode(token string) (resp *QrCodeResp, err error) {
 	resp, err = s.reqGetQrcode(token)
 	if err != nil {
-		err = errors.Wrap(err, "request login err")
 		return
 	}
 	content := "https://m.igetget.com/oauth/qrcode/v2/authorize?token=" + resp.Data.QrCodeString
@@ -49,7 +46,6 @@ func (s *Service) GetQrcode(token string) (resp *QrCodeResp, err error) {
 func (s *Service) CheckLogin(token, qrcode string) (check *CheckLoginResp, cookie string, err error) {
 	check, cookie, err = s.reqCheckLogin(token, qrcode)
 	if err != nil {
-		err = errors.Wrap(err, "request login err")
 		return
 	}
 

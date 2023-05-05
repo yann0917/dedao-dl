@@ -1,6 +1,8 @@
 package app
 
 import (
+	"errors"
+
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
 )
@@ -14,6 +16,13 @@ func CourseType() (list *services.CourseCategoryList, err error) {
 // CourseList 已购课程列表
 func CourseList(category string) (list *services.CourseList, err error) {
 	list, err = getService().CourseListAll(category, "study")
+	if err != nil {
+		return
+	}
+	if list == nil {
+		err = errors.New("已购书架为空")
+		return
+	}
 	idMap := make(config.CourseIDMap, len(list.List))
 	switch category {
 	case CateCourse:
