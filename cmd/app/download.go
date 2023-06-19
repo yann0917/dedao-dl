@@ -52,7 +52,7 @@ func (d *CourseDownload) Download() error {
 	switch d.DownloadType {
 	case 1: // mp3
 		downloadData := extractDownloadData(course, articles, d.AID, 1)
-		errors := make([]error, 0)
+		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
 		if err != nil {
@@ -65,17 +65,17 @@ func (d *CourseDownload) Download() error {
 			}
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 
 		}
-		if len(errors) > 0 {
-			return errors[0]
+		if len(errs) > 0 {
+			return errs[0]
 		}
 	case 2:
 		// 下载 PDF
 		downloadData := extractDownloadData(course, articles, d.AID, 2)
-		errors := make([]error, 0)
+		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
@@ -85,11 +85,11 @@ func (d *CourseDownload) Download() error {
 		cookies := LoginedCookies()
 		for _, datum := range downloadData.Data {
 			if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		}
-		if len(errors) > 0 {
-			return errors[0]
+		if len(errs) > 0 {
+			return errs[0]
 		}
 	case 3:
 		// 下载 Markdown
@@ -97,7 +97,7 @@ func (d *CourseDownload) Download() error {
 		if err != nil {
 			return err
 		}
-		if err := DownloadMarkdown(CateCourse, d.ID, d.AID, path); err != nil {
+		if err := DownloadMarkdownCourse(d.ID, d.AID, path); err != nil {
 			return err
 		}
 	}
@@ -114,7 +114,7 @@ func (d *OdobDownload) Download() error {
 		}
 		downloadData.Type = "audio"
 		downloadData.Data = extractOdobDownloadData(d.ID)
-		errors := make([]error, 0)
+		errs := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		if err != nil {
 			return err
@@ -125,11 +125,11 @@ func (d *OdobDownload) Download() error {
 			}
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
-				errors = append(errors, err)
+				errs = append(errs, err)
 			}
 		}
-		if len(errors) > 0 {
-			return errors[0]
+		if len(errs) > 0 {
+			return errs[0]
 		}
 	case 2:
 		err := errors.New("得到 Web 端暂未开放每天听本书，PDF 无法下载。")
@@ -140,7 +140,7 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
-		if err := DownloadMarkdown(CateAudioBook, d.ID, 0, path); err != nil {
+		if err := DownloadMarkdownAudioBook(d.ID, path); err != nil {
 			return err
 		}
 	}
@@ -384,59 +384,17 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 			res = strings.TrimRight(res, "> \r\n")
 			res += "\r\n\r\n"
 		case "paragraph":
-			// map 转结构体
-			tmpJson, err := jsoniter.Marshal(content.Contents)
+			resP, err := paragraphToMarkDown(content.Contents)
 			if err != nil {
 				return
 			}
-			cont := services.Contents{}
-			err = jsoniter.Unmarshal(tmpJson, &cont)
-			if err != nil {
-				return ""
-			}
-			for _, item := range cont {
-				subContent := strings.Trim(item.Text.Content, " ")
-				switch item.Type {
-				case "text":
-					if item.Text.Bold {
-						res += " **" + subContent + "** "
-					} else if item.Text.Highlight {
-						res += " *" + subContent + "* "
-					} else {
-						res += subContent
-					}
-				}
-			}
-			res = strings.Trim(res, " ")
-			res = strings.Trim(res, "\r\n")
-			res += "\r\n\r\n"
+			res += resP
 		case "list":
-			tmpJson, err := jsoniter.Marshal(content.Contents)
+			resL, err := listToMarkdown(content.Contents)
 			if err != nil {
 				return
 			}
-			var cont []services.Contents
-			err = jsoniter.Unmarshal(tmpJson, &cont)
-			if err != nil {
-				return ""
-			}
-
-			for _, item := range cont {
-				for _, item := range item {
-					subContent := strings.Trim(item.Text.Content, " ")
-					switch item.Type {
-					case "text":
-						if item.Text.Bold {
-							res += "* **" + subContent + "** "
-						} else if item.Text.Highlight {
-							res += "* *" + subContent + "* "
-						} else {
-							res += "* " + subContent
-						}
-					}
-				}
-				res += "\r\n\r\n"
-			}
+			res += resL
 		case "elite": // 划重点
 			res += getMdHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
 
@@ -448,6 +406,65 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 	}
 
 	res += "---\r\n"
+	return
+}
+
+func paragraphToMarkDown(content interface{}) (res string, err error) {
+	tmpJson, err := jsoniter.Marshal(content)
+	if err != nil {
+		return
+	}
+	cont := services.Contents{}
+	err = jsoniter.Unmarshal(tmpJson, &cont)
+	if err != nil {
+		return
+	}
+	for _, item := range cont {
+		subContent := strings.Trim(item.Text.Content, " ")
+		switch item.Type {
+		case "text":
+			if item.Text.Bold {
+				res += " **" + subContent + "** "
+			} else if item.Text.Highlight {
+				res += " *" + subContent + "* "
+			} else {
+				res += subContent
+			}
+		}
+	}
+	res = strings.Trim(res, " ")
+	res = strings.Trim(res, "\r\n")
+	res += "\r\n\r\n"
+	return
+}
+
+func listToMarkdown(content interface{}) (res string, err error) {
+	tmpJson, err := jsoniter.Marshal(content)
+	if err != nil {
+		return
+	}
+	var cont []services.Contents
+	err = jsoniter.Unmarshal(tmpJson, &cont)
+	if err != nil {
+		return
+	}
+
+	for _, item := range cont {
+		for _, item := range item {
+			subContent := strings.Trim(item.Text.Content, " ")
+			switch item.Type {
+			case "text":
+				if item.Text.Bold {
+					res += "* **" + subContent + "** "
+				} else if item.Text.Highlight {
+					res += "* *" + subContent + "* "
+				} else {
+					res += "* " + subContent
+				}
+			}
+		}
+		res += "\r\n\r\n"
+	}
 	return
 }
 
@@ -478,84 +495,16 @@ func getMdHeader(level int) string {
 	return ""
 }
 
-func DownloadMarkdown(cType string, id, aid int, path string) error {
-	switch cType {
-	case CateCourse:
-		list, err := ArticleList(id, "")
-		if err != nil {
-			return err
+func DownloadMarkdownCourse(id, aid int, path string) error {
+	list, err := ArticleList(id, "")
+	if err != nil {
+		return err
+	}
+	for _, v := range list.List {
+		if aid > 0 && v.ID != aid {
+			continue
 		}
-		for _, v := range list.List {
-			if aid > 0 && v.ID != aid {
-				continue
-			}
-			detail, enId, err := ArticleDetail(id, v.ID)
-			if err != nil {
-				fmt.Println(err.Error())
-				return err
-			}
-
-			var content []services.Content
-			err = jsoniter.UnmarshalFromString(detail.Content, &content)
-			if err != nil {
-				return err
-			}
-
-			name := utils.FileName(v.Title, "md")
-			fileName := filepath.Join(path, name)
-			fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
-			_, exist, err := utils.FileSize(fileName)
-
-			if err != nil {
-				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-				return err
-			}
-
-			if exist {
-				fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
-				return nil
-			}
-
-			res := ContentsToMarkdown(content)
-			// 添加留言
-			commentList, err := ArticleCommentList(enId, "like", 1, 20)
-			if err == nil {
-				res += articleCommentsToMarkdown(commentList.List)
-			}
-
-			f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-				return err
-			}
-			_, err = f.WriteString(res)
-			if err != nil {
-				fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-				return err
-			}
-			if err = f.Close(); err != nil {
-				if err != nil {
-					return err
-				}
-			}
-			fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
-		}
-	case CateAudioBook:
-		info := config.Instance.GetIDMap(CateAudioBook, id)
-		aliasID := info["audio_alias_id"].(string)
-		if aliasID == "" {
-			list, err := CourseList(cType)
-			if err != nil {
-				return err
-			}
-			for _, v := range list.List {
-				if v.AudioDetail.SourceID == id {
-					aliasID = v.AudioDetail.AliasID
-					break
-				}
-			}
-		}
-		detail, err := OdobArticleDetail(aliasID)
+		detail, enId, err := ArticleDetail(id, v.ID)
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
@@ -567,7 +516,7 @@ func DownloadMarkdown(cType string, id, aid int, path string) error {
 			return err
 		}
 
-		name := utils.FileName(info["title"].(string), "md")
+		name := utils.FileName(v.Title, "md")
 		fileName := filepath.Join(path, name)
 		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
 		_, exist, err := utils.FileSize(fileName)
@@ -583,6 +532,11 @@ func DownloadMarkdown(cType string, id, aid int, path string) error {
 		}
 
 		res := ContentsToMarkdown(content)
+		// 添加留言
+		commentList, err := ArticleCommentList(enId, "like", 1, 20)
+		if err == nil {
+			res += articleCommentsToMarkdown(commentList.List)
+		}
 
 		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -600,11 +554,69 @@ func DownloadMarkdown(cType string, id, aid int, path string) error {
 			}
 		}
 		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+	}
+	return nil
+}
 
-	case CateAce:
-
+func DownloadMarkdownAudioBook(id int, path string) error {
+	info := config.Instance.GetIDMap(CateAudioBook, id)
+	aliasID := info["audio_alias_id"].(string)
+	if aliasID == "" {
+		list, err := CourseList(CateAudioBook)
+		if err != nil {
+			return err
+		}
+		for _, v := range list.List {
+			if v.AudioDetail.SourceID == id {
+				aliasID = v.AudioDetail.AliasID
+				break
+			}
+		}
+	}
+	detail, err := OdobArticleDetail(aliasID)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
 	}
 
-	return nil
+	var content []services.Content
+	err = jsoniter.UnmarshalFromString(detail.Content, &content)
+	if err != nil {
+		return err
+	}
 
+	name := utils.FileName(info["title"].(string), "md")
+	fileName := filepath.Join(path, name)
+	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
+	_, exist, err := utils.FileSize(fileName)
+
+	if err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		return err
+	}
+
+	if exist {
+		fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
+		return nil
+	}
+
+	res := ContentsToMarkdown(content)
+
+	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		return err
+	}
+	_, err = f.WriteString(res)
+	if err != nil {
+		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		return err
+	}
+	if err = f.Close(); err != nil {
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+	return nil
 }

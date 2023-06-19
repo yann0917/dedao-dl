@@ -41,9 +41,11 @@ var one = Default()
 func Download(dl *DownloadTask, timeout time.Duration) (err error) {
 	return one.Download(dl, timeout)
 }
+
 func DownloadWithContext(ctx context.Context, dl *DownloadTask) (err error) {
 	return one.DownloadWithContext(ctx, dl)
 }
+
 func Batch(tasks *DownloadTasks, concurrent int, eachTimeout time.Duration) *DownloadTasks {
 	return one.Batch(tasks, concurrent, eachTimeout)
 }
@@ -54,6 +56,7 @@ func (g *GetDownload) Download(task *DownloadTask, timeout time.Duration) (err e
 
 	return g.DownloadWithContext(ctx, task)
 }
+
 func (g *GetDownload) DownloadWithContext(ctx context.Context, task *DownloadTask) (err error) {
 	if g.shouldSkip(ctx, task) {
 		if g.OnEachSkip != nil {
@@ -108,22 +111,21 @@ func (g *GetDownload) DownloadWithContext(ctx context.Context, task *DownloadTas
 		return fmt.Errorf("invalid status code %d(%s)", rsp.StatusCode, rsp.Status)
 	}
 
-	_, err = io.Copy(f, rsp.Body)
-	if err != nil {
+	if _, err := io.Copy(f, rsp.Body); err != nil {
 		return fmt.Errorf("copy error: %s", err)
 	}
 
-	mt, e := http.ParseTime(rsp.Header.Get("last-modified"))
-	if e == nil {
+	if mt, e := http.ParseTime(rsp.Header.Get("last-modified")); e == nil {
 		_ = os.Chtimes(task.Path, mt, mt)
 	}
-	ok, e := os.Create(task.Path + ".ok")
-	if e == nil {
+
+	if ok, e := os.Create(task.Path + ".ok"); e == nil {
 		_ = ok.Close()
 	}
 
 	return
 }
+
 func (g *GetDownload) Batch(tasks *DownloadTasks, concurrent int, eachTimeout time.Duration) *DownloadTasks {
 	var sema = semaphore.NewWeighted(int64(concurrent))
 	var grp errgroup.Group
@@ -141,6 +143,7 @@ func (g *GetDownload) Batch(tasks *DownloadTasks, concurrent int, eachTimeout ti
 
 	return tasks
 }
+
 func (g *GetDownload) shouldSkip(ctx context.Context, task *DownloadTask) (skip bool) {
 	// check .ok file exist
 	fd, err := os.Open(task.Path + ".ok")

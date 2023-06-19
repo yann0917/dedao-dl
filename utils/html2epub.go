@@ -155,7 +155,7 @@ func (h *HtmlToEpub) saveImages(doc *goquery.Document) map[string]string {
 			return
 		}
 
-		localFile, exist := downloads[src]
+		_, exist := downloads[src]
 		if exist {
 			return
 		}
@@ -166,7 +166,7 @@ func (h *HtmlToEpub) saveImages(doc *goquery.Document) map[string]string {
 			return
 		}
 		_ = os.MkdirAll(h.ImagesDir, 0766)
-		localFile = filepath.Join(h.ImagesDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
+		localFile := filepath.Join(h.ImagesDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
 
 		tasks.Add(src, localFile)
 		downloads[src] = localFile
@@ -197,7 +197,7 @@ func (h *HtmlToEpub) getFontURLs(html HtmlContent) (downloads map[string]string,
 			return
 		}
 
-		localFile, exist := downloads[src]
+		_, exist := downloads[src]
 		if exist {
 			return
 		}
@@ -208,7 +208,7 @@ func (h *HtmlToEpub) getFontURLs(html HtmlContent) (downloads map[string]string,
 			return
 		}
 		_ = os.MkdirAll(h.FontsDir, 0766)
-		localFile = filepath.Join(h.FontsDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
+		localFile := filepath.Join(h.FontsDir, fmt.Sprintf("%s%s", MD5str(src), filepath.Ext(uri.Path)))
 
 		downloads[src] = localFile
 	})
