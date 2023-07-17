@@ -30,6 +30,7 @@ type HtmlEle struct {
 	Class    string `json:"class"`
 	Alt      string `json:"alt"`
 	Len      string `json:"len"`
+	Newline  bool   `json:"newline"`
 	IsBold   bool   `json:"is_bold"`
 	IsItalic bool   `json:"is_italic"`
 	IsFn     bool   `json:"is_fn"`  // footnote: sup tag
@@ -544,6 +545,7 @@ func GenHeadHtml() (result string) {
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<style>
 		@font-face { font-family: "FZFangSong-Z02"; src:local("FZFangSong-Z02"), url("https://imgcdn.umiwi.com/ttf/fangzhengfangsong_gbk.ttf"); }
+		@font-face { font-family: "FZKai-Z03"; src:local("FZFangSong-Z02S"), url("https://imgcdn.umiwi.com/ttf/0315911813008928624065681028886857980055.ttf"); }
 		@font-face { font-family: "FZKai-Z03"; src:local("FZKai-Z03"), url("https://imgcdn.umiwi.com/ttf/fangzhengkaiti_gbk.ttf"); }
 		@font-face { font-family: "PingFang SC"; src:local("PingFang SC"); }
 		@font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
@@ -647,6 +649,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 						ele.Content = "&nbsp;"
 					}
 				}
+				ele.Newline = parseAttrNewline(attr)
 				if _, ok := attr["top"]; ok {
 					topInt, _ := strconv.ParseFloat(attr["top"], 64)
 					heightInt, _ := strconv.ParseFloat(attr["height"], 64)
@@ -659,7 +662,10 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 						if topInt < lastTopInt {
 							ele.IsFn = true
 						} else {
-							ele.IsSub = true
+							// 上一个 text 如果是 newline 则该 text 不判定为下标
+							if k > 0 && !parseAttrNewline(element.Children[k-1].Attributes) {
+								ele.IsSub = true
+							}
 						}
 						attr["style"] = ""
 					} else {
@@ -716,17 +722,8 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				}
 			}
 			ele.Offset = offset
-
-			if _, ok := attr["href"]; ok && children.Name == "image" {
-				ele.Href = attr["href"]
-			} else {
-				ele.Href = ""
-			}
-			if _, ok := attr["alt"]; ok && children.Name == "image" {
-				ele.Alt = strings.ReplaceAll(attr["alt"], "\"", "&quot;")
-			} else {
-				ele.Alt = ""
-			}
+			ele.Href = parseAttrHref(attr)
+			ele.Alt = parseAttrAlt(attr)
 			ele.Name = children.Name
 
 			if (children.Name == "text") ||
@@ -736,6 +733,27 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 		}
 	}
 	return
+}
+
+func parseAttrHref(attr map[string]string) string {
+	if href, ok := attr["href"]; ok {
+		return href
+	}
+	return ""
+}
+
+func parseAttrAlt(attr map[string]string) string {
+	if alt, ok := attr["alt"]; ok {
+		return strings.ReplaceAll(alt, "\"", "&quot;")
+	}
+	return ""
+}
+
+func parseAttrNewline(attr map[string]string) bool {
+	if newline, ok := attr["newline"]; ok && newline == "true" {
+		return true
+	}
+	return false
 }
 
 func parseFootNoteDelimiter(element *svgparser.Element) (a, b string) {
