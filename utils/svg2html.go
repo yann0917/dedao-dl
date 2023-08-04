@@ -605,7 +605,7 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 func GenLineContentByElement(element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
-	lastY, lastTop, lastH := "", "", ""
+	lastY, lastTop, lastH, lastNewLine := "", "", "", false
 
 	fnA, fnB := parseFootNoteDelimiter(element)
 
@@ -658,15 +658,13 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 					lastHInt, _ := strconv.ParseFloat(lastH, 64)
 
 					// 中文字符 len=3, FIXME: 英文字符无法根据 len 区分是否是下标
-					if heightInt < lastHInt && heightInt < 20 && lenInt < 3 {
+					if !lastNewLine && heightInt < lastHInt && heightInt < 20 && lenInt < 3 {
 						if topInt < lastTopInt {
 							ele.IsFn = true
 						} else {
-							// 上一个 text 如果是 newline 则该 text 不判定为下标
-							if k > 0 && !parseAttrNewline(element.Children[k-1].Attributes) {
-								ele.IsSub = true
-							}
+							ele.IsSub = true
 						}
+
 						attr["style"] = ""
 					} else {
 						lastTop = attr["top"]
@@ -730,6 +728,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 				children.Name == "image" {
 				lineContent[yInt] = append(lineContent[yInt], ele)
 			}
+			lastNewLine = ele.Newline
 		}
 	}
 	return
