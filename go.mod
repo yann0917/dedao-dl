@@ -7,8 +7,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.0
 	github.com/bmaupin/go-epub v1.1.0
-	github.com/chromedp/cdproto v0.0.0-20230502002814-67c6147a4636
-	github.com/chromedp/chromedp v0.9.1
+	github.com/chromedp/cdproto v0.0.0-20230802225258-3cf4e6d46a89
+	github.com/chromedp/chromedp v0.9.2
 	github.com/gabriel-vasile/mimetype v1.4.2
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/json-iterator/go v1.1.12
@@ -25,7 +25,7 @@ require (
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.2.0 // indirect
+	github.com/gobwas/ws v1.2.1 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
