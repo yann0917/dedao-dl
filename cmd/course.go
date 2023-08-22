@@ -162,8 +162,10 @@ func courseList(category string) (err error) {
 	if err != nil {
 		return
 	}
+	total, reading, done, unread := len(list.List), 0, 0, 0
 
-	table := tablewriter.NewWriter(os.Stdout)
+	out := os.Stdout
+	table := tablewriter.NewWriter(out)
 	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
 	table.SetAutoWrapText(false)
 
@@ -185,7 +187,17 @@ func courseList(category string) (err error) {
 			p.Price,
 			strconv.Itoa(p.Progress) + "%",
 		})
+		if p.Progress == 0 {
+			unread++
+		} else if p.Progress == 100 {
+			done++
+		} else {
+			reading++
+		}
 	}
+
+	fmt.Fprintf(out, "\n共 %d 本书, 在读: %d, 读完: %d, 未读: %d\n", total, reading, done, unread)
+
 	table.Render()
 	return
 }
