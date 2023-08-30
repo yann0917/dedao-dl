@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -46,6 +47,15 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
 	// fmt.Printf("%#v\n", info.BookInfo.Orders)
+	var chapterMap sync.Map
+	for _, ebookToc := range info.BookInfo.Toc {
+		key := ebookToc.Href
+		href := strings.Split(ebookToc.Href, "#")
+		if len(href) > 1 {
+			key = href[0]
+		}
+		chapterMap.Store(key, ebookToc)
+	}
 	wgp := utils.NewWaitGroupPool(10)
 	for i, order := range info.BookInfo.Orders {
 		wgp.Add()
@@ -61,13 +71,13 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 			}
 
 			href, text, level := "", "", 0
-			for _, ebookToc := range info.BookInfo.Toc {
-				if strings.Contains(ebookToc.Href, order.ChapterID) {
-					href = ebookToc.Href
-					level = ebookToc.Level
-					text = ebookToc.Text
-					break
+			if value, ok := chapterMap.Load(order.ChapterID); ok {
+				if toc, ok := value.(services.EbookToc); ok {
+					href = toc.Href
+					level = toc.Level
+					text = toc.Text
 				}
+				chapterMap.Delete(order.ChapterID)
 			}
 
 			svgContent = append(svgContent, &utils.SvgContent{

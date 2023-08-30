@@ -83,6 +83,8 @@ const (
 	reqEbookPageWidth = 60000
 )
 
+var fnA, fnB = "", ""
+
 func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {
 	result, err := AllInOneHtml(svgContents, toc)
 	if err != nil {
@@ -276,6 +278,7 @@ func SaveFile(title, ext, content string) (err error) {
 // AllInOneHtml generate ebook content all in one html file
 func AllInOneHtml(svgContents []*SvgContent, toc []*EbookToc) (result string, err error) {
 	result = GenHeadHtml()
+	fnA, fnB = ParseBookFnDelimiter(svgContents)
 	for k, svgContent := range svgContents {
 		chapter, _, err1 := OneByOneHtml(eBookTypeHtml, k, svgContent, toc)
 		if err1 != nil {
@@ -316,7 +319,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 			return
 		}
 
-		lineContent := GenLineContentByElement(element)
+		lineContent := GenLineContentByElement(svgContent.ChapterID, element)
 
 		keys := make([]float64, 0, len(lineContent))
 		for k := range lineContent {
@@ -602,12 +605,10 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 	return
 }
 
-func GenLineContentByElement(element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
+func GenLineContentByElement(chapterID string, element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
 	lastY, lastTop, lastH, lastNewLine := "", "", "", false
-
-	fnA, fnB := parseFootNoteDelimiter(element)
 
 	for k, children := range element.Children {
 		var ele HtmlEle
@@ -636,10 +637,10 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 										} else {
 											ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnB, fnA, -1)
 										}
-										attr["id"] = tagArr[0] + "_" + tagArr[1]
+										attr["id"] = chapterID + "_" + tagArr[1]
 									} else {
 										ele.Fn.Href = "#" + tagArr[0]
-										attr["id"] = tagArr[0]
+										attr["id"] = chapterID
 									}
 									ele.Fn.Style = attrC["style"]
 								}
@@ -658,7 +659,7 @@ func GenLineContentByElement(element *svgparser.Element) (lineContent map[float6
 					lastHInt, _ := strconv.ParseFloat(lastH, 64)
 
 					// 中文字符 len=3, FIXME: 英文字符无法根据 len 区分是否是下标
-					if !lastNewLine && heightInt < lastHInt && heightInt < 20 && lenInt < 3 {
+					if !lastNewLine && heightInt < lastHInt && heightInt <= 20 && lenInt < 3 {
 						if topInt < lastTopInt {
 							ele.IsFn = true
 						} else {
@@ -755,8 +756,42 @@ func parseAttrNewline(attr map[string]string) bool {
 	return false
 }
 
+func ParseBookFnDelimiter(svgContents []*SvgContent) (fnA, fnB string) {
+	fn := make(map[string]struct{})
+outer:
+	for _, svgContent := range svgContents {
+		for _, content := range svgContent.Contents {
+			reader := strings.NewReader(content)
+			element, _ := svgparser.Parse(reader, false)
+			a, b := parseFootNoteDelimiter(element)
+			if a != "" {
+				fn[a] = struct{}{}
+			}
+			if b != "" {
+				fn[b] = struct{}{}
+			}
+			if a != "" && b != "" {
+				break outer
+			}
+		}
+	}
+	keys := make([]string, 0, len(fn))
+	for k := range fn {
+		keys = append(keys, k)
+	}
+	if len(keys) < 1 {
+		return
+	} else if len(keys) == 1 {
+		fnA = keys[0]
+	} else if len(keys) == 2 {
+		fnA = keys[0]
+		fnB = keys[1]
+	}
+	return
+}
+
 func parseFootNoteDelimiter(element *svgparser.Element) (a, b string) {
-	end := false
+outer:
 	for _, children := range element.Children {
 		if children.Name == "text" &&
 			children.Content == "" &&
@@ -782,16 +817,12 @@ func parseFootNoteDelimiter(element *svgparser.Element) (a, b string) {
 							} else {
 								if a != params[0] {
 									b = params[0]
-									end = true
-									break
+									break outer
 								}
 							}
 						}
 					}
 				}
-			}
-			if end {
-				break
 			}
 		}
 	}
