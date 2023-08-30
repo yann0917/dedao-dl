@@ -215,6 +215,21 @@ Available Commands:
 * [geektime-dl](https://github.com/mmzou/geektime-dl)
 * [annie](https://github.com/iawia002/annie)
 
+## Buy me a coffee ☕️ 
+
+<html>
+    <table style="margin-left: auto; margin-right: auto;">
+        <tr>
+            <td>
+               <img src="docs/img/mm_facetoface_collect_qrcode_1678971248686.png"></img>
+            </td>
+            <td>
+                <img src="docs/img/mm_1678972065469.png"></img>
+            </td>
+        </tr>
+    </table>
+</html>
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/yann0917/dedao-dl.svg)](https://starchart.cc/yann0917/dedao-dl)
