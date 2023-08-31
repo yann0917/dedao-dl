@@ -239,7 +239,7 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 			"count":       count,
 			"index":       index,
 			"offset":      offset,
-			"orientation": 1,
+			"orientation": 0,
 			"config": map[string]interface{}{
 				"density":         1,
 				"direction":       0,

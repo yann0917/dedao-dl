@@ -83,6 +83,7 @@ const (
 	reqEbookPageWidth = 60000
 )
 
+// 假设整本书脚注跳转符号相同
 var fnA, fnB = "", ""
 
 func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {
@@ -804,7 +805,7 @@ outer:
 						hrefArr := strings.Split(href, "/")
 						href = hrefArr[len(hrefArr)-1:][0]
 						tagArr := strings.Split(href, "#")
-						reg := regexp.MustCompile(`([a-zA-Z]+)`)
+						reg := regexp.MustCompile(`([a-zA-Z_-]+)`)
 						var params []string
 						if len(tagArr) > 1 {
 							params = reg.FindStringSubmatch(tagArr[1])

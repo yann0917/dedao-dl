@@ -107,8 +107,8 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	}
 	// fmt.Printf("IsEnd:%#v\n", pageList.IsEnd)
 	if !pageList.IsEnd {
-		index = count
-		count += 20
+		index += count
+		count = 20
 		list, err1 := generateEbookPages(chapterID, token, index, count, offset)
 		if err1 != nil {
 			err = err1
