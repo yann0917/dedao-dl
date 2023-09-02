@@ -1,5 +1,9 @@
 package services
 
+import (
+	"github.com/yann0917/dedao-dl/utils"
+)
+
 // Catelog ebook catalog
 type Catelog struct {
 	Level     int    `json:"level"`
@@ -104,10 +108,10 @@ type EbookPage struct {
 // EbookInfo ebook info
 type EbookInfo struct {
 	BookInfo struct {
-		EbookBlock [][]EbookBlock  `json:"block"`
-		Orders     []EbookOrders   `json:"orders"`
-		Toc        []EbookToc      `json:"toc"`
-		Pages      []EbookInfoPage `json:"pages"`
+		EbookBlock [][]EbookBlock   `json:"block"`
+		Orders     []EbookOrders    `json:"orders"`
+		Toc        []utils.EbookToc `json:"toc"`
+		Pages      []EbookInfoPage  `json:"pages"`
 	} `json:"bookInfo"`
 }
 

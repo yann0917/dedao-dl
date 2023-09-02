@@ -54,11 +54,9 @@ type SvgContent struct {
 	Contents   []string
 	ChapterID  string
 	PathInEpub string
-	TocLevel   int
-	TocHref    string
-	TocText    string
 	OrderIndex int
 }
+
 type SvgContents []*SvgContent
 
 func (a SvgContents) Len() int           { return len(a) }
@@ -86,7 +84,15 @@ const (
 // 假设整本书脚注跳转符号相同
 var fnA, fnB = "", ""
 
-func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err error) {
+var tocLevel map[string]int
+
+func Svg2Html(title string, svgContents []*SvgContent, toc []EbookToc) (err error) {
+	tocLevel = make(map[string]int, len(toc))
+	for _, ebookToc := range toc {
+		tocLevel[ebookToc.Text] = ebookToc.Level
+	}
+	// fmt.Println(tocLevel)
+
 	result, err := AllInOneHtml(svgContents, toc)
 	if err != nil {
 		return err
@@ -109,7 +115,7 @@ func Svg2Html(title string, svgContents []*SvgContent, toc []*EbookToc) (err err
 	return
 }
 
-func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
+func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error) {
 
 	path, err := Mkdir(OutputDir, "Ebook")
 	if err != nil {
@@ -123,8 +129,13 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
 	buf := new(bytes.Buffer)
 	cover := ""
+	tocLevel = make(map[string]int, len(toc))
+	for _, ebookToc := range toc {
+		tocLevel[ebookToc.Text] = ebookToc.Level
+	}
+
 	for k, svgContent := range svgContents {
-		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, []*EbookToc{})
+		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, toc)
 		if err1 != nil {
 			err = err1
 			return
@@ -149,8 +160,20 @@ func Svg2Pdf(title string, svgContents []*SvgContent) (err error) {
 func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err error) {
 	var htmlAll []HtmlContent
 	cover := ""
+	tocLevel = make(map[string]int, len(opt.Toc))
+	chapterToc := make(map[string][]EbookToc, len(opt.Toc))
+	for _, ebookToc := range opt.Toc {
+		tocLevel[ebookToc.Text] = ebookToc.Level
+		tagArr := strings.Split(ebookToc.Href, "#")
+		// footnote jump back and forth
+		if len(tagArr) > 0 {
+			chapterToc[tagArr[0]] = append(chapterToc[tagArr[0]], ebookToc)
+		}
+	}
+	// fmt.Println(chapterToc)
+
 	for k, svgContent := range svgContents {
-		chapter, coverUrl, err1 := OneByOneHtml(eBookTypeEpub, k, svgContent, []*EbookToc{})
+		chapter, coverUrl, err1 := OneByOneHtml(eBookTypeEpub, k, svgContent, opt.Toc)
 		if err1 != nil {
 			err = err1
 			return
@@ -159,12 +182,9 @@ func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err err
 			cover = coverUrl
 		}
 		htmlAll = append(htmlAll, HtmlContent{
-			Content:    chapter,
-			ChapterID:  svgContent.ChapterID,
-			PathInEpub: svgContent.PathInEpub,
-			TocLevel:   svgContent.TocLevel,
-			TocHref:    svgContent.TocHref,
-			TocText:    svgContent.TocText,
+			Content:   chapter,
+			ChapterID: svgContent.ChapterID,
+			Toc:       chapterToc[svgContent.ChapterID],
 		})
 	}
 
@@ -277,7 +297,7 @@ func SaveFile(title, ext, content string) (err error) {
 }
 
 // AllInOneHtml generate ebook content all in one html file
-func AllInOneHtml(svgContents []*SvgContent, toc []*EbookToc) (result string, err error) {
+func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err error) {
 	result = GenHeadHtml()
 	fnA, fnB = ParseBookFnDelimiter(svgContents)
 	for k, svgContent := range svgContents {
@@ -296,7 +316,7 @@ func AllInOneHtml(svgContents []*SvgContent, toc []*EbookToc) (result string, er
 
 // OneByOneHtml one by one generate chapter html
 // eType: html/pdf/epub, index: []*SvgContent index, svgContent: one chapter content
-func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookToc) (result, cover string, err error) {
+func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookToc) (result, cover string, err error) {
 	switch eType {
 	case eBookTypeHtml:
 		// 锚点目录
@@ -312,6 +332,8 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 	}
 
 	for _, content := range svgContent.Contents {
+		result += `
+<div id="` + svgContent.ChapterID + `">`
 		reader := strings.NewReader(content)
 
 		element, err1 := svgparser.Parse(reader, false)
@@ -381,7 +403,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 							`" alt="` + item.Alt +
 							`" title="` + item.Alt + `"/>`
 						if len(style) > 0 {
-							img = `<div style=">` + style + `">` + img + `</div>`
+							img = `<div style="` + style + `">` + img + `</div>`
 						}
 						if (w < footNoteImgW || h < footNoteImgH) && len(item.Class) > 0 {
 							img = `
@@ -398,7 +420,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 							`" src="` + item.Href +
 							`" alt="` + item.Alt + `"/>`
 						if len(style) > 0 {
-							img = `<div style=">` + style + `">` + img + `</div>`
+							img = `<div style="` + style + `">` + img + `</div>`
 						}
 						if w < footNoteImgW {
 							// epub popup comment
@@ -504,32 +526,53 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []*EbookT
 				}
 				if i == len(lineContent[v])-1 {
 					matchH := false
-					tocText := strings.ReplaceAll(svgContent.TocText, " ", "")
 					contWOTag = strings.ReplaceAll(contWOTag, "&nbsp;", "")
-					if len(svgContent.TocText) > 0 &&
-						len(contWOTag) > 1 &&
-						strings.Contains(tocText, contWOTag) {
-						matchH = true
+
+					level := 0
+					for k, v := range tocLevel {
+						if strings.Contains(strings.ReplaceAll(k, " ", ""), contWOTag) {
+							matchH, level = true, v
+							break
+						}
 					}
-					if matchH {
-						result += GenTocLevelHtml(svgContent.TocLevel, true)
-					} else {
-						result += `
+					if contWOTag != "" {
+						if matchH {
+							result += `
+</div>`
+							result += `<div class='header` + strconv.Itoa(level) + `'>` + GenTocLevelHtml(level, true)
+						} else {
+							result += `
 	<p>`
+						}
 					}
 					if i > 1 && item.Name == "image" {
 						style = lineContent[v][i-1].Style
 					}
-					result += `<span id="` + id + `" style="` + style + `">` + cont + `</span>`
-					if matchH {
-						result += GenTocLevelHtml(svgContent.TocLevel, false)
-					} else {
-						result += `</p>`
+					if cont != "" {
+						if id != "" && style != "" {
+							result += `<span id="` + id + `" style="` + style + `">`
+						} else {
+							if id != "" {
+								result += `<span id="` + id + `">`
+							}
+							if style != "" {
+								result += `<span style="` + style + `">`
+							}
+						}
+						result += cont + `</span>`
 					}
-
+					if contWOTag != "" {
+						if matchH {
+							result += GenTocLevelHtml(level, false) + `</div>
+<div class="part">`
+						} else {
+							result += `</p>`
+						}
+					}
 				}
 			}
 		}
+		result += `</div>`
 		switch eType {
 		case eBookTypePdf, eBookTypeEpub:
 			result += `
@@ -564,12 +607,13 @@ func GenHeadHtml() (result string) {
 }
 
 // GenTocHtml generate toc html anchor
-func GenTocHtml(toc []*EbookToc) (result string) {
+func GenTocHtml(toc []EbookToc) (result string) {
 	if len(toc) == 0 {
 		return
 	}
 
 	result = `
+<div id="toc">
 		<p style="page-break-after: always;">
 		<p><span style="font-size:24px;font-weight: bold;color:rgb(0, 0, 0);font-family:'PingFang SC';">目 录</span></p>`
 	for _, ebookToc := range toc {
@@ -587,6 +631,8 @@ func GenTocHtml(toc []*EbookToc) (result string) {
 		<p><a style="` + style + `">` + text + `</a></p>`
 		}
 	}
+	result += `
+</div>`
 
 	return
 }

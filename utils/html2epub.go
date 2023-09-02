@@ -28,15 +28,15 @@ type EpubOptions struct {
 	HTML        []HtmlContent
 	Verbose     bool
 	PTitle      map[int]string
+	Toc         []EbookToc
 }
 
 type HtmlContent struct {
-	Content    string
-	ChapterID  string
-	PathInEpub string
-	TocLevel   int
-	TocHref    string
-	TocText    string
+	Content   string
+	ChapterID string
+	Toc       []EbookToc
+	TocLevel  int
+	TocText   string
 }
 
 type HtmlToEpub struct {
@@ -122,26 +122,53 @@ func (h *HtmlToEpub) add(html HtmlContent) (err error) {
 		Each(func(i int, img *goquery.Selection) {
 			h.changeRef(html.Content, img, refs, images)
 		})
+
+	// fmt.Println(html.Toc)
+	// doc.Find("div[class^=header]").Each(func(i int, s1 *goquery.Selection) {
+	// 	// fmt.Println(selection.Html())
+	// 	fmt.Println(s1.Find("span>b").Text())
+	// 	fmt.Println(s1.Attr("class"))
+	// 	fmt.Println("==========" + strconv.Itoa(i) + "==========" + s1.Find("span>b").Text())
+	// 	s1.SiblingsFiltered("div[class=part]").Each(func(j int, s2 *goquery.Selection) {
+	// 		if i == j {
+	// 			ret, _ := s2.Html()
+	// 			fmt.Println(ret)
+	// 		}
+	// 	})
+	// })
 	content, err := doc.Find("body").Html()
 	if err != nil {
 		return
 	}
-
-	// FIXME: bug
-	switch html.TocLevel {
-	case 0, 1:
-		if html.ChapterID != "cover.xhtml" {
-			h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, html.ChapterID, "")
+	if html.ChapterID != "cover.xhtml" {
+		if len(html.Toc) > 0 {
+			_, err = h.book.AddSection(content, html.Toc[0].Text, html.ChapterID, "")
+			if err != nil {
+				return
+			}
+		} else {
+			_, err = h.book.AddSection(content, "", html.ChapterID, "")
 			if err != nil {
 				return
 			}
 		}
-	case 2, 3, 4, 5, 6:
-		h.PTitle[html.TocLevel], err = h.book.AddSubSection(h.PTitle[html.TocLevel-1], content, html.TocText, html.ChapterID, "")
-		if err != nil {
-			return
-		}
 	}
+
+	// // FIXME: bug
+	// switch html.TocLevel {
+	// case 0, 1:
+	// 	if html.ChapterID != "cover.xhtml" {
+	// 		h.PTitle[html.TocLevel], err = h.book.AddSection(content, html.TocText, html.ChapterID, "")
+	// 		if err != nil {
+	// 			return
+	// 		}
+	// 	}
+	// case 2, 3, 4, 5, 6:
+	// 	h.PTitle[html.TocLevel], err = h.book.AddSubSection(h.PTitle[html.TocLevel-1], content, html.TocText, html.ChapterID, "")
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// }
 	return
 }
 
