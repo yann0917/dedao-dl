@@ -809,7 +809,10 @@ outer:
 	for _, svgContent := range svgContents {
 		for _, content := range svgContent.Contents {
 			reader := strings.NewReader(content)
-			element, _ := svgparser.Parse(reader, false)
+			element, err := svgparser.Parse(reader, false)
+			if err != nil {
+				continue
+			}
 			a, b := parseFootNoteDelimiter(element)
 			if a != "" {
 				fn[a] = struct{}{}
