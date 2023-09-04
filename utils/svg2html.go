@@ -152,8 +152,13 @@ func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error
 	if err = WriteFileWithTrunc(coverPath, cover); err != nil {
 		return
 	}
-
-	err = genPdf(buf, fileName, coverPath)
+	pdf := PdfOption{
+		FileName:  fileName,
+		CoverPath: coverPath,
+		PageSize:  "A4",
+		Toc:       true,
+	}
+	err = pdf.GenPdf(buf)
 	return
 }
 

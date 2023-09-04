@@ -21,7 +21,7 @@
 * 可查看已购买的锦囊
 * 可查看知识城邦推荐话题精选内容
 * 课程可生成PDF，文稿生成 Markdown 文档，也可生成 mp3 文件
-* 每天听本书可下载音频，文稿生成 Markdown 文档
+* 每天听本书可下载音频，文稿生成 pdf、Markdown 文档
 * 电子书可下载 pdf
 * 可切换登录账号
 
@@ -107,7 +107,7 @@ Available Commands:
   course      获取我购买过课程
   dl          下载已购买课程, 并转换成 PDF & 音频 & markdown
   dle         下载电子书
-  dlo         下载每天听本书音频
+  dlo         下载每天听本书音频 & PDF & markdown
   ebook       获取我的电子书架
   help        Help about any command
   login       登录得到 pc 端 https://www.dedao.cn
@@ -208,7 +208,7 @@ Available Commands:
 
 `dedao-dl dle 123 -t 1` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id,  下载格式, 1:html, 2:PDF文档, 3:epub (default 1)
 
-`dedao-dl dlo 123 -t 1` 下载听书ID 123 的音频或文稿, 先通过 `dedao-dl odob` 获取要下载的听书 id, -t 下载格式, 1:mp3, 3:markdown文档 (default 1)
+`dedao-dl dlo 123 -t 1` 下载听书ID 123 的音频或文稿, 先通过 `dedao-dl odob` 获取要下载的听书 id, -t 下载格式, 1:mp3, 2:PDF文档, 3:markdown文档 (default 1)
 
 ## References
 

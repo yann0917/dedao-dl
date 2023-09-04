@@ -8,8 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"errors"
-
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/downloader"
@@ -132,8 +130,17 @@ func (d *OdobDownload) Download() error {
 			return errs[0]
 		}
 	case 2:
-		err := errors.New("得到 Web 端暂未开放每天听本书，PDF 无法下载。")
-		return err
+		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "PDF")
+		if err != nil {
+			return err
+		}
+		info, content, err2 := getArticleDetail(d.ID)
+		if err2 != nil {
+			return err2
+		}
+		res := ContentsToMarkdown(content)
+		return utils.Md2Pdf(path, info["title"].(string), []byte(res))
+
 	case 3:
 		// 下载 Markdown
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MD")
@@ -550,30 +557,9 @@ func DownloadMarkdownCourse(id, aid int, path string) error {
 }
 
 func DownloadMarkdownAudioBook(id int, path string) error {
-	info := config.Instance.GetIDMap(CateAudioBook, id)
-	aliasID := info["audio_alias_id"].(string)
-	if aliasID == "" {
-		list, err := CourseList(CateAudioBook)
-		if err != nil {
-			return err
-		}
-		for _, v := range list.List {
-			if v.AudioDetail.SourceID == id {
-				aliasID = v.AudioDetail.AliasID
-				break
-			}
-		}
-	}
-	detail, err := OdobArticleDetail(aliasID)
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
-	}
-
-	var content []services.Content
-	err = jsoniter.UnmarshalFromString(detail.Content, &content)
-	if err != nil {
-		return err
+	info, content, err2 := getArticleDetail(id)
+	if err2 != nil {
+		return err2
 	}
 
 	name := utils.FileName(info["title"].(string), "md")
@@ -610,4 +596,31 @@ func DownloadMarkdownAudioBook(id int, path string) error {
 	}
 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	return nil
+}
+
+func getArticleDetail(id int) (info map[string]interface{}, content []services.Content, err error) {
+	info = config.Instance.GetIDMap(CateAudioBook, id)
+	aliasID := info["audio_alias_id"].(string)
+	if aliasID == "" {
+		list, err1 := CourseList(CateAudioBook)
+		if err1 != nil {
+			return nil, nil, err1
+		}
+		for _, v := range list.List {
+			if v.AudioDetail.SourceID == id {
+				aliasID = v.AudioDetail.AliasID
+				break
+			}
+		}
+	}
+	detail, err := OdobArticleDetail(aliasID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	err = jsoniter.UnmarshalFromString(detail.Content, &content)
+	if err != nil {
+		return nil, nil, err
+	}
+	return info, content, nil
 }

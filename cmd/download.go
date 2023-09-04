@@ -44,7 +44,7 @@ var downloadCmd = &cobra.Command{
 var dlOdobCmd = &cobra.Command{
 	Use:   "dlo",
 	Short: "下载每天听本书音频 & 文稿",
-	Long: `使用 dedao-dl dlo 下载每天听本书音频, 并转换成 PDF(未实现) & 音频 & markdown
+	Long: `使用 dedao-dl dlo 下载每天听本书音频, 并转换成 PDF & 音频 & markdown
 -t 指定下载格式, 1:mp3, 2:PDF文档, 3:markdown文档, 默认 mp3`,
 	Example: "dedao-dl dlo 123 -t 1",
 	PreRunE: AuthFunc,
