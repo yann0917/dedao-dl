@@ -341,7 +341,11 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 <div id="` + svgContent.ChapterID + `">`
 		reader := strings.NewReader(content)
 
-		element, err1 := svgparser.Parse(reader, false)
+		vaild := NewValidUTF8Reader(reader)
+		vaildReader := []byte(content)
+		vaild.Read(vaildReader)
+
+		element, err1 := svgparser.Parse(bytes.NewReader(vaildReader), false)
 		if err1 != nil {
 			err = err1
 			return
