@@ -25,6 +25,9 @@ type CourseDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
 	AID          int
+	IsMerge      bool
+	IsComment    bool
+	ClassName    string
 }
 
 type OdobDownload struct {
@@ -95,7 +98,8 @@ func (d *CourseDownload) Download() error {
 		if err != nil {
 			return err
 		}
-		if err := DownloadMarkdownCourse(d.ID, d.AID, path); err != nil {
+		d.ClassName = course.ClassInfo.Name
+		if err := DownloadMarkdownCourse(d, path); err != nil {
 			return err
 		}
 	}
@@ -397,7 +401,11 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 			res += getMdHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
 
 		case "image":
-			res += "![" + content.URL + "](" + content.URL + ")" + "\r\n\r\n"
+			res += "![" + content.URL + "](" + content.URL
+			if content.Legend != "" {
+				res += " \"" + content.Legend + "\""
+			}
+			res += ")" + "\r\n\r\n"
 		case "label-group":
 			res += getMdHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
 		}
@@ -493,20 +501,26 @@ func getMdHeader(level int) string {
 	return ""
 }
 
-func DownloadMarkdownCourse(id, aid int, path string) error {
-	list, err := ArticleList(id, "")
+func DownloadMarkdownCourse(d *CourseDownload, path string) error {
+	list, err := ArticleList(d.ID, "")
 	if err != nil {
 		return err
 	}
+	name, fileName := "", ""
+	if d.IsMerge {
+		name = utils.FileName(d.ClassName+"合集", "md")
+		fileName = filepath.Join(path, name)
+	}
 	for _, v := range list.List {
-		if aid > 0 && v.ID != aid {
+		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
-		detail, enId, err := ArticleDetail(id, v.ID)
+		detail, enId, err := ArticleDetail(d.ID, v.ID)
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
 		}
+		// fmt.Printf("%#v\n", detail)
 
 		var content []services.Content
 		err = jsoniter.UnmarshalFromString(detail.Content, &content)
@@ -514,9 +528,11 @@ func DownloadMarkdownCourse(id, aid int, path string) error {
 			return err
 		}
 
-		name := utils.FileName(v.Title, "md")
-		fileName := filepath.Join(path, name)
-		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
+		if !d.IsMerge {
+			name = utils.FileName(v.Title, "md")
+			fileName = filepath.Join(path, name)
+		}
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
 		_, exist, err := utils.FileSize(fileName)
 
 		if err != nil {
@@ -524,19 +540,21 @@ func DownloadMarkdownCourse(id, aid int, path string) error {
 			return err
 		}
 
-		if exist {
+		if !d.IsMerge && exist {
 			fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
-			return nil
+			continue
 		}
 
 		res := ContentsToMarkdown(content)
-		// 添加留言
-		commentList, err := ArticleCommentList(enId, "like", 1, 20)
-		if err == nil {
-			res += articleCommentsToMarkdown(commentList.List)
+		if d.IsComment {
+			// 添加留言
+			commentList, err := ArticleCommentList(enId, "like", 1, 20)
+			if err == nil {
+				res += articleCommentsToMarkdown(commentList.List)
+			}
 		}
 
-		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
 			return err
@@ -547,9 +565,7 @@ func DownloadMarkdownCourse(id, aid int, path string) error {
 			return err
 		}
 		if err = f.Close(); err != nil {
-			if err != nil {
-				return err
-			}
+			return err
 		}
 		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	}
@@ -590,9 +606,7 @@ func DownloadMarkdownAudioBook(id int, path string) error {
 		return err
 	}
 	if err = f.Close(); err != nil {
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 	return nil
@@ -620,7 +634,7 @@ func getArticleDetail(id int) (info map[string]interface{}, content []services.C
 
 	err = jsoniter.UnmarshalFromString(detail.Content, &content)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
-	return info, content, nil
+	return
 }
