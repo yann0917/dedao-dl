@@ -315,13 +315,18 @@ func extractOdobDownloadData(aid int) []downloader.Datum {
 	if !article["has_play_auth"].(bool) {
 		isCanDL = false
 	}
+	detail, err := getService().AudioDetailAlias(aliasID)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
 	datum := &downloader.Datum{
 		ID:      aid,
 		Enid:    article["enid"].(string),
 		ClassID: int(article["class_id"].(float64)),
 		Title:   article["title"].(string),
 		IsCanDL: isCanDL,
-		M3U8URL: article["audio_mp3_play_url"].(string),
+		M3U8URL: detail.Mp3PlayURL,
 		Streams: streams,
 		Type:    "audio",
 	}
