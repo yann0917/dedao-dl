@@ -32,19 +32,23 @@
 `dedao-dl` 支持markdown文本下载，pdf下载，以及音频下载，请按照自己的下载需求，安装下列依赖：
 
 #### pdf下载
+
 * google chrome
   > 课程生成 PDF 需要借助 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/)的渲染引擎
 * wkhtmltopdf
   > 电子书转 PDF 需要借助[wkhtmltopdf](https://wkhtmltopdf.org/downloads.html)
 
 #### 音频下载
+
 * ffmpeg
   > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成
 
 #### markdown文本下载
+
 不需要额外安装依赖
 
 ### 使用二进制文件安装
+
 进入[下载列表](https://github.com/yann0917/dedao-dl/releases),下载对应的系统版本，下载后即可使用。
 
 ### 使用 `go` 安装
@@ -219,7 +223,7 @@ Available Commands:
 * [geektime-dl](https://github.com/mmzou/geektime-dl)
 * [annie](https://github.com/iawia002/annie)
 
-## Buy me a coffee ☕️ 
+## Buy me a coffee ☕️
 
 <html>
     <table style="margin-left: auto; margin-right: auto;">
