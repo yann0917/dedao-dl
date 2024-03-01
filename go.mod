@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/JoshVarga/svgparser v0.0.0-20200804023048-5eaba627a7d1
-	github.com/PuerkitoBio/goquery v1.9.0
+	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.2
 	github.com/bmaupin/go-epub v1.1.0
 	github.com/chromedp/cdproto v0.0.0-20240214232516-ad4608604e9e
