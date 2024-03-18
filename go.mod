@@ -10,7 +10,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20240214232516-ad4608604e9e
 	github.com/chromedp/chromedp v0.9.5
 	github.com/gabriel-vasile/mimetype v1.4.3
-	github.com/go-resty/resty/v2 v2.11.0
+	github.com/go-resty/resty/v2 v2.12.0
 	github.com/gomarkdown/markdown v0.0.0-20231222211730-1d6d20845b47
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.13
@@ -39,7 +39,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/net v0.22.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
