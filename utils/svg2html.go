@@ -664,13 +664,13 @@ func GenTocLevelHtml(level int, startTag bool) (result string) {
 func GenLineContentByElement(chapterID string, element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
-	lastY, lastTop, lastH, lastNewLine := "", "", "", false
+	lastY, lastTop, lastH, lastNewLine, lastName := "", "", "", false, ""
 
 	for k, children := range element.Children {
 		var ele HtmlEle
 		attr := children.Attributes
 		content := children.Content
-
+		ele.Newline = parseAttrNewline(attr)
 		if _, ok := attr["y"]; ok {
 			if children.Name == "text" {
 				if content != "" {
@@ -706,7 +706,7 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 						ele.Content = "&nbsp;"
 					}
 				}
-				ele.Newline = parseAttrNewline(attr)
+
 				if _, ok := attr["top"]; ok {
 					topInt, _ := strconv.ParseFloat(attr["top"], 64)
 					heightInt, _ := strconv.ParseFloat(attr["height"], 64)
@@ -715,7 +715,8 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 					lastHInt, _ := strconv.ParseFloat(lastH, 64)
 
 					// 中文字符 len=3, FIXME: 英文字符无法根据 len 区分是否是下标
-					if !lastNewLine && heightInt < lastHInt && heightInt <= 20 && lenInt < 3 {
+					if !lastNewLine && heightInt < lastHInt &&
+						heightInt <= 20 && lenInt < 3 && children.Name == lastName {
 						if topInt < lastTopInt {
 							ele.IsFn = true
 						} else {
@@ -786,6 +787,7 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 				lineContent[yInt] = append(lineContent[yInt], ele)
 			}
 			lastNewLine = ele.Newline
+			lastName = children.Name
 		}
 	}
 	return
