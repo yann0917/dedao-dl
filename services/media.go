@@ -48,6 +48,7 @@ type Audio struct {
 	IndexImg       string  `json:"index_img"`
 	Reader         string  `json:"reader"`
 	ReaderName     string  `json:"reader_name"`
+	OdobGroupEnid  string  `json:"odob_group_enid"`
 }
 
 type Video struct {
@@ -79,6 +80,10 @@ type AudioList struct {
 	List []Audio `json:"list"`
 }
 
+type AudioDetail struct {
+	Detail Audio `json:"audio_detail"`
+}
+
 // AudioByAlias get article audio info
 func (s *Service) AudioByAlias(ID string) (list *AudioList, err error) {
 	body, err := s.reqAudioByAlias(ID)
@@ -89,5 +94,20 @@ func (s *Service) AudioByAlias(ID string) (list *AudioList, err error) {
 	if err = handleJSONParse(body, &list); err != nil {
 		return
 	}
+	return
+}
+
+// AudioDetailAlias get odob audio info
+func (s *Service) AudioDetailAlias(ID string) (detail *Audio, err error) {
+	adetail := AudioDetail{}
+	body, err := s.reqOdobAudioDetail(ID)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &adetail); err != nil {
+		return
+	}
+	detail = &adetail.Detail
 	return
 }

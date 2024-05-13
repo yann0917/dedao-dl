@@ -277,6 +277,17 @@ func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqOdobAudioDetail 请求每天听本书书 音频 info
+func (s *Service) reqOdobAudioDetail(aliasID string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"alias_id": aliasID,
+		}).
+		Post("pc/odob/pc/audio/detail/alias")
+
+	return handleHTTPResponse(resp, err)
+}
+
 // reqTopicAll 请求推荐话题列表
 func (s *Service) reqTopicAll(page, limit int, all bool) (io.ReadCloser, error) {
 	r := s.client.R()

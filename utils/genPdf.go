@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -28,11 +29,15 @@ func (p *PdfOption) GenPdf(buf *bytes.Buffer) (err error) {
 
 	if p.CoverPath != "" {
 		pdfg.Cover.EnableLocalFileAccess.Set(true)
-
+		dir, err := CurrentDir()
+		if err != nil {
+			pdfg.Cover.EnableLocalFileAccess.Set(false)
+		}
+		dir = filepath.Join(dir, p.CoverPath)
 		if runtime.GOOS == "windows" {
-			pdfg.Cover.Input = p.CoverPath
+			pdfg.Cover.Input = dir
 		} else {
-			pdfg.Cover.Input = "file://" + p.CoverPath
+			pdfg.Cover.Input = "file://" + dir
 		}
 	}
 
