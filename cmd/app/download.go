@@ -512,9 +512,11 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 		return err
 	}
 	name, fileName := "", ""
+	mName, mFileName := "", ""
 	if d.IsMerge {
-		name = utils.FileName(d.ClassName+"合集", "md")
-		fileName = filepath.Join(path, name)
+		mName = utils.FileName(d.ClassName+"-合集", "md")
+		mFileName = filepath.Join(path, mName)
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
 	}
 	for _, v := range list.List {
 		if d.AID > 0 && v.ID != d.AID {
@@ -533,10 +535,8 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 			return err
 		}
 
-		if !d.IsMerge {
-			name = utils.FileName(v.Title, "md")
-			fileName = filepath.Join(path, name)
-		}
+		name = utils.FileName(v.Title, "md")
+		fileName = filepath.Join(path, name)
 		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
 		_, exist, err := utils.FileSize(fileName)
 
@@ -545,7 +545,7 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 			return err
 		}
 
-		if !d.IsMerge && exist {
+		if exist {
 			fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
 			continue
 		}
@@ -573,6 +573,24 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 			return err
 		}
 		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+		if d.IsMerge {
+			f, err := os.OpenFile(mFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err != nil {
+				fmt.Printf("\033[31;1m%s\033[0m\n", "合集失败"+err.Error())
+				return err
+			}
+			_, err = f.WriteString(res)
+			if err != nil {
+				fmt.Printf("\033[31;1m%s\033[0m\n", "合集失败"+err.Error())
+				return err
+			}
+			if err = f.Close(); err != nil {
+				return err
+			}
+		}
+	}
+	if d.IsMerge {
+		fmt.Printf("\033[32;1m%s\033[0m\n", "合集完成")
 	}
 	return nil
 }
