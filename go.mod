@@ -7,8 +7,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
-	github.com/chromedp/cdproto v0.0.0-20240626232640-f933b107c653
-	github.com/chromedp/chromedp v0.9.5
+	github.com/chromedp/cdproto v0.0.0-20240801214329-3f85d328b335
+	github.com/chromedp/chromedp v0.10.0
 	github.com/gabriel-vasile/mimetype v1.4.4
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/gomarkdown/markdown v0.0.0-20240626202925-2eda941fd024
