@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine3.16 AS builder
+FROM golang:1.22-alpine3.19 AS builder
 
 LABEL stage=gobuilder
 
@@ -16,26 +16,25 @@ ARG TARGETPLATFORM
 # build and using UPX to compress
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=arm; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=arm64; else ARCHITECTURE=amd64; fi \
     && CGO_ENABLED=0 GOARCH=${ARCHITECTURE} GOOS=linux go build -ldflags="-s -w" -a -o dedao-dl . \
-    && wget https://github.com/upx/upx/releases/download/v3.96/upx-3.96-${ARCHITECTURE}_linux.tar.xz \
-    && tar -xvf upx-3.96-${ARCHITECTURE}_linux.tar.xz \
-    && cd upx-3.96-${ARCHITECTURE}_linux \
+    && wget https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-${ARCHITECTURE}_linux.tar.xz \
+    && tar -xvf upx-4.2.4-${ARCHITECTURE}_linux.tar.xz \
+    && cd upx-4.2.4-${ARCHITECTURE}_linux \
     && chmod a+x ./upx \
     && mv ./upx /usr/local/bin/ \
-    && cd ../ && rm -rf upx-3.96-${ARCHITECTURE}_linux && rm -rf upx-3.96-${ARCHITECTURE}_linux.tar.xz \
+    && cd ../ && rm -rf upx-4.2.4-${ARCHITECTURE}_linux && rm -rf upx-4.2.4-${ARCHITECTURE}_linux.tar.xz \
     && cd /build \
     && upx dedao-dl \
     && chmod a+x ./dedao-dl
 
-FROM alpine:3.16
+FROM alpine:3.19
 
 # Installs latest ffmpeg, Chromium and chinese font.
-RUN echo @3.16 https://mirrors.aliyun.com/alpine/v3.16/community > /etc/apk/repositories \
-    && echo @3.16 https://mirrors.aliyun.com/alpine/v3.16/main >> /etc/apk/repositories \
-    && echo @edge https://mirrors.aliyun.com/alpine/edge/testing >> /etc/apk/repositories \
+RUN echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/community > /etc/apk/repositories \
+    && echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/main >> /etc/apk/repositories \
     && apk update \
-    && apk add --no-cache ffmpeg@3.16 tzdata@3.16 chromium@3.16 \
-    && apk add --no-cache --allow-untrusted harfbuzz@3.16 nss@3.16 freetype@3.16 \
-    ttf-freefont@3.16 wqy-zenhei@edge \
+    && apk add --no-cache ffmpeg@3.19 tzdata@3.19 chromium@3.19 \
+    && apk add --no-cache --allow-untrusted harfbuzz@3.19 nss@3.19 freetype@3.19 \
+    ttf-freefont@3.19 wqy-zenhei@3.19 \
     && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && rm -rf /var/cache/apk/*
 
