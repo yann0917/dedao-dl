@@ -75,20 +75,23 @@ func (d *CourseDownload) Download() error {
 		}
 	case 2:
 		// 下载 PDF
-		downloadData := extractDownloadData(course, articles, d.AID, 2)
+		// downloadData := extractDownloadData(course, articles, d.AID, 2)
 		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
 			return err
 		}
-
-		cookies := LoginedCookies()
-		for _, datum := range downloadData.Data {
-			if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-				errs = append(errs, err)
-			}
+		d.ClassName = course.ClassInfo.Name
+		if err := DownloadPdfCourse(d, path); err != nil {
+			return err
 		}
+		// cookies := LoginedCookies()
+		// for _, datum := range downloadData.Data {
+		// 	if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
+		// 		errs = append(errs, err)
+		// 	}
+		// }
 		if len(errs) > 0 {
 			return errs[0]
 		}
@@ -591,6 +594,98 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 	}
 	if d.IsMerge {
 		fmt.Printf("\033[32;1m%s\033[0m\n", "合集完成")
+	}
+	return nil
+}
+
+func DownloadPdfCourse(d *CourseDownload, path string) error {
+	list, err := ArticleList(d.ID, "")
+	if err != nil {
+		return err
+	}
+	name, fileName := "", ""
+	// mName, mFileName := "", ""
+	// if d.IsMerge {
+	// 	mName = utils.FileName(d.ClassName+"-合集", "pdf")
+	// 	mFileName = filepath.Join(path, mName)
+	// 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
+	// }
+	for _, v := range list.List {
+		if d.AID > 0 && v.ID != d.AID {
+			continue
+		}
+		detail, enId, err := ArticleDetail(d.ID, v.ID)
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+		// fmt.Printf("%#v\n", detail)
+
+		var content []services.Content
+		err = jsoniter.UnmarshalFromString(detail.Content, &content)
+		if err != nil {
+			return err
+		}
+
+		name = utils.FileName(v.Title, "pdf")
+		fileName = filepath.Join(path, name)
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
+		_, exist, err := utils.FileSize(fileName)
+
+		if err != nil {
+			fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+			return err
+		}
+
+		if exist {
+			fmt.Printf("\033[33;1m%s\033[0m\n", "已存在")
+			continue
+		}
+
+		res := ContentsToMarkdown(content)
+		if d.IsComment {
+			// 添加留言
+			commentList, err := ArticleCommentList(enId, "like", 1, 20)
+			if err == nil {
+				res += articleCommentsToMarkdown(commentList.List)
+			}
+		}
+		err = utils.Md2Pdf(path, v.Title, []byte(res))
+		if err != nil {
+			return err
+		}
+		// 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		// 	if err != nil {
+		// 		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		// 		return err
+		// 	}
+		// 	_, err = f.WriteString(res)
+		// 	if err != nil {
+		// 		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
+		// 		return err
+		// 	}
+		// 	if err = f.Close(); err != nil {
+		// 		return err
+		// 	}
+		// 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+		// 	if d.IsMerge {
+		// 		f, err := os.OpenFile(mFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		// 		if err != nil {
+		// 			fmt.Printf("\033[31;1m%s\033[0m\n", "合集失败"+err.Error())
+		// 			return err
+		// 		}
+		// 		_, err = f.WriteString(res)
+		// 		if err != nil {
+		// 			fmt.Printf("\033[31;1m%s\033[0m\n", "合集失败"+err.Error())
+		// 			return err
+		// 		}
+		// 		if err = f.Close(); err != nil {
+		// 			return err
+		// 		}
+		// 	}
+		// }
+		// if d.IsMerge {
+		// 	fmt.Printf("\033[32;1m%s\033[0m\n", "合集完成")
 	}
 	return nil
 }

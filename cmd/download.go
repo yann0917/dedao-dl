@@ -16,8 +16,8 @@ var downloadCmd = &cobra.Command{
 	Short: "下载已购买课程，并转换成 PDF & 音频",
 	Long: `使用 dedao-dl dl 下载已购买课程, 并转换成 PDF & 音频 & markdown
 -t 指定下载格式, 1:mp3, 2:PDF文档, 3:markdown文档, 默认 mp3
--m 是否合并课程文稿(markdown), 默认不合并
--c 是否下载课程热门留言(markdown), 默认不下载`,
+-m 是否合并课程文稿(仅支持markdown), 默认不合并
+-c 是否下载课程热门留言(仅支持markdown), 默认不下载`,
 	Example: "dedao-dl dl 123 -t 1 -m",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {

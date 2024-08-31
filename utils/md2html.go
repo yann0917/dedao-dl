@@ -11,9 +11,6 @@ import (
 )
 
 func Md2Pdf(path, title string, md []byte) (err error) {
-	if err != nil {
-		return err
-	}
 	title = FileName(title, "pdf")
 	filePreName := filepath.Join(path, title)
 	fileName, err := FilePath(filePreName, "", false)

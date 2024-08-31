@@ -1,6 +1,6 @@
 # dedao-dl
 
-> 🦉 用 go 写的一个 《得到》 APP 课程下载工具，扫码或者使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
+> 🦉 《得到》 APP 课程下载工具，扫码或者使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
 
@@ -33,10 +33,8 @@
 
 #### pdf下载
 
-* google chrome
-  > 课程生成 PDF 需要借助 [Google-Chrome](https://www.google.cn/intl/zh-CN/chrome/)的渲染引擎
 * wkhtmltopdf
-  > 电子书转 PDF 需要借助[wkhtmltopdf](https://wkhtmltopdf.org/downloads.html)
+  > 课程和电子书转 PDF 需要借助[wkhtmltopdf](https://wkhtmltopdf.org/downloads.html)
 
 #### 音频下载
 
@@ -61,9 +59,9 @@
 
 ### 使用 Docker 运行
 
-> 为了加快 build 速度，`alpine` 镜像源已修改为阿里镜像。(docker 内没有安装 wkhtmltopdf 不能下载电子书)
+> 为了加快 build 速度，`alpine` 镜像源已修改为阿里镜像。(docker 内没有安装 wkhtmltopdf 不能下载PDF)
 
-如果不想在本地安装 `ffmpeg` 和 `chromedp` 则提供了 `docker` 环境，参考以下命令构建并使用容器执行相关命令。
+如果不想在本地安装 `ffmpeg` 则提供了 `docker` 环境，参考以下命令构建并使用容器执行相关命令。
 
 ```bash
 # build

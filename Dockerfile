@@ -32,7 +32,7 @@ FROM alpine:3.19
 RUN echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/community > /etc/apk/repositories \
     && echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/main >> /etc/apk/repositories \
     && apk update \
-    && apk add --no-cache ffmpeg@3.19 tzdata@3.19 chromium@3.19 \
+    && apk add --no-cache ffmpeg@3.19 tzdata@3.19 \
     && apk add --no-cache --allow-untrusted harfbuzz@3.19 nss@3.19 freetype@3.19 \
     ttf-freefont@3.19 wqy-zenhei@3.19 \
     && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
