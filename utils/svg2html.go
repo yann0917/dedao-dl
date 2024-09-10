@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -474,63 +475,61 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 
 				case "text":
 					if hasUncloseSpan && item.Style != currentSpanStyle {
-						cont += `</span>`
+						cont += "</span>"
 						hasUncloseSpan = false
 					}
 
-					keepStyle := item.Style != lineStyle
-					if keepStyle && !hasUncloseSpan {
-						cont += `<span style="` + item.Style + `">`
+					if item.Style != lineStyle && !hasUncloseSpan {
+						cont += fmt.Sprintf(`<span style="%s">`, item.Style)
 						currentSpanStyle = item.Style
 						hasUncloseSpan = true
 					}
 
 					if firstX >= centerL && firstX <= centerH {
-						style = style + "display: block;text-align:center;"
+						style += "display: block;text-align:center;"
 					} else if firstX >= rightL {
-						style = style + "display: block;text-align:right;"
+						style += "display: block;text-align:right;"
 					}
-					if item.Content == "<" {
-						item.Content = "&lt;"
+
+					item.Content = html.EscapeString(item.Content)
+
+					tags := []struct {
+						condition bool
+						open      string
+						close     string
+					}{
+						{item.IsBold, "<b>", "</b>"},
+						{item.IsItalic, "<i>", "</i>"},
+						{item.IsFn, "<sup>", "</sup>"},
+						{item.IsSub, "<sub>", "</sub>"},
 					}
-					if item.Content == ">" {
-						item.Content = "&gt;"
-					}
-					if item.IsBold {
-						cont += `<b>`
-					}
-					if item.IsItalic {
-						cont += `<i>`
-					}
-					if item.IsFn {
-						cont += `<sup>`
-					}
-					if item.IsSub {
-						cont += `<sub>`
-					}
-					if item.Fn.Href != "" {
-						cont += `<a id=` + item.ID + ` href=` + item.Fn.Href
-						if item.Fn.Style != "" {
-							cont += ` style="` + item.Fn.Style + `"`
+
+					for _, tag := range tags {
+						if tag.condition {
+							cont += tag.open
 						}
-						cont += `>`
 					}
-					cont += item.Content
+
 					if item.Fn.Href != "" {
-						cont += `</a>`
+						cont += fmt.Sprintf(`<a id=%s href=%s`, item.ID, item.Fn.Href)
+						if item.Fn.Style != "" {
+							cont += fmt.Sprintf(` style="%s"`, item.Fn.Style)
+						}
+						cont += ">"
 					}
-					if item.IsFn {
-						cont += `</sup>`
+
+					cont += item.Content
+
+					if item.Fn.Href != "" {
+						cont += "</a>"
 					}
-					if item.IsSub {
-						cont += `</sub>`
+
+					for i := len(tags) - 1; i >= 0; i-- {
+						if tags[i].condition {
+							cont += tags[i].close
+						}
 					}
-					if item.IsItalic {
-						cont += `</i>`
-					}
-					if item.IsBold {
-						cont += `</b>`
-					}
+
 					contWOTag += item.Content
 				}
 				if i == len(lineContent[v])-1 {
@@ -608,7 +607,7 @@ func GenHeadHtml() (result string) {
 		@font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
 		table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
 		img { page-break-inside: avoid; max-width: 100% !important;}
-		img.epub-footnote { padding-right:5px;}
+		img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
 	</style>
 </head>
 <body>`
@@ -646,19 +645,16 @@ func GenTocHtml(toc []EbookToc) (result string) {
 	return
 }
 
-func GenTocLevelHtml(level int, startTag bool) (result string) {
-	sTag := map[int]string{0: `<h1>`, 1: `<h2>`, 2: `<h3>`, 3: `<h4>`, 4: `<h5>`, 5: `<h6>`}
-	eTag := map[int]string{0: `</h1>`, 1: `</h2>`, 2: `</h3>`, 3: `</h4>`, 4: `</h5>`, 5: `</h6>`}
-	if startTag {
-		if tag, ok := sTag[level]; ok {
-			result = tag
-		}
-	} else {
-		if tag, ok := eTag[level]; ok {
-			result = tag
-		}
+func GenTocLevelHtml(level int, startTag bool) string {
+	tags := map[bool]map[int]string{
+		true:  {0: "<h1>", 1: "<h2>", 2: "<h3>", 3: "<h4>", 4: "<h5>", 5: "<h6>"},
+		false: {0: "</h1>", 1: "</h2>", 2: "</h3>", 3: "</h4>", 4: "</h5>", 5: "</h6>"},
 	}
-	return
+
+	if tag, ok := tags[startTag][level]; ok {
+		return tag
+	}
+	return ""
 }
 
 func GenLineContentByElement(chapterID string, element *svgparser.Element) (lineContent map[float64][]HtmlEle) {

@@ -50,7 +50,7 @@ func genHeadHtml() (result string) {
 		@font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
 		table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
 		img { page-break-inside: avoid; max-width: 100% !important;}
-		img.epub-footnote { padding-right:5px;}
+		img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
 		body {font-family: PingFang SC,Arial,sans-serif,Source Code Pro;color: #333;text-align: left;line-height: 1.8;}
 		em {font-style: normal;}
 		h2>code { background-color: rgb(255, 96, 2);padding: 0.5%;border-radius: 10%;color: white;}
