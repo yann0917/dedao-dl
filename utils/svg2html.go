@@ -437,11 +437,14 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 							if len(item.Class) > 0 {
 								footnoteId := "footnote-" + strconv.Itoa(index) + "-" + strconv.Itoa(i)
 								img = `
-	<sup><a epub:type="noteref" href="#` + footnoteId + `"> <img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+	<sup><a class="duokan-footnote" epub:type="noteref" href="#` + footnoteId + `"> <img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
 									`" src="` + item.Href +
 									`" alt="` + item.Alt +
-									`" class="` + item.Class + `"/></a></sup>`
-								result += `<aside epub:type="footnote" id="` + footnoteId + `">` + item.Alt + `</aside>`
+									`" zy-footnote="` + item.Alt +
+									`" class="` + item.Class + ` zhangyue-footnote qqreader-footnote"/></a></sup>`
+								result += `<aside epub:type="footnote" id="` + footnoteId +
+									`"><ol class="duokan-footnote-content" style="list-style:none;padding:0px;margin:0px;"><li class="duokan-footnote-item" id="` +
+									footnoteId + `"></a>` + item.Alt + `</li></ol></aside>`
 							}
 						}
 					}
@@ -593,7 +596,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 
 func GenHeadHtml() (result string) {
 	result = `<!DOCTYPE html>
-<html>
+<html xml:lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops>
 <head>
 	<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -608,6 +611,7 @@ func GenHeadHtml() (result string) {
 		table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
 		img { page-break-inside: avoid; max-width: 100% !important;}
 		img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
+		// @media amzn-kf8 { aside { display: none; } .duokan-footnote-item { page-break-after: always;} }
 	</style>
 </head>
 <body>`
