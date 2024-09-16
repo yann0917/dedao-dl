@@ -10,7 +10,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20240810084448-b931b754e476
 	github.com/chromedp/chromedp v0.10.0
 	github.com/gabriel-vasile/mimetype v1.4.5
-	github.com/go-resty/resty/v2 v2.14.0
+	github.com/go-resty/resty/v2 v2.15.0
 	github.com/gomarkdown/markdown v0.0.0-20240730141124-034f12af3bf6
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.13
