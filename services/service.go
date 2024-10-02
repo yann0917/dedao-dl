@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/go-resty/resty/v2"
-	// "github.com/imroc/req/v3"
 	"github.com/mitchellh/mapstructure"
 	"github.com/yann0917/dedao-dl/utils"
 )

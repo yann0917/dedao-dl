@@ -13,7 +13,7 @@ type Content struct {
 	AliasID  string      `json:"aliasId"`
 	Contents interface{} `json:"contents"`
 	Desc     string      `json:"desc"`
-	Duration int64       `json:"duration"`
+	Duration interface{} `json:"duration"` // string or int64
 	Height   int64       `json:"height"`
 	Jump     string      `json:"jump"`
 	Justify  string      `json:"justify"`
