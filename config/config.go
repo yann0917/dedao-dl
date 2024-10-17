@@ -34,7 +34,7 @@ type CourseIDMap map[int]map[string]interface{}
 
 // ConfigsData Configs data
 type ConfigsData struct {
-	AcitveUID      string
+	ActiveUID      string
 	DownloadPath   string
 	Users          DedaoUsers
 	activeUser     *Dedao
@@ -48,7 +48,7 @@ type ConfigsData struct {
 }
 
 type configJSONExport struct {
-	AcitveUID   string
+	ActiveUID   string
 	Users       DedaoUsers
 	CourseIDMap CourseIDMap
 	OdobIDMap   CourseIDMap
@@ -82,25 +82,25 @@ func (c *ConfigsData) Init() error {
 
 func (c *ConfigsData) initActiveUser() error {
 	// 如果已经初始化过，则跳过
-	if c.AcitveUID != "" && c.activeUser != nil && c.activeUser.UIDHazy == c.AcitveUID {
+	if c.ActiveUID != "" && c.activeUser != nil && c.activeUser.UIDHazy == c.ActiveUID {
 		return nil
 	}
 
-	if c.AcitveUID == "" && c.activeUser != nil {
-		c.AcitveUID = c.activeUser.UIDHazy
+	if c.ActiveUID == "" && c.activeUser != nil {
+		c.ActiveUID = c.activeUser.UIDHazy
 		return nil
 	}
 
-	if c.AcitveUID != "" {
+	if c.ActiveUID != "" {
 		for _, user := range c.Users {
-			if user.UIDHazy == c.AcitveUID {
+			if user.UIDHazy == c.ActiveUID {
 				c.activeUser = user
 				return nil
 			}
 		}
 	}
 
-	if c.AcitveUID == "" && len(c.Users) == 0 {
+	if c.ActiveUID == "" && len(c.Users) == 0 {
 		c.activeUser = new(Dedao)
 	}
 
@@ -124,7 +124,7 @@ func (c *ConfigsData) Save() error {
 
 	// 保存配置的数据
 	conf := configJSONExport{
-		AcitveUID:   c.AcitveUID,
+		ActiveUID:   c.ActiveUID,
 		Users:       c.Users,
 		CourseIDMap: c.CourseIDMap,
 		OdobIDMap:   c.OdobIDMap,
@@ -185,9 +185,9 @@ func (c *ConfigsData) loadConfigFromFile() error {
 	// 从配置文件中加载配置
 	decoder := jsoniter.NewDecoder(c.configFile)
 	var conf configJSONExport
-	decoder.Decode(&conf)
+	_ = decoder.Decode(&conf)
 
-	c.AcitveUID = conf.AcitveUID
+	c.ActiveUID = conf.ActiveUID
 	c.Users = conf.Users
 	c.CourseIDMap = conf.CourseIDMap
 	c.OdobIDMap = conf.OdobIDMap
@@ -285,7 +285,7 @@ func (c *ConfigsData) ActiveUser() *Dedao {
 }
 
 func (c *ConfigsData) setActiveUser(u *Dedao) {
-	c.AcitveUID = u.UIDHazy
+	c.ActiveUID = u.UIDHazy
 	c.activeUser = u
 }
 

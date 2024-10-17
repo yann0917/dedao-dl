@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 
 // AuthFunc check login
 var AuthFunc = func(cmd *cobra.Command, args []string) error {
-	if config.Instance.AcitveUID == "" {
+	if config.Instance.ActiveUID == "" {
 		if len(config.Instance.Users) > 0 {
 			return errors.New("存在登录的用户，可以进行切换登录用户")
 		}
