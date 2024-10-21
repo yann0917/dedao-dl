@@ -28,7 +28,7 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$
 
 FROM alpine:3.19
 
-# Installs latest ffmpeg, Chromium and chinese font.
+# Installs latest ffmpeg and chinese font.
 RUN echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/community > /etc/apk/repositories \
     && echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/main >> /etc/apk/repositories \
     && apk update \
@@ -40,7 +40,5 @@ RUN echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/community > /etc/apk/repo
 
 WORKDIR /app
 COPY --from=builder /build/dedao-dl /app/
-
-CMD chromium-browser --headless --disable-gpu --remote-debugging-port=9222 --disable-web-security --safebrowsing-disable-auto-update --disable-sync --disable-default-apps --hide-scrollbars --metrics-recording-only --mute-audio --no-first-run --no-sandbox
 
 ENTRYPOINT ["/app/dedao-dl"]
