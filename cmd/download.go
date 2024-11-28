@@ -9,7 +9,7 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
-var downloadType, courseMerge, courseComment = 1, false, false
+var downloadType, courseMerge, courseComment, courseOrder = 1, false, false, false
 
 var downloadCmd = &cobra.Command{
 	Use:   "dl",
@@ -39,6 +39,7 @@ var downloadCmd = &cobra.Command{
 			AID:          aid,
 			IsMerge:      courseMerge,
 			IsComment:    courseComment,
+			IsOrder:      courseOrder,
 		}
 		err = app.Download(d)
 
@@ -103,6 +104,7 @@ func init() {
 	downloadCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 	downloadCmd.PersistentFlags().BoolVarP(&courseMerge, "merge", "m", false, "是否合并课程章节")
 	downloadCmd.PersistentFlags().BoolVarP(&courseComment, "comment", "c", false, "是否下载课程热门留言, 仅针对 markdown 文档")
+	downloadCmd.PersistentFlags().BoolVarP(&courseOrder, "order", "o", false, "是否按顺序展示, 如果为true, 则文件名前缀会加上序号, 如 00x.")
 
 	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
 	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub")

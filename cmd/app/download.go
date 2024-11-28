@@ -27,6 +27,7 @@ type CourseDownload struct {
 	AID          int
 	IsMerge      bool
 	IsComment    bool
+	IsOrder      bool
 	ClassName    string
 }
 
@@ -45,14 +46,14 @@ func (d *CourseDownload) Download() error {
 	if err != nil {
 		return err
 	}
-	articles, err := ArticleList(d.ID, "")
-	if err != nil {
-		return err
-	}
 
 	switch d.DownloadType {
 	case 1: // mp3
-		downloadData := extractDownloadData(course, articles, d.AID, 1)
+		articles, err := ArticleList(d.ID, "")
+		if err != nil {
+			return err
+		}
+		downloadData := extractDownloadData(course, articles, d.AID, 1, d.IsOrder)
 		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
@@ -214,7 +215,7 @@ func Download(downloader DeDaoDownloader) error {
 }
 
 // 生成下载数据
-func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int, flag int) downloader.Data {
+func extractDownloadData(course *services.CourseInfo, articles *services.ArticleList, aid int, flag int, isOrder bool) downloader.Data {
 
 	downloadData := downloader.Data{
 		Title: course.ClassInfo.Name,
@@ -222,14 +223,14 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 
 	if course.HasAudio() {
 		downloadData.Type = "audio"
-		downloadData.Data = extractCourseDownloadData(articles, aid, flag)
+		downloadData.Data = extractCourseDownloadData(articles, aid, flag, isOrder)
 	}
 
 	return downloadData
 }
 
 // 生成课程下载数据
-func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int) []downloader.Datum {
+func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int, isOrder bool) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
 
@@ -255,12 +256,16 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 			if len(article.Audio.AliasID) == 0 {
 				isCanDL = false
 			}
+			name := article.Title
+			if isOrder {
+				name = fmt.Sprintf("%03d.%s", article.OrderNum, name)
+			}
 			datum := &downloader.Datum{
 				ID:        article.ID,
 				Enid:      article.Enid,
 				ClassEnid: article.ClassEnid,
 				ClassID:   article.ClassID,
-				Title:     article.Title,
+				Title:     name,
 				IsCanDL:   isCanDL,
 				M3U8URL:   article.Audio.Mp3PlayURL,
 				Streams:   streams,
@@ -539,8 +544,11 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 		}
 
 		name = utils.FileName(v.Title, "md")
+		if d.IsOrder {
+			name = fmt.Sprintf("%03d.%s", v.OrderNum, name)
+		}
 		fileName = filepath.Join(path, name)
-		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
 		_, exist, err := utils.FileSize(fileName)
 
 		if err != nil {
@@ -628,8 +636,11 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 		}
 
 		name = utils.FileName(v.Title, "pdf")
+		if d.IsOrder {
+			name = fmt.Sprintf("%03d.%s", v.OrderNum, name)
+		}
 		fileName = filepath.Join(path, name)
-		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", v.Title)
+		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
 		_, exist, err := utils.FileSize(fileName)
 
 		if err != nil {
@@ -650,7 +661,7 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 				res += articleCommentsToMarkdown(commentList.List)
 			}
 		}
-		err = utils.Md2Pdf(path, v.Title, []byte(res))
+		err = utils.Md2Pdf(path, name, []byte(res))
 		if err != nil {
 			return err
 		}
