@@ -82,6 +82,7 @@ func CourseDetail(category string, id int) (idMap map[string]interface{}, err er
 func GetCourseIDMap(course *services.Course) map[string]interface{} {
 	return map[string]interface{}{
 		"enid":               course.Enid,
+		"type":               course.Type,
 		"class_id":           course.ClassID,
 		"title":              course.Title,
 		"publish_num":        course.PublishNum,

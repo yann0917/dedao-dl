@@ -1,6 +1,9 @@
 package app
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/yann0917/dedao-dl/services"
@@ -45,7 +48,7 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
 	// fmt.Printf("%#v\n", info.BookInfo.Orders)
-	wgp := utils.NewWaitGroupPool(10)
+	wgp := utils.NewWaitGroupPool(5)
 	for i, order := range info.BookInfo.Orders {
 		wgp.Add()
 		go func(i int, order services.EbookOrders) {
@@ -78,7 +81,8 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	}
 
 	for _, item := range pageList.Pages {
-		svgList = append(svgList, item.Svg)
+		desContents := DecryptAES(item.Svg)
+		svgList = append(svgList, desContents)
 	}
 	// fmt.Printf("IsEnd:%#v\n", pageList.IsEnd)
 	if !pageList.IsEnd {
@@ -95,4 +99,36 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	// FIXME: debug
 	// err = utils.SaveFile(chapterID, "", strings.Join(svgList, "\n"))
 	return
+}
+
+// PKCS7Unpad 实现PKCS7去填充
+func PKCS7Unpad(data []byte) []byte {
+	length := len(data)
+	unpadding := int(data[length-1])
+	return data[:(length - unpadding)]
+}
+
+// DecryptAES 实现AES - CBC解密
+func DecryptAES(contents string) string {
+	ciphertext, err := base64.StdEncoding.DecodeString(contents)
+	if err != nil {
+		fmt.Println("Base64解码错误:", err)
+		return ""
+	}
+
+	key := []byte("3e4r06tjkpjcevlbslr3d96gdb5ahbmo")
+	iv := []byte("6fd89a1b3a7f48fb")
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return ""
+	}
+
+	blockSize := block.BlockSize()
+	mode := cipher.NewCBCDecrypter(block, iv[:blockSize])
+	plaintext := make([]byte, len(ciphertext))
+	mode.CryptBlocks(plaintext, ciphertext)
+
+	plaintext = PKCS7Unpad(plaintext)
+	return string(plaintext)
 }

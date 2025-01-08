@@ -258,7 +258,7 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 			},
 			"token": token,
 		}).
-		Post("/ebk_web/v1/get_pages")
+		Post("/ebk_web_go/v2/get_pages")
 	return handleHTTPResponse(resp, err)
 }
 
