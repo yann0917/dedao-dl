@@ -8,7 +8,7 @@ require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
 	github.com/gabriel-vasile/mimetype v1.4.8
-	github.com/go-resty/resty/v2 v2.15.3
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gomarkdown/markdown v0.0.0-20241205020045-f7e15b2f3e62
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.14
