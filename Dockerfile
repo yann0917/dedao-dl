@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 AS builder
+FROM golang:1.23-alpine3.21 AS builder
 
 LABEL stage=gobuilder
 
@@ -26,15 +26,15 @@ RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$
     && upx dedao-dl \
     && chmod a+x ./dedao-dl
 
-FROM alpine:3.19
+FROM alpine:3.21
 
 # Installs latest ffmpeg and chinese font.
-RUN echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/community > /etc/apk/repositories \
-    && echo @3.19 https://mirrors.aliyun.com/alpine/v3.19/main >> /etc/apk/repositories \
+RUN echo @3.21 https://mirrors.aliyun.com/alpine/v3.21/community > /etc/apk/repositories \
+    && echo @3.21 https://mirrors.aliyun.com/alpine/v3.21/main >> /etc/apk/repositories \
     && apk update \
-    && apk add --no-cache ffmpeg@3.19 tzdata@3.19 \
-    && apk add --no-cache --allow-untrusted harfbuzz@3.19 nss@3.19 freetype@3.19 \
-    ttf-freefont@3.19 wqy-zenhei@3.19 \
+    && apk add --no-cache ffmpeg@3.21 tzdata@3.21 \
+    && apk add --no-cache --allow-untrusted harfbuzz@3.21 nss@3.21 freetype@3.21 \
+    ttf-freefont@3.21 wqy-zenhei@3.21 \
     && cp -r -f /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && rm -rf /var/cache/apk/*
 
