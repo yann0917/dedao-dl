@@ -172,7 +172,18 @@ func (d *EBookDownloadByEnID) Download() error {
 	if err != nil {
 		return err
 	}
+	return DownloadEBook(detail, d.DownloadType)
+}
 
+func (d *EBookDownloadByID) Download() error {
+	detail, err := EbookDetail(d.ID)
+	if err != nil {
+		return err
+	}
+	return DownloadEBook(detail, d.DownloadType)
+}
+
+func DownloadEBook(detail *services.EbookDetail, downloadType int) error {
 	title := strconv.Itoa(detail.ID) + "_"
 	if detail.Title != "" {
 		title += detail.Title
@@ -187,58 +198,7 @@ func (d *EBookDownloadByEnID) Download() error {
 	}
 	sort.Sort(svgContent)
 
-	switch d.DownloadType {
-	case 1:
-		if err = utils.Svg2Html(title, svgContent, info.BookInfo.Toc); err != nil {
-			return err
-		}
-
-	case 2:
-		if err = utils.Svg2Pdf(title, svgContent, info.BookInfo.Toc); err != nil {
-			return err
-		}
-
-	case 3:
-		var opts utils.EpubOptions
-		opts.Title = title
-		opts.Author = detail.BookAuthor
-		opts.Description = detail.BookIntro
-		opts.Toc = info.BookInfo.Toc
-
-		if err = utils.Svg2Epub(title, svgContent, opts); err != nil {
-			return err
-		}
-
-		// Only clear cache for this specific book on successful completion
-		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
-			fmt.Printf("Warning: Failed to clear book cache: %v\n", clearErr)
-		}
-	}
-
-	return err
-}
-
-func (d *EBookDownloadByID) Download() error {
-	detail, err := EbookDetail(d.ID)
-	if err != nil {
-		return err
-	}
-
-	title := strconv.Itoa(d.ID) + "_"
-	if detail.Title != "" {
-		title += detail.Title
-	} else if detail.OperatingTitle != "" {
-		title += detail.OperatingTitle
-	}
-
-	title += "_" + detail.BookAuthor
-	info, svgContent, err := EbookPage(detail.Enid)
-	if err != nil {
-		return err
-	}
-	sort.Sort(svgContent)
-
-	switch d.DownloadType {
+	switch downloadType {
 	case 1:
 		if err = utils.Svg2Html(title, svgContent, info.BookInfo.Toc); err != nil {
 			return err
