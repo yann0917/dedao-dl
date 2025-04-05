@@ -127,46 +127,88 @@ func (r *Response) isSuccess() bool {
 
 func handleHTTPResponse(resp *resty.Response, err error) (io.ReadCloser, error) {
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("request to %s failed: %w", resp.Request.URL, err)
 	}
 
-	if resp.StatusCode() == http.StatusNotFound {
-		return nil, errors.New("404 NotFound")
+	// Check content type for HTML error pages
+	contentType := resp.Header().Get("Content-Type")
+	if strings.Contains(contentType, "text/html") && resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("temporary: HTTP %d from %s - Server returned HTML error page (will retry)",
+			resp.StatusCode(), resp.Request.URL)
 	}
-	if resp.StatusCode() == http.StatusBadRequest {
-		return nil, errors.New("400 BadRequest")
+
+	// Permanent errors that shouldn't be retried
+	switch resp.StatusCode() {
+	case http.StatusNotFound:
+		return nil, fmt.Errorf("404 NotFound from %s", resp.Request.URL)
+	case http.StatusBadRequest:
+		return nil, fmt.Errorf("400 BadRequest from %s", resp.Request.URL)
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("401 Unauthorized from %s", resp.Request.URL)
+	case 496:
+		return nil, fmt.Errorf("496 NoCertificate from %s", resp.Request.URL)
 	}
-	if resp.StatusCode() == http.StatusUnauthorized {
-		return nil, errors.New("401 Unauthorized")
-	}
-	if resp.StatusCode() == 496 {
-		return nil, errors.New("496 NoCertificate")
+
+	// Temporary errors that should be retried
+	if resp.StatusCode() == http.StatusBadGateway {
+		return nil, fmt.Errorf("temporary: 502 Bad Gateway from %s - Backend service error", resp.Request.URL)
 	}
 
 	data := resp.Body()
+	dataCopy := make([]byte, len(data))
+	copy(dataCopy, data)
+
 	reader := bytes.NewReader(data)
-	result := io.NopCloser(reader)
+	result := &responseWrapper{
+		ReadCloser: io.NopCloser(reader),
+		rawData:    dataCopy,
+	}
 	return result, nil
+}
+
+type responseWrapper struct {
+	io.ReadCloser
+	rawData []byte
+}
+
+func (r *responseWrapper) GetRawResponse() []byte {
+	return r.rawData
 }
 
 func handleJSONParse(reader io.Reader, v interface{}) error {
 	result := new(Response)
 
-	err := utils.UnmarshalReader(reader, &result)
+	// Read the entire body
+	rawData, err := io.ReadAll(reader)
 	if err != nil {
-		fmt.Printf("err1: %s \n", err.Error())
-		return err
+		return fmt.Errorf("failed to read response: %w", err)
 	}
-	// fmt.Printf("result.C:=%#v", result.C)
+
+	// // Log raw response if it's not valid JSON
+	// if !json.Valid(rawData) {
+	// 	// Write to error log file
+	// 	logFile, _ := os.OpenFile(
+	// 		fmt.Sprintf("error_log_%s.txt", time.Now().Format("2006-01-02_15-04-05")),
+	// 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
+	// 		0666,
+	// 	)
+	// 	defer logFile.Close()
+
+	// 	fmt.Fprintf(logFile, "\n=== Invalid JSON Response ===\n%s\n=== End Response ===\n", string(rawData))
+	// }
+
+	err = utils.UnmarshalReader(bytes.NewReader(rawData), &result)
+	if err != nil {
+		return fmt.Errorf("unmarshal error: %w\nraw response: %s", err, string(rawData))
+	}
+
 	if !result.isSuccess() {
-		// 未登录或者登录凭证无效
-		err = errors.New("服务异常，请稍后重试。errMsg:" + result.H.E)
-		return err
+		return fmt.Errorf("service error: %s\nraw response: %s", result.H.E, string(rawData))
 	}
+
 	err = utils.UnmarshalJSON(result.C, v)
 	if err != nil {
-		fmt.Printf("err2: %s", err.Error())
-		return err
+		return fmt.Errorf("unmarshal content error: %w\nraw response: %s", err, string(rawData))
 	}
 
 	return nil

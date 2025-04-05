@@ -1,8 +1,105 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/yann0917/dedao-dl/utils"
 )
+
+const (
+	maxRetries     = 3
+	initialBackoff = 3 * time.Second
+	retryDelay     = 1 * time.Second
+)
+
+// Add new cache-related types
+type PageCache struct {
+	ChapterID string    `json:"chapter_id"`
+	Pages     []string  `json:"pages"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// Make cache functions public
+func GetCachePath(enid, chapterID string) string {
+	cacheDir := filepath.Join("output", ".cache", "pages", enid)
+	os.MkdirAll(cacheDir, 0755)
+	return filepath.Join(cacheDir, fmt.Sprintf("%s.json", chapterID))
+}
+
+func LoadFromCache(enid, chapterID string) ([]string, bool) {
+	cachePath := GetCachePath(enid, chapterID)
+	data, err := os.ReadFile(cachePath)
+	if err != nil {
+		return nil, false
+	}
+
+	var cache PageCache
+	if err := json.Unmarshal(data, &cache); err != nil {
+		return nil, false
+	}
+
+	// Optional: Check if cache is too old
+	if time.Since(cache.Timestamp) > 24*time.Hour {
+		os.Remove(cachePath)
+		return nil, false
+	}
+
+	return cache.Pages, true
+}
+
+func SaveToCache(enid, chapterID string, pages []string) error {
+	cache := PageCache{
+		ChapterID: chapterID,
+		Pages:     pages,
+		Timestamp: time.Now(),
+	}
+
+	data, err := json.Marshal(cache)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(GetCachePath(enid, chapterID), data, 0644)
+}
+
+func ClearBookCache(enid string) error {
+	cacheDir := filepath.Join("output", ".cache", "pages", enid)
+	return os.RemoveAll(cacheDir)
+}
+
+func ClearAllCache() error {
+	cacheDir := filepath.Join("output", ".cache", "pages")
+	return os.RemoveAll(cacheDir)
+}
+
+func withRetry[T any](operation func() (T, error), chapterID string) (result T, err error) {
+	backoff := initialBackoff
+
+	for i := 0; i < maxRetries; i++ {
+		result, err = operation()
+		if err == nil {
+			return result, nil
+		}
+
+		// Print detailed error information
+		fmt.Printf("\nAttempt %d/%d failed for chapter %s:\n", i+1, maxRetries, chapterID)
+		fmt.Printf("Error: %v\n", err)
+
+		if i < maxRetries-1 {
+			fmt.Printf("Retrying in %v...\n", backoff)
+			time.Sleep(backoff)
+			// Double the backoff for next attempt
+			backoff *= 2
+		} else {
+			fmt.Printf("Max retries reached for chapter %s, giving up.\n", chapterID)
+		}
+	}
+	return result, err
+}
 
 // Catelog ebook catalog
 type Catelog struct {
@@ -144,66 +241,87 @@ type EbookVIPInfo struct {
 
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
-
-	body, err := s.reqEbookDetail(enid)
-	if err != nil {
-		return
+	operation := func() (*EbookDetail, error) {
+		body, err := s.reqEbookDetail(enid)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+		var d *EbookDetail
+		if err = handleJSONParse(body, &d); err != nil {
+			return nil, err
+		}
+		return d, nil
 	}
-	defer body.Close()
-	if err = handleJSONParse(body, &detail); err != nil {
-		return
-	}
-	return
+	return withRetry(operation, "book-detail")
 }
 
 // EbookReadToken get ebook read token
 func (s *Service) EbookReadToken(enid string) (t *Token, err error) {
-	body, err := s.reqEbookReadToken(enid)
-	if err != nil {
-		return
+	operation := func() (*Token, error) {
+		body, err := s.reqEbookReadToken(enid)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+		var token *Token
+		if err = handleJSONParse(body, &token); err != nil {
+			return nil, err
+		}
+		return token, nil
 	}
-	defer body.Close()
-	if err = handleJSONParse(body, &t); err != nil {
-		return
-	}
-	return
+	return withRetry(operation, "read-token")
 }
 
 // EbookInfo get ebook info
 // include book block, book TOC, epubPath etc
 func (s *Service) EbookInfo(token string) (info *EbookInfo, err error) {
-	body, err := s.reqEbookInfo(token)
-	if err != nil {
-		return
+	operation := func() (*EbookInfo, error) {
+		body, err := s.reqEbookInfo(token)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+		var i *EbookInfo
+		if err = handleJSONParse(body, &i); err != nil {
+			return nil, err
+		}
+		return i, nil
 	}
-	defer body.Close()
-	if err = handleJSONParse(body, &info); err != nil {
-		return
-	}
-	return
+	return withRetry(operation, "book-info")
 }
 
 // EbookVIPInfo get ebook vip info
 func (s *Service) EbookVIPInfo() (info *EbookVIPInfo, err error) {
-	body, err := s.reqEbookVIPInfo()
-	if err != nil {
-		return
+	operation := func() (*EbookVIPInfo, error) {
+		body, err := s.reqEbookVIPInfo()
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+		var i *EbookVIPInfo
+		if err = handleJSONParse(body, &i); err != nil {
+			return nil, err
+		}
+		return i, nil
 	}
-	defer body.Close()
-	if err = handleJSONParse(body, &info); err != nil {
-		return
-	}
-	return
+	return withRetry(operation, "vip-info")
 }
 
 func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
-	body, err := s.reqEbookPages(chapterID, token, index, count, offset)
-	if err != nil {
-		return
+	operation := func() (*EbookPage, error) {
+
+		body, err := s.reqEbookPages(chapterID, token, index, count, offset)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+
+		var p *EbookPage
+		if err = handleJSONParse(body, &p); err != nil {
+			return nil, err
+		}
+		return p, nil
 	}
-	defer body.Close()
-	if err = handleJSONParse(body, &pages); err != nil {
-		return
-	}
-	return
+	return withRetry(operation, chapterID)
 }
