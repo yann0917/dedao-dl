@@ -54,7 +54,7 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
 	// fmt.Printf("%#v\n", info.BookInfo.Toc)
 	// fmt.Printf("%#v\n", info.BookInfo.Orders)
-	wgp := utils.NewWaitGroupPool(2)
+	wgp := utils.NewWaitGroupPool(5)
 	for i, order := range info.BookInfo.Orders {
 		wgp.Add()
 		go func(i int, order services.EbookOrders) {
