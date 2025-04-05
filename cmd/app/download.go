@@ -172,7 +172,7 @@ func (d *EBookDownloadByEnID) Download() error {
 	if err != nil {
 		return err
 	}
-	return DownloadEBook(detail, d.DownloadType)
+	return downloadEBook(detail, d.DownloadType)
 }
 
 func (d *EBookDownloadByID) Download() error {
@@ -180,10 +180,10 @@ func (d *EBookDownloadByID) Download() error {
 	if err != nil {
 		return err
 	}
-	return DownloadEBook(detail, d.DownloadType)
+	return downloadEBook(detail, d.DownloadType)
 }
 
-func DownloadEBook(detail *services.EbookDetail, downloadType int) error {
+func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 	title := strconv.Itoa(detail.ID) + "_"
 	if detail.Title != "" {
 		title += detail.Title
