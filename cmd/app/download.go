@@ -36,9 +36,14 @@ type OdobDownload struct {
 	ID           int
 }
 
-type EBookDownload struct {
+type EBookDownloadByID struct {
 	DownloadType int // 1:html, 2:PDF文档, 3:epub
 	ID           int
+}
+
+type EBookDownloadByEnID struct {
+	DownloadType int // 1:html, 2:PDF文档, 3:epub
+	EnID         string
 }
 
 func (d *CourseDownload) Download() error {
@@ -162,7 +167,58 @@ func (d *OdobDownload) Download() error {
 	return nil
 }
 
-func (d *EBookDownload) Download() error {
+func (d *EBookDownloadByEnID) Download() error {
+	detail, err := EbookDetailByEnID(d.EnID)
+	if err != nil {
+		return err
+	}
+
+	title := strconv.Itoa(detail.ID) + "_"
+	if detail.Title != "" {
+		title += detail.Title
+	} else if detail.OperatingTitle != "" {
+		title += detail.OperatingTitle
+	}
+
+	title += "_" + detail.BookAuthor
+	info, svgContent, err := EbookPage(detail.Enid)
+	if err != nil {
+		return err
+	}
+	sort.Sort(svgContent)
+
+	switch d.DownloadType {
+	case 1:
+		if err = utils.Svg2Html(title, svgContent, info.BookInfo.Toc); err != nil {
+			return err
+		}
+
+	case 2:
+		if err = utils.Svg2Pdf(title, svgContent, info.BookInfo.Toc); err != nil {
+			return err
+		}
+
+	case 3:
+		var opts utils.EpubOptions
+		opts.Title = title
+		opts.Author = detail.BookAuthor
+		opts.Description = detail.BookIntro
+		opts.Toc = info.BookInfo.Toc
+
+		if err = utils.Svg2Epub(title, svgContent, opts); err != nil {
+			return err
+		}
+
+		// Only clear cache for this specific book on successful completion
+		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
+			fmt.Printf("Warning: Failed to clear book cache: %v\n", clearErr)
+		}
+	}
+
+	return err
+}
+
+func (d *EBookDownloadByID) Download() error {
 	detail, err := EbookDetail(d.ID)
 	if err != nil {
 		return err
@@ -204,10 +260,13 @@ func (d *EBookDownload) Download() error {
 			return err
 		}
 
-		return err
+		// Only clear cache for this specific book on successful completion
+		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
+			fmt.Printf("Warning: Failed to clear book cache: %v\n", clearErr)
+		}
 	}
 
-	return nil
+	return err
 }
 
 func Download(downloader DeDaoDownloader) error {
