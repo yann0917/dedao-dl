@@ -81,16 +81,24 @@ var dlEbookCmd = &cobra.Command{
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		id, err := strconv.Atoi(args[0])
-		if err != nil {
-			return errors.New("电子书ID错误")
-		}
 		if len(args) > 1 {
 			return errors.New("参数错误")
 		}
-		d := &app.EBookDownload{
-			DownloadType: downloadType,
-			ID:           id,
+
+		id, err := strconv.Atoi(args[0])
+		var d app.DeDaoDownloader
+		if err != nil {
+			// args[0] is not an integer, treat as EnID
+			d = &app.EBookDownloadByEnID{
+				DownloadType: downloadType,
+				EnID:         args[0],
+			}
+		} else {
+			// args[0] is an integer ID
+			d = &app.EBookDownloadByID{
+				DownloadType: downloadType,
+				ID:           id,
+			}
 		}
 		err = app.Download(d)
 		return err
