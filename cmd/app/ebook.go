@@ -22,6 +22,12 @@ func EbookDetail(id int) (detail *services.EbookDetail, err error) {
 	return
 }
 
+func EbookDetailByEnID(enID string) (detail *services.EbookDetail, err error) {
+	detail, err = getService().EbookDetail(enID)
+
+	return
+}
+
 func EbookInfo(enID string) (info *services.EbookInfo, err error) {
 	token, err1 := getService().EbookReadToken(enID)
 	if err1 != nil {
@@ -56,7 +62,7 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 				wgp.Done()
 			}()
 			index, count, offset := 0, 20, 0
-			svgList, err1 := generateEbookPages(order.ChapterID, token.Token, index, count, offset)
+			svgList, err1 := generateEbookPages(enID, order.ChapterID, token.Token, index, count, offset)
 			if err1 != nil {
 				err = err1
 				return
@@ -73,8 +79,14 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	return
 }
 
-func generateEbookPages(chapterID, token string, index, count, offset int) (svgList []string, err error) {
-	fmt.Printf("chapterID:%#v\n", chapterID)
+func generateEbookPages(enid, chapterID, token string, index, count, offset int) (svgList []string, err error) {
+	// Try to load from cache first
+	if cachedPages, found := services.LoadFromCache(enid, chapterID); found {
+		fmt.Printf("Using cached content for %s\n", chapterID)
+		return cachedPages, nil
+	}
+
+	fmt.Printf("Downloading %s\n", chapterID)
 	pageList, err := getService().EbookPages(chapterID, token, index, count, offset)
 	if err != nil {
 		return
@@ -88,7 +100,7 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	if !pageList.IsEnd {
 		index += count
 		count = 20
-		list, err1 := generateEbookPages(chapterID, token, index, count, offset)
+		list, err1 := generateEbookPages(enid, chapterID, token, index, count, offset)
 		if err1 != nil {
 			err = err1
 			return
@@ -98,6 +110,12 @@ func generateEbookPages(chapterID, token string, index, count, offset int) (svgL
 	}
 	// FIXME: debug
 	// err = utils.SaveFile(chapterID, "", strings.Join(svgList, "\n"))
+
+	// Save to cache
+	if err := services.SaveToCache(enid, chapterID, svgList); err != nil {
+		fmt.Printf("Warning: Failed to cache chapter %s: %v\n", chapterID, err)
+	}
+
 	return
 }
 
