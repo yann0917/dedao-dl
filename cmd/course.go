@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 	"github.com/yann0917/dedao-dl/utils"
@@ -163,7 +164,15 @@ func courseList(category string) (err error) {
 	total, reading, done, unread := len(list.List), 0, 0, 0
 
 	out := os.Stdout
-	table := tablewriter.NewWriter(out)
+	table := tablewriter.NewTable(out, tablewriter.WithConfig(tablewriter.Config{
+		Row: tw.CellConfig{
+			Formatting: tw.CellFormatting{
+				MaxWidth:  64,           // Limit column width
+				AutoWrap:  tw.WrapBreak, // Break words to fit
+				Alignment: tw.AlignLeft, // Left-align rows
+			},
+		},
+	}))
 	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
 
 	for i, p := range list.List {
