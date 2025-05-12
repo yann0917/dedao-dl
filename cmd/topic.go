@@ -38,8 +38,7 @@ func topicAll() (err error) {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "话题名称", "话题参与数"})
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "ID", "话题名称", "话题参与数"})
 
 	for i, p := range list.List {
 		table.Append([]string{strconv.Itoa(i),
@@ -66,8 +65,7 @@ func notesList(id string) (err error) {
 	fmt.Fprintln(out)
 
 	table := tablewriter.NewWriter(out)
-	table.SetHeader([]string{"#", "昵称", "点赞数", "发布时间", "笔记"})
-	table.SetAutoWrapText(true)
+	table.Header([]string{"#", "昵称", "点赞数", "发布时间", "笔记"})
 
 	for i, p := range list.NoteDetailList {
 		table.Append([]string{strconv.Itoa(i),

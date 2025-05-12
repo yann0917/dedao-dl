@@ -75,8 +75,7 @@ func (data *Data) PrintInfo() {
 	}
 	header = append(header, "下载")
 
-	table.SetHeader(header)
-	table.SetAutoWrapText(false)
+	table.Header(header)
 	i := 0
 	for _, p := range data.Data {
 		reg, _ := regexp.Compile(" \\| ")

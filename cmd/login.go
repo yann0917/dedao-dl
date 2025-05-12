@@ -97,9 +97,7 @@ func init() {
 func who() {
 	activeUser := config.Instance.ActiveUser()
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"UID", "姓名", "头像"})
-	table.SetAutoFormatHeaders(true)
-	table.SetAutoWrapText(false)
+	table.Header([]string{"UID", "姓名", "头像"})
 	table.Append([]string{activeUser.UIDHazy, activeUser.Name, activeUser.Avatar})
 	table.Render()
 }
@@ -107,9 +105,7 @@ func who() {
 // users get login user list
 func users() {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "UID", "姓名", "头像"})
-	table.SetAutoFormatHeaders(true)
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "UID", "姓名", "头像"})
 	for i, user := range config.Instance.Users {
 		table.Append([]string{strconv.Itoa(i), user.UIDHazy, user.Name, user.Avatar})
 	}

@@ -92,8 +92,7 @@ func courseType() (err error) {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "名称", "统计", "分类标签"})
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "名称", "统计", "分类标签"})
 
 	for i, p := range list.Data.List {
 
@@ -122,8 +121,7 @@ func courseInfo(id int) (err error) {
 	fmt.Fprint(out, "课程亮点："+info.ClassInfo.Highlight+"\n")
 	fmt.Fprintln(out)
 
-	table.SetHeader([]string{"#", "ID", "章节", "讲数", "更新时间", "是否更新完成"})
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "ID", "章节", "讲数", "更新时间", "是否更新完成"})
 
 	if len(info.ChapterList) > 0 {
 		for i, p := range info.ChapterList {
@@ -166,8 +164,7 @@ func courseList(category string) (err error) {
 
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)
-	table.SetHeader([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
 
 	for i, p := range list.List {
 		classID := ""

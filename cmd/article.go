@@ -46,8 +46,7 @@ func articleList(id int) (err error) {
 		return
 	}
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"#", "ID", "课程名称", "更新时间", "音频进度", "是否阅读"})
-	table.SetAutoWrapText(false)
+	table.Header([]string{"#", "ID", "课程名称", "更新时间", "音频进度", "是否阅读"})
 
 	for i, p := range list.List {
 		isRead := "❌"

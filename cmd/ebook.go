@@ -49,10 +49,7 @@ func ebookDetail(id int) (err error) {
 	_, _ = fmt.Fprint(out, "出版社："+detail.Press.Name+"\n")
 	_, _ = fmt.Fprintln(out)
 
-	table.SetHeader([]string{"#", "ID", "章节名称"})
-	table.SetAutoWrapText(false)
-	// table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-	// table.SetCenterSeparator("|")
+	table.Header([]string{"#", "ID", "章节名称"})
 	for i, p := range detail.CatalogList {
 		table.Append([]string{strconv.Itoa(i), strconv.Itoa(p.PlayOrder),
 			p.Text,
