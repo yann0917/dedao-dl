@@ -3,6 +3,7 @@
 > 🦉 《得到》 APP 课程下载工具，扫码或者使用 cookie 登录后，可在终端查看已购买的课程，听书书架，电子书架，锦囊，推荐话题等
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yann0917/dedao-dl)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yann0917/dedao-dl)
 
 欢迎体验桌面客户端 [dedao-gui](https://github.com/yann0917/dedao-gui)
 
