@@ -167,10 +167,10 @@ func courseList(category string) (err error) {
 	table := tablewriter.NewTable(out, tablewriter.WithConfig(tablewriter.Config{
 		Row: tw.CellConfig{
 			Formatting: tw.CellFormatting{
-				MaxWidth:  64,           // Limit column width
 				AutoWrap:  tw.WrapBreak, // Break words to fit
 				Alignment: tw.AlignLeft, // Left-align rows
 			},
+			ColMaxWidths: tw.CellWidth{Global: 64},
 		},
 	}))
 	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
