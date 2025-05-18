@@ -25,12 +25,17 @@ func LoginByCookie(cookie string) (err error) {
 }
 
 func LoginByQr() error {
-	token, err := getService().LoginAccessToken()
+	service := getService()
+	if service == nil {
+		return errors.New("服务初始化失败")
+	}
+
+	token, err := service.LoginAccessToken()
 	if err != nil {
 		return err
 	}
 	// fmt.Printf("token:%#v\n", token)
-	code, err := getService().GetQrcode(token)
+	code, err := service.GetQrcode(token)
 	if err != nil {
 		return err
 	}
@@ -40,7 +45,7 @@ func LoginByQr() error {
 	for {
 		select {
 		case <-ticker.C:
-			check, cookie, err := getService().CheckLogin(token, code.Data.QrCodeString)
+			check, cookie, err := service.CheckLogin(token, code.Data.QrCodeString)
 			if err != nil {
 				return err
 			}

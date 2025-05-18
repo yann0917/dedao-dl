@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"strconv"
+	"strings"
 
 	"errors"
 
@@ -22,6 +23,12 @@ var loginCmd = &cobra.Command{
 	Short: "登录得到 pc 端 https://www.dedao.cn",
 	Long:  `使用 dedao-dl login to login https://www.dedao.cn`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 确保配置初始化
+		err := config.Instance.Init()
+		if err != nil && err.Error() != "未登陆" && !strings.Contains(err.Error(), "存在登录的用户") {
+			return err
+		}
+
 		if qr {
 			err := app.LoginByQr()
 			return err
@@ -37,7 +44,6 @@ var loginCmd = &cobra.Command{
 			err := app.LoginByCookie(Cookie)
 			return err
 		}
-
 	},
 
 	PostRun: func(cmd *cobra.Command, args []string) {

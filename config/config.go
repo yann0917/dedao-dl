@@ -241,6 +241,9 @@ func GetConfigDir() string {
 // ActiveUserService user
 func (c *ConfigsData) ActiveUserService() *services.Service {
 	if c.service == nil {
+		if c.activeUser == nil {
+			c.activeUser = new(Dedao)
+		}
 		c.service = c.activeUser.New()
 	}
 	return c.service
