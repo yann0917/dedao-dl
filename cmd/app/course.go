@@ -89,6 +89,6 @@ func GetCourseIDMap(course *services.Course) map[string]interface{} {
 		"has_play_auth":      course.HasPlayAuth,
 		"audio_alias_id":     course.AudioDetail.AliasID,
 		"audio_size":         course.AudioDetail.Size,
-		"audio_mp3_play_url": course.AudioDetail.Mp3PlayURL,
+		"audio_mp3_play_url": course.AudioDetail.MP3PlayURL,
 	}
 }

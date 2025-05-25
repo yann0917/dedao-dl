@@ -286,7 +286,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 				ClassID:   article.ClassID,
 				Title:     name,
 				IsCanDL:   isCanDL,
-				M3U8URL:   article.Audio.Mp3PlayURL,
+				M3U8URL:   article.Audio.MP3PlayURL,
 				Streams:   streams,
 				Type:      "audio",
 			}
@@ -353,7 +353,7 @@ func extractOdobDownloadData(aid int) []downloader.Datum {
 		ClassID: int(article["class_id"].(float64)),
 		Title:   article["title"].(string),
 		IsCanDL: isCanDL,
-		M3U8URL: detail.Mp3PlayURL,
+		M3U8URL: detail.MP3PlayURL,
 		Streams: streams,
 		Type:    "audio",
 	}

@@ -108,6 +108,31 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 	return handleHTTPResponse(resp, err)
 }
 
+// reqCourseListV2 请求课程列表
+func (s *Service) reqCourseListV2(category, order string, page, limit int) (io.ReadCloser, error) {
+	resp, err := s.client.R().SetBody(map[string]interface{}{
+		"category":        category,
+		"display_group":   true,
+		"filter":          "all",
+		"group_id":        0,
+		"order":           order,
+		"filter_complete": 0,
+		"page":            page,
+		"page_size":       limit,
+		"sort_type":       "desc",
+	}).Post("/api/hades/v2/product/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqOutsideDetail 请求名家讲书课程详情
+func (s *Service) reqOutsideDetail(enid string) (io.ReadCloser, error) {
+	resp, err := s.client.R().SetBody(map[string]interface{}{
+		"product_enid": enid,
+		"product_type": 1013,
+	}).Post("pc/sunflower/v1/depot/outside/detail")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqCourseInfo 请求课程介绍
 func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
@@ -284,6 +309,17 @@ func (s *Service) reqOdobAudioDetail(aliasID string) (io.ReadCloser, error) {
 			"alias_id": aliasID,
 		}).
 		Post("pc/odob/pc/audio/detail/alias")
+
+	return handleHTTPResponse(resp, err)
+}
+
+// reqTopicPkgOdobDetails 请求名家讲书每天听本书书 音频 info 合集信息
+func (s *Service) reqTopicPkgOdobDetails(enid string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"enid": enid,
+		}).
+		Post("pc/sunflower/v1/depot/vip-user/topic-pkg/odob/details")
 
 	return handleHTTPResponse(resp, err)
 }

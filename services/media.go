@@ -7,48 +7,76 @@ type MediaBaseInfo struct {
 	SecurityToken string `json:"security_token"`
 }
 
-// Audio audio
+// Audio audio 每天听本书音频详情
 type Audio struct {
-	AliasID        string  `json:"alias_id"`
-	Extrainfo      string  `json:"extrainfo"`
-	ClassID        int     `json:"class_id"`
-	Title          string  `json:"title"`
-	ShareTitle     string  `json:"share_title"`
-	Mp3PlayURL     string  `json:"mp3_play_url"`
-	Duration       int     `json:"duration"`
-	Schedule       int     `json:"schedule"`
-	TopicID        int     `json:"topic_id"`
-	Summary        string  `json:"summary"`
-	Price          int     `json:"price"`
-	Icon           string  `json:"icon"`
-	Size           int     `json:"size"`
-	Etag           string  `json:"etag"`
-	Token          string  `json:"token"`
-	ShareSummary   string  `json:"share_summary"`
-	Collection     int     `json:"collection"`
-	Count          int     `json:"count"`
-	BoredCount     int     `json:"bored_count"`
-	AudioType      int     `json:"audio_type"`
-	DrmVersion     int     `json:"drm_version"`
-	SourceID       int     `json:"source_id"`
-	SourceType     int     `json:"source_type"`
-	SourceIcon     string  `json:"source_icon"`
-	SourceName     string  `json:"source_name"`
-	ListenProgress float64 `json:"listen_progress"`
-	ListenFinished bool    `json:"listen_finished"`
-	DdArticleID    string  `json:"dd_article_id"`
-	AudioListIcon  string  `json:"audio_list_icon"`
-	ClassCourseID  string  `json:"class_course_id"`
-	ClassArticleID string  `json:"class_article_id"`
-	LogID          string  `json:"log_id"`
-	LogType        string  `json:"log_type"`
-	LogInterface   string  `json:"log_interface"`
-	Trackinfo      string  `json:"trackinfo"`
-	UsedDrm        int     `json:"used_drm"`
-	IndexImg       string  `json:"index_img"`
-	Reader         string  `json:"reader"`
-	ReaderName     string  `json:"reader_name"`
-	OdobGroupEnid  string  `json:"odob_group_enid"`
+	TopicEncodeID      string  `json:"topic_encode_id"`       // 主题编码ID
+	AliasID            string  `json:"alias_id"`              // 别名ID
+	AudioListIcon      string  `json:"audio_list_icon"`       // 音频列表图标
+	AudioType          int     `json:"audio_type"`            // 音频类型
+	BoredCount         int     `json:"bored_count"`           // 无聊计数
+	ClassArticleID     string  `json:"class_article_id"`      // 课程文章ID
+	ClassCourseID      string  `json:"class_course_id"`       // 课程ID
+	ClassID            int     `json:"class_id"`              // 课程ID
+	Collection         int     `json:"collection"`            // 收藏
+	Count              int     `json:"count"`                 // 计数
+	DdArticleID        string  `json:"dd_article_id"`         // 得到文章ID
+	DrmVersion         int     `json:"drm_version"`           // DRM版本
+	Duration           int     `json:"duration"`              // 时长
+	Etag               string  `json:"etag"`                  // Etag
+	Extrainfo          string  `json:"extrainfo"`             // 额外信息
+	Icon               string  `json:"icon"`                  // 图标
+	IndexImg           string  `json:"index_img"`             // 索引图片
+	ListenFinished     bool    `json:"listen_finished"`       // 是否听完
+	ListenProgress     float64 `json:"listen_progress"`       // 听的进度
+	LogID              string  `json:"log_id"`                // 日志ID
+	LogInterface       string  `json:"log_interface"`         // 日志接口
+	LogType            string  `json:"log_type"`              // 日志类型
+	Price              int     `json:"price"`                 // 价格
+	Reader             string  `json:"reader"`                // 读者
+	ReaderName         string  `json:"reader_name"`           // 读者名称
+	Schedule           int     `json:"schedule"`              // 计划
+	ShareSummary       string  `json:"share_summary"`         // 分享摘要
+	ShareTitle         string  `json:"share_title"`           // 分享标题
+	Size               int     `json:"size"`                  // 大小
+	SourceIcon         string  `json:"source_icon"`           // 来源图标
+	SourceID           int     `json:"source_id"`             // 来源ID
+	SourceName         string  `json:"source_name"`           // 来源名称
+	SourceType         int     `json:"source_type"`           // 来源类型
+	Summary            string  `json:"summary"`               // 摘要
+	Title              string  `json:"title"`                 // 标题
+	TopicID            int     `json:"topic_id"`              // 主题ID
+	Trackinfo          string  `json:"trackinfo"`             // 跟踪信息
+	UsedDRM            int     `json:"used_drm"`              // 使用的DRM
+	MP3PlayURL         string  `json:"mp3_play_url"`          // MP3播放URL
+	OdobGroupEnid      string  `json:"odob_group_enid"`       // 每天听本书分组加密ID
+	Slogan             string  `json:"slogan"`                // 标语
+	Token              string  `json:"token"`                 // 令牌
+	PlayerImg          string  `json:"player_img"`            // 播放器图片
+	IsPlayLater        bool    `json:"is_play_later"`         // 是否稍后播放
+	HasPlayAuth        bool    `json:"has_play_auth"`         // 是否有播放权限
+	IsVIP              bool    `json:"is_vip"`                // 是否VIP
+	Category           int     `json:"category"`              // 分类
+	IsFree             int     `json:"is_free"`               // 是否免费
+	TrialDuration      int     `json:"trial_duration"`        // 试听时长
+	UpdateTips         string  `json:"update_tips"`           // 更新提示
+	TrialListenTips    string  `json:"trial_listen_tips"`     // 试听提示
+	TrialListenEndTips string  `json:"trial_listen_end_tips"` // 试听结束提示
+	TrialListenEndURL  string  `json:"trial_listen_end_url"`  // 试听结束URL
+	PlayCount          int     `json:"play_count"`            // 播放计数
+	PlayCountTips      string  `json:"play_count_tips"`       // 播放计数提示
+	BookShelfStatus    int     `json:"book_shelf_status"`     // 书架状态
+	ShareURL           string  `json:"share_url"`             // 分享URL
+	PlayDDURL          string  `json:"play_dd_url"`           // 播放得到URL
+	IsSubscribed       bool    `json:"is_subscribed"`         // 是否已订阅
+	PackagePID         int     `json:"package_pid"`           // 包PID
+	PackagePType       int     `json:"package_ptype"`         // 包类型
+	PackageTitle       string  `json:"package_title"`         // 包标题
+	Superscript        string  `json:"superscript"`           // 上标
+	PodcastIcon        string  `json:"podcast_icon"`          // 播客图标
+	IsNewest           int     `json:"is_newest"`             // 是否最新
+	IsLatestLearning   int     `json:"is_latest_learning"`    // 是否最新学习
+
+	M3u8Token string `json:"m3u8_token"`
 }
 
 type Video struct {

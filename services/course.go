@@ -47,6 +47,8 @@ type Course struct {
 	WendaExtInfo   struct {
 		AnswerID int `json:"answer_id"`
 	} `json:"wenda_ext_info"`
+	ClassExtReview ClassExtReview `json:"class_ext_review"`
+	PlanStatus     int            `json:"plan_status"`
 }
 
 // ReplierInfo Replier Info
@@ -330,7 +332,7 @@ func EnlightenClub() (detail Course) {
 		HasExtra:       false,
 		ClassFinished:  false,
 		Title:          "罗辑思维·启发俱乐部",
-		Intro:          "罗振宇，又称“罗胖”，得到App和罗辑思维创始人。",
+		Intro:          "罗振宇，又称\"罗胖\"，得到App和罗辑思维创始人。",
 		Author:         "罗振宇·得到App创始人",
 		Icon:           "https://piccdn3.umiwi.com/img/202004/05/202004050004416065909398.jpeg",
 		CreateTime:     1472925194,
@@ -361,5 +363,86 @@ func EnlightenClub() (detail Course) {
 		WendaExtInfo: struct {
 			AnswerID int `json:"answer_id"`
 		}{},
+		ClassExtReview: ClassExtReview{},
+		PlanStatus:     0,
 	}
+}
+
+// CourseListV2 获取V2版本的课程列表
+func (s *Service) CourseListV2(category, order string, page, limit int) (response *CourseListV2Data, err error) {
+	body, err := s.reqCourseListV2(category, order, page, limit)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &response); err != nil {
+		return
+	}
+	return
+}
+
+// CourseListV2All 获取V2版本的所有课程列表
+func (s *Service) CourseListV2All(category, order string) (data *CourseListV2Data, err error) {
+	resp, err := s.CourseListV2(category, order, 1, 18)
+	if err != nil {
+		return
+	}
+
+	if resp.Total == 0 {
+		data = resp
+		return
+	}
+
+	total := resp.Total
+	limit := 18
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	// 已经获取第一页数据
+	var allCourses []CourseV2
+	allCourses = append(allCourses, resp.List...)
+
+	// 获取剩余页面数据
+	for page := 2; page <= totalPages; page++ {
+		pageResp, err := s.CourseListV2(category, order, page, limit)
+		if err != nil {
+			return data, err
+		}
+		allCourses = append(allCourses, pageResp.List...)
+	}
+
+	// 构建完整结果
+	data = &CourseListV2Data{
+		List:          allCourses,
+		Total:         total,
+		IsMore:        0, // 已获取全部，没有更多
+		HasSingleBook: resp.HasSingleBook,
+	}
+
+	return
+}
+
+// OutsideDetail 获取名家讲书课程详情
+func (s *Service) OutsideDetail(enid string) (detail *OutsideDetail, err error) {
+	body, err := s.reqOutsideDetail(enid)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &detail); err != nil {
+		return
+	}
+	return
+}
+
+// TopicPkgOdobDetails 获取名家讲书每天听本书音频集合详情
+func (s *Service) TopicPkgOdobDetails(enid string) (detail *TopicPkgOdobDetails, err error) {
+	body, err := s.reqTopicPkgOdobDetails(enid)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &detail); err != nil {
+		return
+	}
+	return
 }
