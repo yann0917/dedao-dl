@@ -265,8 +265,8 @@ func (s *Service) CourseListAll(category, order string) (list *CourseList, err e
 }
 
 // CourseDetail get course list
-func (s *Service) CourseDetail(category string, id int) (detail *Course, err error) {
-	list, err := s.CourseListAll(category, "study")
+func (s *Service) CourseDetail(category string, id int) (detail *CourseV2, err error) {
+	list, err := s.CourseListV2All(category, "study")
 	if err != nil {
 		return
 	}

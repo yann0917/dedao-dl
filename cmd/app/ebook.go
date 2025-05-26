@@ -16,7 +16,7 @@ func EbookDetail(id int) (detail *services.EbookDetail, err error) {
 	if err != nil {
 		return
 	}
-	enID := courseDetail["enid"].(string)
+	enID := courseDetail.Enid
 	detail, err = getService().EbookDetail(enID)
 
 	return

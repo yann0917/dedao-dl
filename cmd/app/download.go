@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -81,7 +82,6 @@ func (d *CourseDownload) Download() error {
 		}
 	case 2:
 		// 下载 PDF
-		// downloadData := extractDownloadData(course, articles, d.AID, 2)
 		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
@@ -92,12 +92,6 @@ func (d *CourseDownload) Download() error {
 		if err := DownloadPdfCourse(d, path); err != nil {
 			return err
 		}
-		// cookies := LoginedCookies()
-		// for _, datum := range downloadData.Data {
-		// 	if err := downloader.PrintToPDF(datum, cookies, path); err != nil {
-		// 		errs = append(errs, err)
-		// 	}
-		// }
 		if len(errs) > 0 {
 			return errs[0]
 		}
@@ -118,13 +112,35 @@ func (d *CourseDownload) Download() error {
 
 func (d *OdobDownload) Download() error {
 	fileName := "每天听本书"
+	article := config.Instance.GetCourseCache(CateAudioBook, d.ID)
+	aliasID := ""
+	if article != nil {
+		aliasID = article.AudioDetail.AliasID
+	}
+	if aliasID == "" {
+		list, err := CourseList(CateAudioBook)
+		if err != nil {
+			return nil
+		}
+		for _, course := range list.List {
+			if d.ID > 0 && course.ID == d.ID {
+				article = &course
+				break
+			}
+		}
+	}
+
+	if article == nil {
+		return nil
+	}
+
 	switch d.DownloadType {
 	case 1:
 		downloadData := downloader.Data{
 			Title: fileName,
 		}
 		downloadData.Type = "audio"
-		downloadData.Data = extractOdobDownloadData(d.ID)
+		downloadData.Data = extractOdobDownloadData(d.ID, article)
 		errs := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		if err != nil {
@@ -147,12 +163,12 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
-		info, content, err2 := getArticleDetail(d.ID)
+		content, err2 := getArticleDetail(aliasID)
 		if err2 != nil {
 			return err2
 		}
 		res := ContentsToMarkdown(content)
-		return utils.Md2Pdf(path, info["title"].(string), []byte(res))
+		return utils.Md2Pdf(path, article.Title, []byte(res))
 
 	case 3:
 		// 下载 Markdown
@@ -160,7 +176,7 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
-		if err := DownloadMarkdownAudioBook(d.ID, path); err != nil {
+		if err := DownloadMarkdownAudioBook(aliasID, path, article); err != nil {
 			return err
 		}
 	}
@@ -307,63 +323,122 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 }
 
 // 生成 AudioBook 下载数据
-func extractOdobDownloadData(aid int) []downloader.Datum {
+func extractOdobDownloadData(aid int, article *services.CourseV2) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
-
 	audioData := make([]*downloader.Datum, 0)
-	article := config.Instance.GetIDMap(CateAudioBook, aid)
-	aliasID := article["audio_alias_id"].(string)
-	if aliasID == "" {
-		list, err := CourseList(CateAudioBook)
+	aliasID := article.AudioDetail.AliasID
+
+	if article.Type == 13 {
+		audioIds[aid] = article.AudioDetail.AliasID
+
+		var urls []downloader.URL
+		key := article.Enid
+		streams := map[string]downloader.Stream{
+			key: {
+				URLs:    urls,
+				Size:    article.AudioDetail.Size,
+				Quality: key,
+			},
+		}
+		isCanDL := true
+		if !article.HasPlayAuth {
+			isCanDL = false
+		}
+		detail, err := getService().AudioDetailAlias(aliasID)
 		if err != nil {
+			fmt.Println(err)
 			return nil
 		}
-		for _, course := range list.List {
-			if aid > 0 && course.ID == aid {
-				article = GetCourseIDMap(&course)
-				break
+		datum := &downloader.Datum{
+			ID:      aid,
+			Enid:    article.Enid,
+			ClassID: article.ClassID,
+			Title:   article.Title,
+			IsCanDL: isCanDL,
+			M3U8URL: detail.MP3PlayURL,
+			Streams: streams,
+			Type:    "audio",
+		}
+
+		audioData = append(audioData, datum)
+		handleStreams(audioData, audioIds)
+
+		for _, d := range audioData {
+			data = append(data, *d)
+		}
+	} else if article.Type == 1013 {
+		// 处理合集类型
+		details, err := getService().TopicPkgOdobDetails(article.Enid)
+		if err != nil {
+			fmt.Println(err)
+			return nil
+		}
+
+		if details == nil || len(details.OdobAudioDetailList) == 0 {
+			return nil
+		}
+
+		// 遍历合集中的每个音频
+		for i, audio := range details.OdobAudioDetailList {
+			// 使用音频的 SourceID 作为 ID
+			audioID := audio.SourceID
+
+			audioIds[audioID] = audio.AliasID
+
+			key := audio.TopicEncodeID
+			if key == "" {
+				key = fmt.Sprintf("%s_%d", article.Enid, i)
 			}
+
+			streams := map[string]downloader.Stream{
+				key: {
+					URLs:    []downloader.URL{},
+					Size:    audio.Size,
+					Quality: key,
+				},
+			}
+
+			isCanDL := true
+			if !article.HasPlayAuth {
+				isCanDL = false
+			}
+
+			// 直接使用 audio 对象中的 MP3PlayURL
+
+			// 构建标题
+			title := audio.Title
+			if title == "" {
+				title = fmt.Sprintf("音频_%d", i+1)
+			}
+
+			// 可以根据顺序添加序号
+			orderNum := i + 1
+			title = fmt.Sprintf("%s%03d.%s", audio.PackageTitle, orderNum, title)
+
+			datum := &downloader.Datum{
+				ID:      audioID,
+				Enid:    key,
+				ClassID: article.ClassID,
+				Title:   title,
+				IsCanDL: isCanDL,
+				M3U8URL: audio.MP3PlayURL,
+				Streams: streams,
+				Type:    "audio",
+			}
+
+			audioData = append(audioData, datum)
+		}
+
+		// 处理流数据
+		handleStreams(audioData, audioIds)
+
+		// 将数据添加到结果集
+		for _, d := range audioData {
+			data = append(data, *d)
 		}
 	}
 
-	audioIds[aid] = article["audio_alias_id"].(string)
-
-	var urls []downloader.URL
-	key := article["enid"].(string)
-	streams := map[string]downloader.Stream{
-		key: {
-			URLs:    urls,
-			Size:    int(article["audio_size"].(float64)),
-			Quality: key,
-		},
-	}
-	isCanDL := true
-	if !article["has_play_auth"].(bool) {
-		isCanDL = false
-	}
-	detail, err := getService().AudioDetailAlias(aliasID)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	datum := &downloader.Datum{
-		ID:      aid,
-		Enid:    article["enid"].(string),
-		ClassID: int(article["class_id"].(float64)),
-		Title:   article["title"].(string),
-		IsCanDL: isCanDL,
-		M3U8URL: detail.MP3PlayURL,
-		Streams: streams,
-		Type:    "audio",
-	}
-
-	audioData = append(audioData, datum)
-	handleStreams(audioData, audioIds)
-
-	for _, d := range audioData {
-		data = append(data, *d)
-	}
 	return data
 }
 
@@ -720,13 +795,13 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 	return nil
 }
 
-func DownloadMarkdownAudioBook(id int, path string) error {
-	info, content, err2 := getArticleDetail(id)
+func DownloadMarkdownAudioBook(aliasID, path string, article *services.CourseV2) error {
+	content, err2 := getArticleDetail(aliasID)
 	if err2 != nil {
 		return err2
 	}
 
-	name := utils.FileName(info["title"].(string), "md")
+	name := utils.FileName(article.Title, "md")
 	fileName := filepath.Join(path, name)
 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", name)
 	_, exist, err := utils.FileSize(fileName)
@@ -760,29 +835,22 @@ func DownloadMarkdownAudioBook(id int, path string) error {
 	return nil
 }
 
-func getArticleDetail(id int) (info map[string]interface{}, content []services.Content, err error) {
-	info = config.Instance.GetIDMap(CateAudioBook, id)
-	aliasID := info["audio_alias_id"].(string)
+func getArticleDetail(aliasID string) (content []services.Content, err error) {
+
 	if aliasID == "" {
-		list, err1 := CourseList(CateAudioBook)
-		if err1 != nil {
-			return nil, nil, err1
-		}
-		for _, v := range list.List {
-			if v.AudioDetail.SourceID == id {
-				aliasID = v.AudioDetail.AliasID
-				break
-			}
-		}
+		return nil, errors.New("ID 为空")
 	}
+
+	// 获取文章详情
 	detail, err := OdobArticleDetail(aliasID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	err = jsoniter.UnmarshalFromString(detail.Content, &content)
 	if err != nil {
-		return
+		return nil, err
 	}
-	return
+
+	return content, nil
 }

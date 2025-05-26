@@ -14,8 +14,8 @@ func CourseType() (list *services.CourseCategoryList, err error) {
 }
 
 // CourseList 已购课程列表
-func CourseList(category string) (list *services.CourseList, err error) {
-	list, err = getService().CourseListAll(category, "study")
+func CourseList(category string) (list *services.CourseListV2Data, err error) {
+	list, err = getService().CourseListV2All(category, "study")
 	if err != nil {
 		return
 	}
@@ -23,28 +23,26 @@ func CourseList(category string) (list *services.CourseList, err error) {
 		err = errors.New("已购书架为空")
 		return
 	}
-	idMap := make(config.CourseIDMap, len(list.List))
 	switch category {
 	case CateCourse:
 		for _, course := range list.List {
-			idMap[course.ClassID] = GetCourseIDMap(&course)
+			config.Instance.SetCourseCache(category, course.ClassID, course)
 		}
 	case CateAudioBook, CateEbook:
 		for _, course := range list.List {
-			idMap[course.ID] = GetCourseIDMap(&course)
+			config.Instance.SetCourseCache(category, course.ID, course)
 		}
 	}
 
-	config.Instance.SetIDMap(category, idMap)
 	return
 }
 
-// CourseInfo 已购课程列表
+// CourseInfo 已购课程详情
 func CourseInfo(id int) (info *services.CourseInfo, err error) {
-	idMap := config.Instance.GetIDMap(CateCourse, id)
+	course := config.Instance.GetCourseCache(CateCourse, id)
 	enID := ""
-	if enid, ok := idMap["enid"].(string); ok {
-		enID = enid
+	if course != nil {
+		enID = course.Enid
 	}
 	if enID == "" {
 		courseDetail, err1 := CourseDetail(CateCourse, id)
@@ -52,7 +50,7 @@ func CourseInfo(id int) (info *services.CourseInfo, err error) {
 			err = err1
 			return
 		}
-		enID = courseDetail["enid"].(string)
+		enID = courseDetail.Enid
 	}
 	info, err = getService().CourseInfo(enID)
 	if err != nil {
@@ -62,33 +60,18 @@ func CourseInfo(id int) (info *services.CourseInfo, err error) {
 }
 
 // CourseDetail 已购课程详情
-func CourseDetail(category string, id int) (idMap map[string]interface{}, err error) {
-	idMap = config.Instance.GetIDMap(category, id)
-	enID := ""
-	if enid, ok := idMap["enid"].(string); ok {
-		enID = enid
+func CourseDetail(category string, id int) (course *services.CourseV2, err error) {
+	course = config.Instance.GetCourseCache(category, id)
+	if course != nil && course.Enid != "" {
+		return
 	}
-	if enID == "" {
-		detail, err1 := getService().CourseDetail(category, id)
-		if err1 != nil {
-			err = err1
-			return
-		}
-		idMap = GetCourseIDMap(detail)
-	}
-	return
-}
 
-func GetCourseIDMap(course *services.Course) map[string]interface{} {
-	return map[string]interface{}{
-		"enid":               course.Enid,
-		"type":               course.Type,
-		"class_id":           course.ClassID,
-		"title":              course.Title,
-		"publish_num":        course.PublishNum,
-		"has_play_auth":      course.HasPlayAuth,
-		"audio_alias_id":     course.AudioDetail.AliasID,
-		"audio_size":         course.AudioDetail.Size,
-		"audio_mp3_play_url": course.AudioDetail.MP3PlayURL,
+	// 如果获取不到或 Enid 为空，则从服务器获取
+	detail, err1 := getService().CourseDetail(category, id)
+	if err1 != nil {
+		err = err1
+		return
 	}
+	course = detail
+	return
 }

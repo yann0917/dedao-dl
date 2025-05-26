@@ -53,7 +53,6 @@ func (r respC) String() string {
 // Service dedao service
 type Service struct {
 	client *resty.Client
-	// client *req.Client
 }
 
 // CookieOptions dedao cookie options

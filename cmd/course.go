@@ -173,14 +173,17 @@ func courseList(category string) (err error) {
 			ColMaxWidths: tw.CellWidth{Global: 64},
 		},
 	}))
-	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度"})
+	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度", "备注"})
 
 	for i, p := range list.List {
-		classID := ""
+		classID, remark := "", ""
 		switch category {
 		case app.CateAce:
 			fallthrough
 		case app.CateAudioBook:
+			if p.Type == 1013 {
+				remark = "名家讲书"
+			}
 			fallthrough
 		case app.CateEbook:
 			classID = strconv.Itoa(p.ID)
@@ -192,6 +195,7 @@ func courseList(category string) (err error) {
 			utils.Unix2String(int64(p.CreateTime)),
 			p.Price,
 			strconv.Itoa(p.Progress) + "%",
+			remark,
 		})
 		if p.Progress == 0 {
 			unread++

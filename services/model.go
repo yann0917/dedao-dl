@@ -97,7 +97,7 @@ type OdobGroupExtInfo struct {
 	GroupType            int      `json:"group_type"` // 1-名家讲书
 	GroupTypeName        string   `json:"group_type_name"`
 	OdobTotalDuration    int      `json:"odob_total_duration"`
-	OdobAliasList        []string `json:"odob_alias_list"`
+	OdobAliasList        []string `json:"odob_alias_list"` // 音频 alias_id
 	ProgressPercent      int      `json:"progress_percent"`
 	ProgressLearnedCount int      `json:"progress_learned_count"`
 	PublishTime          string   `json:"publish_time"`

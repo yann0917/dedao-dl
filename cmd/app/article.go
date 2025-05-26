@@ -16,8 +16,8 @@ func ArticleList(id int, chapterID string) (list *services.ArticleList, err erro
 	if err != nil {
 		return
 	}
-	enid := info["enid"].(string)
-	count := info["publish_num"].(float64)
+	enid := info.Enid
+	count := float64(info.PublishNum)
 	page := int(math.Ceil(float64(count) / 20.0))
 	maxID := 0
 	var lists []services.ArticleIntro
