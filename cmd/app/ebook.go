@@ -82,11 +82,11 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 func generateEbookPages(enid, chapterID, token string, index, count, offset int) (svgList []string, err error) {
 	// Try to load from cache first
 	if cachedPages, found := services.LoadFromCache(enid, chapterID); found {
-		fmt.Printf("Using cached content for %s\n", chapterID)
+		fmt.Printf("使用缓存内容：%s\n", chapterID)
 		return cachedPages, nil
 	}
 
-	fmt.Printf("Downloading %s\n", chapterID)
+	fmt.Printf("下载章节 %s\n", chapterID)
 	pageList, err := getService().EbookPages(chapterID, token, index, count, offset)
 	if err != nil {
 		return
@@ -96,10 +96,11 @@ func generateEbookPages(enid, chapterID, token string, index, count, offset int)
 		desContents := DecryptAES(item.Svg)
 		svgList = append(svgList, desContents)
 	}
-	// fmt.Printf("IsEnd:%#v\n", pageList.IsEnd)
+
 	if !pageList.IsEnd {
 		index += count
 		count = 20
+		fmt.Printf("下载章节 %s 的更多页面 (索引: %d)\n", chapterID, index)
 		list, err1 := generateEbookPages(enid, chapterID, token, index, count, offset)
 		if err1 != nil {
 			err = err1
@@ -107,13 +108,15 @@ func generateEbookPages(enid, chapterID, token string, index, count, offset int)
 		}
 
 		svgList = append(svgList, list...)
+	} else {
+		fmt.Printf("章节 %s 下载完成 (共 %d 页)\n", chapterID, len(svgList))
 	}
-	// FIXME: debug
-	// err = utils.SaveFile(chapterID, "", strings.Join(svgList, "\n"))
 
 	// Save to cache
 	if err := services.SaveToCache(enid, chapterID, svgList); err != nil {
-		fmt.Printf("Warning: Failed to cache chapter %s: %v\n", chapterID, err)
+		fmt.Printf("警告: 无法缓存章节 %s: %v\n", chapterID, err)
+	} else {
+		fmt.Printf("已缓存章节 %s\n", chapterID)
 	}
 
 	return

@@ -1,10 +1,10 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
+	"math/rand"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/yann0917/dedao-dl/utils"
@@ -14,70 +14,225 @@ const (
 	maxRetries     = 3
 	initialBackoff = 3 * time.Second
 	retryDelay     = 1 * time.Second
+	// 缓存前缀
+	ebookPageCachePrefix = "ebook:page:"
+	// 缓存过期时间：24小时
+	ebookPageCacheTTL = 24 * time.Hour
+	// 请求间隔时间范围（秒）
+	minRequestInterval = 1
+	maxRequestInterval = 3
+	// 触发反爬虫后的冷却时间（秒）
+	cooldownTime = 60
+	// 最大连续失败次数，超过此数认为触发了反爬虫
+	maxConsecutiveFailures = 3
+	// 全局请求令牌桶大小
+	tokenBucketSize = 5
+	// 令牌产生速率（秒/个）
+	tokenRefillRate = 0.5
 )
 
-// Add new cache-related types
-type PageCache struct {
-	ChapterID string    `json:"chapter_id"`
-	Pages     []string  `json:"pages"`
-	Timestamp time.Time `json:"timestamp"`
+// requestLimiter 请求限流器
+type requestLimiter struct {
+	tokens         int        // 当前可用令牌数
+	maxTokens      int        // 最大令牌数
+	refillRate     float64    // 令牌填充速率（个/秒）
+	lastRefillTime time.Time  // 上次填充时间
+	mutex          sync.Mutex // 互斥锁
 }
 
-// Make cache functions public
-func GetCachePath(enid, chapterID string) string {
-	cacheDir := filepath.Join("output", ".cache", "pages", enid)
-	os.MkdirAll(cacheDir, 0755)
-	return filepath.Join(cacheDir, fmt.Sprintf("%s.json", chapterID))
+// newRequestLimiter 创建新的请求限流器
+func newRequestLimiter(maxTokens int, refillRate float64) *requestLimiter {
+	return &requestLimiter{
+		tokens:         maxTokens,
+		maxTokens:      maxTokens,
+		refillRate:     refillRate,
+		lastRefillTime: time.Now(),
+	}
 }
 
+// getToken 获取一个请求令牌，如果没有可用令牌则等待
+func (r *requestLimiter) getToken() time.Duration {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// 计算从上次填充到现在应该填充的令牌数
+	now := time.Now()
+	elapsedTime := now.Sub(r.lastRefillTime).Seconds()
+	newTokens := int(elapsedTime * r.refillRate)
+
+	if newTokens > 0 {
+		// 填充令牌，但不超过最大值
+		r.tokens = min(r.tokens+newTokens, r.maxTokens)
+		r.lastRefillTime = now
+	}
+
+	// 如果没有令牌，计算等待时间
+	if r.tokens <= 0 {
+		// 计算需要等待多久才能获得一个令牌
+		waitTime := time.Duration((1.0 / r.refillRate) * float64(time.Second))
+		return waitTime
+	}
+
+	// 消耗一个令牌
+	r.tokens--
+	// 添加小的随机抖动，使请求不那么规律
+	jitter := time.Duration(rand.Float64() * 200 * float64(time.Millisecond))
+	return jitter
+}
+
+// min 返回两个整数中的较小值
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// 全局请求控制相关变量
+var (
+	lastRequestTime     time.Time
+	consecutiveFailures int
+	antispiderCooldown  bool
+	antispiderMutex     sync.Mutex
+
+	// 全局请求限流器
+	globalLimiter = newRequestLimiter(tokenBucketSize, tokenRefillRate)
+)
+
+// 全局请求控制：检查是否需要等待并设置等待时间
+func waitForNextRequest() {
+	antispiderMutex.Lock()
+
+	// 如果在冷却期，检查是否已经过了冷却时间
+	if antispiderCooldown {
+		if time.Since(lastRequestTime) > cooldownTime*time.Second {
+			antispiderCooldown = false
+			consecutiveFailures = 0
+			antispiderMutex.Unlock()
+		} else {
+			// 仍在冷却期，需要额外等待
+			waitTime := cooldownTime*time.Second - time.Since(lastRequestTime)
+			antispiderMutex.Unlock()
+			fmt.Printf("处于反爬虫冷却期，等待 %.1f 秒...\n", waitTime.Seconds())
+			time.Sleep(waitTime)
+			return
+		}
+	} else {
+		antispiderMutex.Unlock()
+	}
+
+	// 从令牌桶获取令牌，可能会有等待时间
+	waitTime := globalLimiter.getToken()
+	if waitTime > 0 {
+		time.Sleep(waitTime)
+	}
+
+	// 更新最后请求时间
+	antispiderMutex.Lock()
+	lastRequestTime = time.Now()
+	antispiderMutex.Unlock()
+}
+
+// 记录请求失败
+func recordRequestFailure(err error) {
+	antispiderMutex.Lock()
+	defer antispiderMutex.Unlock()
+
+	// 检查错误是否可能是反爬虫引起的
+	if strings.Contains(err.Error(), "403") ||
+		strings.Contains(err.Error(), "forbidden") ||
+		strings.Contains(err.Error(), "too many requests") ||
+		strings.Contains(err.Error(), "429") {
+		// 直接进入冷却期
+		fmt.Println("检测到可能的反爬虫限制，进入冷却期")
+		consecutiveFailures = maxConsecutiveFailures
+		antispiderCooldown = true
+		lastRequestTime = time.Now()
+		return
+	}
+
+	// 增加连续失败计数
+	consecutiveFailures++
+
+	// 如果连续失败次数超过阈值，启动冷却期
+	if consecutiveFailures >= maxConsecutiveFailures {
+		fmt.Printf("连续请求失败 %d 次，可能触发了反爬虫机制，进入冷却期\n", consecutiveFailures)
+		antispiderCooldown = true
+		lastRequestTime = time.Now()
+	}
+}
+
+// 记录请求成功
+func recordRequestSuccess() {
+	antispiderMutex.Lock()
+	defer antispiderMutex.Unlock()
+
+	// 重置连续失败计数
+	consecutiveFailures = 0
+}
+
+// 使用 BadgerDB 实现缓存相关函数
+func getEbookPageCacheKey(enid, chapterID string) string {
+	return fmt.Sprintf("%s%s:%s", ebookPageCachePrefix, enid, chapterID)
+}
+
+// LoadFromCache 从缓存加载页面数据
 func LoadFromCache(enid, chapterID string) ([]string, bool) {
-	cachePath := GetCachePath(enid, chapterID)
-	data, err := os.ReadFile(cachePath)
+	// 获取 BadgerDB 实例
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
 	if err != nil {
 		return nil, false
 	}
 
-	var cache PageCache
-	if err := json.Unmarshal(data, &cache); err != nil {
+	var pages []string
+	cacheKey := getEbookPageCacheKey(enid, chapterID)
+
+	err = db.Get(cacheKey, &pages)
+	if err != nil {
 		return nil, false
 	}
 
-	// Optional: Check if cache is too old
-	if time.Since(cache.Timestamp) > 24*time.Hour {
-		os.Remove(cachePath)
-		return nil, false
-	}
-
-	return cache.Pages, true
+	return pages, true
 }
 
+// SaveToCache 保存页面数据到缓存
 func SaveToCache(enid, chapterID string, pages []string) error {
-	cache := PageCache{
-		ChapterID: chapterID,
-		Pages:     pages,
-		Timestamp: time.Now(),
-	}
-
-	data, err := json.Marshal(cache)
+	// 获取 BadgerDB 实例
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(GetCachePath(enid, chapterID), data, 0644)
+	cacheKey := getEbookPageCacheKey(enid, chapterID)
+	return db.SetWithTTL(cacheKey, pages, ebookPageCacheTTL)
 }
 
+// ClearBookCache 清除指定电子书的所有缓存
 func ClearBookCache(enid string) error {
-	cacheDir := filepath.Join("output", ".cache", "pages", enid)
-	return os.RemoveAll(cacheDir)
+	// 获取 BadgerDB 实例
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
+	if err != nil {
+		return err
+	}
+
+	prefix := fmt.Sprintf("%s%s:", ebookPageCachePrefix, enid)
+	return db.DeleteWithPrefix(prefix)
 }
 
+// ClearAllCache 清除所有电子书缓存
 func ClearAllCache() error {
-	cacheDir := filepath.Join("output", ".cache", "pages")
-	return os.RemoveAll(cacheDir)
+	// 获取 BadgerDB 实例
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
+	if err != nil {
+		return err
+	}
+
+	return db.DeleteWithPrefix(ebookPageCachePrefix)
 }
 
 func withRetry[T any](operation func() (T, error), chapterID string) (result T, err error) {
 	backoff := initialBackoff
+	var zero T
 
 	for i := 0; i < maxRetries; i++ {
 		result, err = operation()
@@ -85,20 +240,40 @@ func withRetry[T any](operation func() (T, error), chapterID string) (result T, 
 			return result, nil
 		}
 
-		// Print detailed error information
-		fmt.Printf("\nAttempt %d/%d failed for chapter %s:\n", i+1, maxRetries, chapterID)
-		fmt.Printf("Error: %v\n", err)
+		// 检查错误是否是反爬虫相关
+		isAntiSpider := strings.Contains(err.Error(), "反爬虫") ||
+			strings.Contains(err.Error(), "403") ||
+			strings.Contains(err.Error(), "429") ||
+			strings.Contains(err.Error(), "too many requests") ||
+			strings.Contains(err.Error(), "forbidden")
+
+		// 打印详细错误信息
+		fmt.Printf("\n尝试 %d/%d 失败，章节 %s:\n", i+1, maxRetries, chapterID)
+		fmt.Printf("错误: %v\n", err)
 
 		if i < maxRetries-1 {
-			fmt.Printf("Retrying in %v...\n", backoff)
+			// 如果是反爬虫错误，使用更长的退避时间
+			if isAntiSpider {
+				backoff = backoff * 3 // 更激进的退避
+				fmt.Printf("检测到可能的反爬虫限制，使用更长的等待时间\n")
+			}
+
+			fmt.Printf("将在 %v 后重试...\n", backoff)
 			time.Sleep(backoff)
-			// Double the backoff for next attempt
-			backoff *= 2
+
+			// 指数退避策略
+			backoff = backoff * 2
 		} else {
-			fmt.Printf("Max retries reached for chapter %s, giving up.\n", chapterID)
+			fmt.Printf("达到最大重试次数 %d，章节 %s 放弃获取。\n", maxRetries, chapterID)
+
+			// 对于反爬虫错误，建议用户稍后再试
+			if isAntiSpider {
+				fmt.Printf("建议等待一段时间后再尝试下载此章节，以避免触发反爬虫机制。\n")
+			}
 		}
 	}
-	return result, err
+
+	return zero, fmt.Errorf("获取章节 %s 失败，错误: %v", chapterID, err)
 }
 
 // Catelog ebook catalog
@@ -239,6 +414,44 @@ type EbookVIPInfo struct {
 	ErrTips            string `json:"err_tips"`
 }
 
+// EbookPages 使用默认选项的 EbookPages
+func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
+	operation := func() (*EbookPage, error) {
+		// 在请求之前检查并等待合适的时间间隔
+		// 使用全局令牌桶限流器来平衡并发请求速率
+		waitForNextRequest()
+
+		// 请求API获取数据
+		body, err := s.reqEbookPages(chapterID, token, index, count, offset)
+		if err != nil {
+			// 记录请求失败
+			recordRequestFailure(err)
+			return nil, err
+		}
+		defer body.Close()
+
+		var p *EbookPage
+		if err = handleJSONParse(body, &p); err != nil {
+			// 记录请求失败
+			recordRequestFailure(err)
+			return nil, err
+		}
+
+		// 请求成功，记录成功状态
+		recordRequestSuccess()
+
+		// 检查返回的页面数据是否为空
+		if p == nil || len(p.Pages) == 0 {
+			// 如果返回的页面为空，可能是触发了反爬虫
+			recordRequestFailure(fmt.Errorf("返回的页面数据为空，可能触发了反爬虫"))
+		}
+
+		return p, nil
+	}
+
+	return withRetry(operation, chapterID)
+}
+
 // EbookDetail get ebook detail
 func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 	operation := func() (*EbookDetail, error) {
@@ -306,22 +519,4 @@ func (s *Service) EbookVIPInfo() (info *EbookVIPInfo, err error) {
 		return i, nil
 	}
 	return withRetry(operation, "vip-info")
-}
-
-func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
-	operation := func() (*EbookPage, error) {
-
-		body, err := s.reqEbookPages(chapterID, token, index, count, offset)
-		if err != nil {
-			return nil, err
-		}
-		defer body.Close()
-
-		var p *EbookPage
-		if err = handleJSONParse(body, &p); err != nil {
-			return nil, err
-		}
-		return p, nil
-	}
-	return withRetry(operation, chapterID)
 }
