@@ -92,9 +92,32 @@ func generateEbookPages(enid, chapterID, token string, index, count, offset int)
 		return
 	}
 
+	// // 创建用于保存原始SVG内容的目录
+	// debugDir, err1 := utils.Mkdir(utils.OutputDir, "Debug", "SVG", enid)
+	// if err1 != nil {
+	// 	fmt.Printf("创建调试目录失败: %v\n", err1)
+	// 	// 继续执行，不要因为调试目录创建失败而中断主流程
+	// }
+
 	for _, item := range pageList.Pages {
 		desContents := DecryptAES(item.Svg)
 		svgList = append(svgList, desContents)
+
+		// // 保存原始SVG内容到文件，用于调试
+		// if debugDir != "" {
+		// 	debugFileName := fmt.Sprintf("%s_%d_%d.svg", chapterID, index, i)
+		// 	debugFilePath, err3 := utils.FilePath(filepath.Join(debugDir, debugFileName), "", false)
+		// 	if err3 != nil {
+		// 		fmt.Printf("创建调试文件路径失败: %v\n", err3)
+		// 		continue
+		// 	}
+		// 	// 写入文件
+		// 	if err2 := utils.WriteFileWithTrunc(debugFilePath, desContents); err2 != nil {
+		// 		fmt.Printf("保存调试SVG文件失败: %v\n", err2)
+		// 	} else {
+		// 		fmt.Printf("已保存调试SVG文件: %s\n", debugFilePath)
+		// 	}
+		// }
 	}
 
 	if !pageList.IsEnd {

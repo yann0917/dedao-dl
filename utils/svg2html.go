@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/JoshVarga/svgparser"
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
@@ -317,7 +318,8 @@ func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err
 	result += `
 </body>
 </html>`
-	result = html.UnescapeString(result)
+	// 使用同样的方法处理反转义，保留已转义的HTML标签
+	result = preserveEscapedHtmlTags(result)
 	return
 }
 
@@ -341,10 +343,11 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 	for _, content := range svgContent.Contents {
 		result += `
 <div id="` + svgContent.ChapterID + `">`
-		reader := strings.NewReader(content)
+		// 预处理 SVG 内容，处理 HTML 标签
+		processedContent := preprocessSvgContent(content)
 
-		valid := NewValidUTF8Reader(reader)
-		validReader := []byte(content)
+		valid := NewValidUTF8Reader(strings.NewReader(processedContent))
+		validReader := []byte(processedContent)
 		_, _ = valid.Read(validReader)
 
 		element, err1 := svgparser.Parse(bytes.NewReader(validReader), false)
@@ -562,6 +565,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 						style = lineContent[v][i-1].Style
 					}
 					if cont != "" {
+						// 保留每个元素的原始样式
 						if id != "" && style != "" {
 							result += `<span id="` + id + `" style="` + style + `">`
 						} else {
@@ -569,6 +573,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 								result += `<span id="` + id + `">`
 							}
 							if style != "" {
+								// 确保样式正确应用
 								result += `<span style="` + style + `">`
 							}
 						}
@@ -593,8 +598,78 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 </html>`
 		}
 	}
-	result = html.UnescapeString(result)
+
+	// 防止将已转义的HTML标签还原
+	// 比如 &lt;script&gt; 变成 <script>
+	// 仅对非HTML标签的实体进行反转义，如 &nbsp; &quot; 等
+	result = preserveEscapedHtmlTags(result)
+
 	return
+}
+
+// preserveEscapedHtmlTags 保留所有转义的HTML标签，只处理特定的实体符号
+func preserveEscapedHtmlTags(content string) string {
+	// 首先找出并保存所有转义的HTML标签
+	// 通用模式：&lt;任何标签&gt; 和 &lt;/任何标签&gt;
+	preservedMap := make(map[string]string)
+	result := content
+
+	// 1. 匹配所有转义的开始标签 &lt;tag...&gt;
+	openTagPattern := regexp.MustCompile(`&lt;[a-zA-Z][^&]*&gt;`)
+	openTags := openTagPattern.FindAllString(result, -1)
+	for i, match := range openTags {
+		placeholder := fmt.Sprintf("__PRESERVED_OPEN_TAG_%d__", i)
+		preservedMap[placeholder] = match
+		result = strings.ReplaceAll(result, match, placeholder)
+	}
+
+	// 2. 匹配所有转义的结束标签 &lt;/tag&gt;
+	closeTagPattern := regexp.MustCompile(`&lt;/[a-zA-Z][^&]*&gt;`)
+	closeTags := closeTagPattern.FindAllString(result, -1)
+	for i, match := range closeTags {
+		placeholder := fmt.Sprintf("__PRESERVED_CLOSE_TAG_%d__", i)
+		preservedMap[placeholder] = match
+		result = strings.ReplaceAll(result, match, placeholder)
+	}
+
+	// 3. 匹配所有转义的自闭合标签 &lt;tag...&gt;
+	selfCloseTagPattern := regexp.MustCompile(`&lt;[a-zA-Z][^&]*/&gt;`)
+	selfCloseTags := selfCloseTagPattern.FindAllString(result, -1)
+	for i, match := range selfCloseTags {
+		placeholder := fmt.Sprintf("__PRESERVED_SELFCLOSE_TAG_%d__", i)
+		preservedMap[placeholder] = match
+		result = strings.ReplaceAll(result, match, placeholder)
+	}
+
+	// 需要处理的特定实体符号列表
+	entities := map[string]string{
+		"&nbsp;":   " ",  // 不间断空格
+		"&ensp;":   " ",  // 半角空格
+		"&emsp;":   " ",  // 全角空格
+		"&quot;":   "\"", // 双引号
+		"&apos;":   "'",  // 单引号
+		"&amp;":    "&",  // 和号
+		"&mdash;":  "—",  // 破折号
+		"&ndash;":  "–",  // 连字符
+		"&hellip;": "…",  // 省略号
+		"&copy;":   "©",  // 版权符号
+		"&reg;":    "®",  // 注册商标
+		"&trade;":  "™",  // 商标
+		"&deg;":    "°",  // 度数符号
+		"&plusmn;": "±",  // 正负号
+	}
+
+	// 替换特定的实体符号
+	for entity, replacement := range entities {
+		result = strings.ReplaceAll(result, entity, replacement)
+	}
+
+	// 恢复所有转义的HTML标签
+	for placeholder, original := range preservedMap {
+		result = strings.ReplaceAll(result, placeholder, original)
+	}
+
+	return result
 }
 
 func GenHeadHtml() (result string) {
@@ -666,7 +741,7 @@ func GenTocLevelHtml(level int, startTag bool) string {
 func GenLineContentByElement(chapterID string, element *svgparser.Element) (lineContent map[float64][]HtmlEle) {
 	lineContent = make(map[float64][]HtmlEle)
 	offset := ""
-	lastY, lastTop, lastH, lastNewLine, lastName := "", "", "", false, ""
+	lastY, lastTop, lastH, lastName := "", "", "", ""
 
 	for k, children := range element.Children {
 		var ele HtmlEle
@@ -716,16 +791,61 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 					lastTopInt, _ := strconv.ParseFloat(lastTop, 64)
 					lastHInt, _ := strconv.ParseFloat(lastH, 64)
 
-					// 中文字符 len=3, FIXME: 英文字符无法根据 len 区分是否是下标
-					if !lastNewLine && heightInt < lastHInt &&
-						heightInt <= 20 && lenInt < 3 && children.Name == lastName {
-						if topInt < lastTopInt {
-							ele.IsFn = true
-						} else {
-							ele.IsSub = true
+					// 判断是否可能是上标或下标，如果是，忽略 newline 设置
+					isPossibleSuperOrSub := (heightInt < lastHInt*0.8) && // 提高高度比例要求，确保只有明显更小的文字才被识别为上标
+						(children.Name == lastName || (content != "" && len(content) <= 3 && isNumericOrMathSymbol(content)))
+
+					// 检查是否有字体大小指示为上标
+					fontSizeIsSmaller := false
+					if style, ok := attr["style"]; ok {
+						// 仅当字体明确小于16px时才视为可能的上标
+						if strings.Contains(style, "font-size:11px") ||
+							strings.Contains(style, "font-size:12px") ||
+							strings.Contains(style, "font-size:13px") {
+							fontSizeIsSmaller = true
+						}
+					}
+
+					// 使用更严格的条件组合判断上标
+					if fontSizeIsSmaller {
+						isPossibleSuperOrSub = true
+					}
+
+					// 检查Y坐标是否不同，通常上标的Y坐标会比基线的Y坐标小
+					yInt, _ := strconv.ParseFloat(attr["y"], 64)
+					lastYInt, _ := strconv.ParseFloat(lastY, 64)
+					if yInt != 0 && lastYInt != 0 && yInt < lastYInt &&
+						(lastYInt-yInt > 2) { // 至少需要有明显的Y轴差异
+						// Y坐标比前一个元素小，很可能是上标
+						isPossibleSuperOrSub = true
+					}
+
+					if isPossibleSuperOrSub {
+						// 如果满足上标条件，则优先识别上标
+
+						// 使用更严格的条件判断是否真的是上标或下标
+						isLikelyPower := (content != "" && len(content) <= 3 && isNumericOrMathSymbol(content))
+						// 对于特殊情况，如N³或2ⁿ，需要额外判断
+						if lenInt <= 5 && fontSizeIsSmaller {
+							isLikelyPower = true
 						}
 
-						attr["style"] = ""
+						if isLikelyPower {
+							// 根据相对位置判断是上标还是下标
+							if topInt < lastTopInt {
+								ele.IsFn = true
+								// 上标和下标元素不应该被视为新行
+								ele.Newline = false
+							} else {
+								ele.IsSub = true
+								ele.Newline = false
+							}
+							// 不要清空原始样式，会导致字体样式丢失
+							// attr["style"] = ""
+						} else {
+							lastTop = attr["top"]
+							lastH = attr["height"]
+						}
 					} else {
 						lastTop = attr["top"]
 						lastH = attr["height"]
@@ -788,7 +908,6 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 				children.Name == "image" {
 				lineContent[yInt] = append(lineContent[yInt], ele)
 			}
-			lastNewLine = ele.Newline
 			lastName = children.Name
 		}
 	}
@@ -810,7 +929,36 @@ func parseAttrAlt(attr map[string]string) string {
 }
 
 func parseAttrNewline(attr map[string]string) bool {
+	// 如果元素有明显的上标特征，即使有 newline="true" 也应该忽略
 	if newline, ok := attr["newline"]; ok && newline == "true" {
+		// 检查是否可能是上标
+		if _, topOk := attr["top"]; topOk {
+			if height, heightOk := attr["height"]; heightOk {
+				heightInt, _ := strconv.ParseFloat(height, 64)
+				// 使用更精确的高度阈值
+				if heightInt <= 16 { // 典型上标的高度通常小于16
+					return false
+				}
+			}
+
+			// 检查字体大小，是否明显小于正常文本
+			if style, sizeOk := attr["style"]; sizeOk {
+				// 仅当字体明确小于16px时才视为可能的上标
+				if strings.Contains(style, "font-size:11px") ||
+					strings.Contains(style, "font-size:12px") ||
+					strings.Contains(style, "font-size:13px") {
+					return false
+				}
+			}
+
+			// 检查内容长度，上标通常很短
+			if len, lenOk := attr["len"]; lenOk {
+				lenInt, _ := strconv.ParseFloat(len, 64)
+				if lenInt <= 5 { // 上标通常只有几个字符
+					return false
+				}
+			}
+		}
 		return true
 	}
 	return false
@@ -890,4 +1038,24 @@ outer:
 		}
 	}
 	return
+}
+
+func preprocessSvgContent(content string) string {
+	// 主要目的是处理实体符号，如 &nbsp; 等
+	// 我们不需要删除 HTML 标签，因为它们已经是转义形式（如 &lt;script&gt;）
+	// 在后续的 preserveEscapedHtmlTags 中会处理它们
+
+	// 保留内容不变，转义操作在 preserveEscapedHtmlTags 中完成
+	return content
+}
+
+// isNumericOrMathSymbol 检查字符串是否只包含数字或数学符号
+func isNumericOrMathSymbol(s string) bool {
+	for _, r := range s {
+		// 检查是否为数字或常见数学符号（+, -, *, /, ^, etc.）
+		if !unicode.IsDigit(r) && !strings.ContainsRune("+-*/^()[]{}.,", r) {
+			return false
+		}
+	}
+	return true
 }
