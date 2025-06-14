@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+	"sync"
 
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -50,32 +51,77 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	if err != nil {
 		return
 	}
-	// fmt.Printf("%#v\n", info.BookInfo.Pages)
-	// fmt.Printf("%#v\n", info.BookInfo.EbookBlock)
-	// fmt.Printf("%#v\n", info.BookInfo.Toc)
-	// fmt.Printf("%#v\n", info.BookInfo.Orders)
+
+	// 使用 channel 来收集结果和错误
+	type result struct {
+		content *utils.SvgContent
+		err     error
+	}
+
+	resultChan := make(chan result, len(info.BookInfo.Orders))
+	var mu sync.Mutex
+	var svgContents utils.SvgContents
+
 	wgp := utils.NewWaitGroupPool(5)
 	for i, order := range info.BookInfo.Orders {
 		wgp.Add()
 		go func(i int, order services.EbookOrders) {
-			defer func() {
-				wgp.Done()
-			}()
+			defer wgp.Done()
+
 			index, count, offset := 0, 20, 0
 			svgList, err1 := generateEbookPages(enID, order.ChapterID, token.Token, index, count, offset)
+
 			if err1 != nil {
-				err = err1
+				resultChan <- result{nil, fmt.Errorf("章节 %s 处理失败: %v", order.ChapterID, err1)}
 				return
 			}
 
-			svgContent = append(svgContent, &utils.SvgContent{
+			content := &utils.SvgContent{
 				Contents:   svgList,
 				ChapterID:  order.ChapterID,
 				OrderIndex: i,
-			})
+			}
+
+			resultChan <- result{content, nil}
 		}(i, order)
 	}
-	wgp.Wait()
+
+	// 等待所有 goroutine 完成
+	go func() {
+		wgp.Wait()
+		close(resultChan)
+	}()
+
+	// 收集结果
+	var firstError error
+	for res := range resultChan {
+		if res.err != nil {
+			if firstError == nil {
+				firstError = res.err
+			}
+			fmt.Printf("错误: %v\n", res.err)
+			continue
+		}
+
+		if res.content != nil {
+			mu.Lock()
+			svgContents = append(svgContents, res.content)
+			mu.Unlock()
+		}
+	}
+
+	// 如果有错误且没有成功的内容，返回错误
+	if firstError != nil && len(svgContents) == 0 {
+		err = firstError
+		return
+	}
+
+	// 如果有部分成功，继续处理，但打印警告
+	if firstError != nil {
+		fmt.Printf("警告: 部分章节处理失败，但继续处理成功的章节\n")
+	}
+
+	svgContent = svgContents
 	return
 }
 
@@ -89,35 +135,26 @@ func generateEbookPages(enid, chapterID, token string, index, count, offset int)
 	fmt.Printf("下载章节 %s\n", chapterID)
 	pageList, err := getService().EbookPages(chapterID, token, index, count, offset)
 	if err != nil {
-		return
+		return nil, fmt.Errorf("获取章节页面失败: %v", err)
 	}
 
-	// // 创建用于保存原始SVG内容的目录
-	// debugDir, err1 := utils.Mkdir(utils.OutputDir, "Debug", "SVG", enid)
-	// if err1 != nil {
-	// 	fmt.Printf("创建调试目录失败: %v\n", err1)
-	// 	// 继续执行，不要因为调试目录创建失败而中断主流程
-	// }
+	// 添加 nil 检查
+	if pageList == nil {
+		return nil, fmt.Errorf("章节 %s 返回的页面数据为空", chapterID)
+	}
+
+	if pageList.Pages == nil {
+		return nil, fmt.Errorf("章节 %s 的页面列表为空", chapterID)
+	}
+
+	if len(pageList.Pages) == 0 {
+		fmt.Printf("警告: 章节 %s 没有页面内容\n", chapterID)
+		return []string{}, nil
+	}
 
 	for _, item := range pageList.Pages {
 		desContents := DecryptAES(item.Svg)
 		svgList = append(svgList, desContents)
-
-		// // 保存原始SVG内容到文件，用于调试
-		// if debugDir != "" {
-		// 	debugFileName := fmt.Sprintf("%s_%d_%d.svg", chapterID, index, i)
-		// 	debugFilePath, err3 := utils.FilePath(filepath.Join(debugDir, debugFileName), "", false)
-		// 	if err3 != nil {
-		// 		fmt.Printf("创建调试文件路径失败: %v\n", err3)
-		// 		continue
-		// 	}
-		// 	// 写入文件
-		// 	if err2 := utils.WriteFileWithTrunc(debugFilePath, desContents); err2 != nil {
-		// 		fmt.Printf("保存调试SVG文件失败: %v\n", err2)
-		// 	} else {
-		// 		fmt.Printf("已保存调试SVG文件: %s\n", debugFilePath)
-		// 	}
-		// }
 	}
 
 	if !pageList.IsEnd {
@@ -126,8 +163,7 @@ func generateEbookPages(enid, chapterID, token string, index, count, offset int)
 		fmt.Printf("下载章节 %s 的更多页面 (索引: %d)\n", chapterID, index)
 		list, err1 := generateEbookPages(enid, chapterID, token, index, count, offset)
 		if err1 != nil {
-			err = err1
-			return
+			return nil, fmt.Errorf("获取更多页面失败: %v", err1)
 		}
 
 		svgList = append(svgList, list...)
