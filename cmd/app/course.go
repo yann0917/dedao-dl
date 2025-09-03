@@ -14,8 +14,8 @@ func CourseType() (list *services.CourseCategoryList, err error) {
 }
 
 // CourseList 已购课程列表
-func CourseList(category string) (list *services.CourseListV2Data, err error) {
-	list, err = getService().CourseListV2All(category, "study")
+func CourseList(category string) (list *services.CourseList, err error) {
+	list, err = getService().CourseListAll(category, "study")
 	if err != nil {
 		return
 	}
@@ -60,7 +60,7 @@ func CourseInfo(id int) (info *services.CourseInfo, err error) {
 }
 
 // CourseDetail 已购课程详情
-func CourseDetail(category string, id int) (course *services.CourseV2, err error) {
+func CourseDetail(category string, id int) (course *services.Course, err error) {
 	course = config.Instance.GetCourseCache(category, id)
 	if course != nil && course.Enid != "" {
 		return

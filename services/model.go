@@ -1,15 +1,15 @@
 package services
 
-// CourseListV2Data 课程列表V2数据
-type CourseListV2Data struct {
-	List          []CourseV2 `json:"list"`            // 课程列表
-	Total         int        `json:"total"`           // 总数量
-	IsMore        int        `json:"is_more"`         // 是否有更多
-	HasSingleBook bool       `json:"has_single_book"` // 是否有单本书籍
+// CourseList 课程列表V2数据
+type CourseList struct {
+	List          []Course `json:"list"`            // 课程列表
+	Total         int      `json:"total"`           // 总数量
+	IsMore        int      `json:"is_more"`         // 是否有更多
+	HasSingleBook bool     `json:"has_single_book"` // 是否有单本书籍
 }
 
 // CourseV2 课程V2数据结构
-type CourseV2 struct {
+type Course struct {
 	Enid             string           `json:"enid"`
 	ID               int              `json:"id"`
 	Type             int              `json:"type"` // 13-单本,1013-名家讲书合集

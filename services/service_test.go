@@ -72,14 +72,6 @@ func TestCourseType(t *testing.T) {
 	fmt.Printf("result:=%v \n", result)
 }
 
-func TestCourseList(t *testing.T) {
-	result, err := service.CourseList("bauhinia", "study", 1, 10)
-	if err != nil {
-		fmt.Printf("err:=%#v \n", err)
-	}
-	fmt.Printf("result:=%v \n", result)
-}
-
 func TestCourseInfo(t *testing.T) {
 	ID := "OY8PNZj5EavJq1aHO9Jn1eqGDdlgw7"
 	result, err := service.CourseInfo(ID)

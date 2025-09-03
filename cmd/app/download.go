@@ -323,7 +323,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 }
 
 // 生成 AudioBook 下载数据
-func extractOdobDownloadData(aid int, article *services.CourseV2) []downloader.Datum {
+func extractOdobDownloadData(aid int, article *services.Course) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
 	audioData := make([]*downloader.Datum, 0)
@@ -795,7 +795,7 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 	return nil
 }
 
-func DownloadMarkdownAudioBook(aliasID, path string, article *services.CourseV2) error {
+func DownloadMarkdownAudioBook(aliasID, path string, article *services.Course) error {
 	content, err2 := getArticleDetail(aliasID)
 	if err2 != nil {
 		return err2

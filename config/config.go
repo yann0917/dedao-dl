@@ -314,7 +314,7 @@ func (c *ConfigsData) SwitchUser(u *User) error {
 }
 
 // SetCourseCache 保存课程数据到 Badger 数据库
-func (c *ConfigsData) SetCourseCache(category string, id int, course services.CourseV2) error {
+func (c *ConfigsData) SetCourseCache(category string, id int, course services.Course) error {
 	// 遍历 map，将每个键值对存储到 BadgerDB 中
 	key := utils.FormatKey(category, id)
 
@@ -326,9 +326,9 @@ func (c *ConfigsData) SetCourseCache(category string, id int, course services.Co
 }
 
 // GetCourseCache 获取指定类别和 ID 的课程数据
-func (c *ConfigsData) GetCourseCache(category string, id int) *services.CourseV2 {
+func (c *ConfigsData) GetCourseCache(category string, id int) *services.Course {
 	key := utils.FormatKey(category, id)
-	var course services.CourseV2
+	var course services.Course
 	err := c.badgerDB.Get(key, &course)
 	if err != nil {
 		// 如果获取失败，返回空对象
@@ -338,7 +338,7 @@ func (c *ConfigsData) GetCourseCache(category string, id int) *services.CourseV2
 }
 
 // GetAllCourseCache 获取指定类别的所有课程数据
-func (c *ConfigsData) GetAllCourseCache(category string) (map[int]*services.CourseV2, error) {
+func (c *ConfigsData) GetAllCourseCache(category string) (map[int]*services.Course, error) {
 	// 从 Badger 获取所有指定前缀的数据
 	rawResults, err := c.badgerDB.GetAllByPrefix(category, nil)
 	if err != nil {
@@ -346,7 +346,7 @@ func (c *ConfigsData) GetAllCourseCache(category string) (map[int]*services.Cour
 	}
 
 	// 初始化结果 map
-	results := make(map[int]*services.CourseV2)
+	results := make(map[int]*services.Course)
 
 	// 遍历原始结果
 	for idStr, rawValue := range rawResults {
@@ -362,7 +362,7 @@ func (c *ConfigsData) GetAllCourseCache(category string) (map[int]*services.Cour
 			continue
 		}
 
-		var course services.CourseV2
+		var course services.Course
 		if err := jsoniter.Unmarshal(rawJson, &course); err != nil {
 			continue
 		}

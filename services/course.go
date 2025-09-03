@@ -6,51 +6,6 @@ import (
 	"errors"
 )
 
-// Course metadata
-type Course struct {
-	Enid           string        `json:"enid"`
-	ID             int           `json:"id"`
-	Type           int           `json:"type"`
-	ClassType      int           `json:"class_type"`
-	ClassID        int           `json:"class_id"`
-	HasExtra       bool          `json:"has_extra"`
-	ClassFinished  bool          `json:"class_finished"`
-	Title          string        `json:"title"`
-	Intro          string        `json:"intro"`
-	Author         string        `json:"author"`
-	Icon           string        `json:"icon"`
-	CreateTime     int           `json:"create_time"`
-	LastRead       string        `json:"last_read"`
-	Progress       int           `json:"progress"`
-	Duration       int           `json:"duration"`
-	CourseNum      int           `json:"course_num"`
-	PublishNum     int           `json:"publish_num"`
-	LogID          string        `json:"log_id"`
-	LogType        string        `json:"log_type"`
-	IsTop          int           `json:"is_top"`
-	LastActionTime int           `json:"last_action_time"`
-	IsNew          int           `json:"is_new"`
-	IsFinished     int           `json:"is_finished"`
-	Size           string        `json:"size"`
-	DdURL          string        `json:"dd_url"`
-	AssetsType     int           `json:"assets_type"`
-	DrmToken       string        `json:"drm_token"`
-	AudioDetail    Audio         `json:"audio_detail"`
-	ProductPrice   int           `json:"product_price"`
-	Price          string        `json:"price"`
-	ProductIntro   string        `json:"product_intro"`
-	HasPlayAuth    bool          `json:"has_play_auth"`
-	ExtInfo        []ReplierInfo `json:"ext_info"`
-	Status         int           `json:"status"`
-	DdExtURL       string        `json:"dd_ext_url"`
-	IsCollected    bool          `json:"is_collected"`
-	WendaExtInfo   struct {
-		AnswerID int `json:"answer_id"`
-	} `json:"wenda_ext_info"`
-	ClassExtReview ClassExtReview `json:"class_ext_review"`
-	PlanStatus     int            `json:"plan_status"`
-}
-
 // ReplierInfo Replier Info
 type ReplierInfo struct {
 	ReplierUID         int    `json:"replier_uid"`
@@ -67,13 +22,6 @@ type CourseIntro struct {
 	Type    int    `json:"type"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
-}
-
-// CourseList product list
-type CourseList struct {
-	List   []Course `json:"list"`
-	ISMore int      `json:"is_more"`
-	Page   int      `json:"page"`
 }
 
 // CourseInfo product intro info
@@ -171,102 +119,9 @@ type ClassInfo struct {
 	TrialCount            int    `json:"trial_count"`
 }
 
-// FlatArticleList flat
-type FlatArticleList struct {
-	ID             int           `json:"id"`
-	IDStr          string        `json:"id_str"`
-	Enid           string        `json:"enid"`
-	ClassEnid      string        `json:"class_enid"`
-	OriginID       int           `json:"origin_id"`
-	OriginIDStr    string        `json:"origin_id_str"`
-	ProductType    int           `json:"product_type"`
-	ProductID      int           `json:"product_id"`
-	ProductIDStr   string        `json:"product_id_str"`
-	ClassID        int           `json:"class_id"`
-	ClassIDStr     string        `json:"class_id_str"`
-	ChapterID      int           `json:"chapter_id"`
-	ChapterIDStr   string        `json:"chapter_id_str"`
-	Title          string        `json:"title"`
-	Logo           string        `json:"logo"`
-	URL            string        `json:"url"`
-	Summary        string        `json:"summary"`
-	Mold           int           `json:"mold"`
-	PushContent    string        `json:"push_content"`
-	PublishTime    int           `json:"publish_time"`
-	PushTime       int           `json:"push_time"`
-	PushStatus     int           `json:"push_status"`
-	ShareTitle     string        `json:"share_title"`
-	ShareContent   string        `json:"share_content"`
-	ShareSwitch    int           `json:"share_switch"`
-	DdArticleID    int64         `json:"dd_article_id"`
-	DdArticleIDStr string        `json:"dd_article_id_str"`
-	DdArticleToken string        `json:"dd_article_token"`
-	Status         int           `json:"status"`
-	CreateTime     int           `json:"create_time"`
-	UpdateTime     int           `json:"update_time"`
-	CurLearnCount  int           `json:"cur_learn_count"`
-	IsFreeTry      bool          `json:"is_free_try"`
-	IsUserFreeTry  bool          `json:"is_user_free_try"`
-	OrderNum       int           `json:"order_num"`
-	IsLike         bool          `json:"is_like"`
-	ShareURL       string        `json:"share_url"`
-	TrialShareURL  string        `json:"trial_share_url"`
-	IsRead         bool          `json:"is_read"`
-	LogID          string        `json:"log_id"`
-	LogType        string        `json:"log_type"`
-	RecommendTitle string        `json:"recommend_title"`
-	AudioAliasIds  []interface{} `json:"audio_alias_ids"`
-	IsBuy          bool          `json:"is_buy"`
-	DdMediaID      int           `json:"dd_media_id"`
-	DdMediaIDStr   string        `json:"dd_media_id_str"`
-	VideoStatus    int           `json:"video_status"`
-	DdLiveID       int           `json:"dd_live_id"`
-	NotJoinPlan    int           `json:"not_join_plan"`
-}
-
-// CourseList get course list by page
-func (s *Service) CourseList(category, order string, page, limit int) (list *CourseList, err error) {
-	body, err := s.reqCourseList(category, order, page, limit)
-	if err != nil {
-		return
-	}
-	defer body.Close()
-	if err = handleJSONParse(body, &list); err != nil {
-		return
-	}
-	return
-}
-
-// CourseListAll get all course list
-func (s *Service) CourseListAll(category, order string) (list *CourseList, err error) {
-	count, err := s.CourseCount(category)
-	if err != nil {
-		return
-	}
-	limit := 18.0
-	page := int(math.Ceil(float64(count) / limit))
-	var lists []Course
-	for i := 1; i <= page; i++ {
-		list, err = s.CourseList(category, order, i, int(limit))
-		if err != nil {
-			return
-		}
-		lists = append(lists, list.List...)
-	}
-	// 启发俱乐部
-	if category == CateCourse {
-		lists = append(lists, EnlightenClub())
-	}
-	if page == 0 {
-		list = new(CourseList)
-	}
-	list.List = lists
-	return
-}
-
 // CourseDetail get course list
-func (s *Service) CourseDetail(category string, id int) (detail *CourseV2, err error) {
-	list, err := s.CourseListV2All(category, "study")
+func (s *Service) CourseDetail(category string, id int) (detail *Course, err error) {
+	list, err := s.CourseListAll(category, "study")
 	if err != nil {
 		return
 	}
@@ -369,8 +224,8 @@ func EnlightenClub() (detail Course) {
 }
 
 // CourseListV2 获取V2版本的课程列表
-func (s *Service) CourseListV2(category, order string, page, limit int) (response *CourseListV2Data, err error) {
-	body, err := s.reqCourseListV2(category, order, page, limit)
+func (s *Service) CourseList(category, order string, page, limit int) (response *CourseList, err error) {
+	body, err := s.reqCourseList(category, order, page, limit)
 	if err != nil {
 		return
 	}
@@ -382,8 +237,8 @@ func (s *Service) CourseListV2(category, order string, page, limit int) (respons
 }
 
 // CourseListV2All 获取V2版本的所有课程列表
-func (s *Service) CourseListV2All(category, order string) (data *CourseListV2Data, err error) {
-	resp, err := s.CourseListV2(category, order, 1, 18)
+func (s *Service) CourseListAll(category, order string) (data *CourseList, err error) {
+	resp, err := s.CourseList(category, order, 1, 18)
 	if err != nil {
 		return
 	}
@@ -398,20 +253,24 @@ func (s *Service) CourseListV2All(category, order string) (data *CourseListV2Dat
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))
 
 	// 已经获取第一页数据
-	var allCourses []CourseV2
+	var allCourses []Course
 	allCourses = append(allCourses, resp.List...)
 
 	// 获取剩余页面数据
 	for page := 2; page <= totalPages; page++ {
-		pageResp, err := s.CourseListV2(category, order, page, limit)
+		pageResp, err := s.CourseList(category, order, page, limit)
 		if err != nil {
 			return data, err
 		}
 		allCourses = append(allCourses, pageResp.List...)
 	}
+	// 启发俱乐部
+	if category == CateCourse {
+		allCourses = append(allCourses, EnlightenClub())
+	}
 
 	// 构建完整结果
-	data = &CourseListV2Data{
+	data = &CourseList{
 		List:          allCourses,
 		Total:         total,
 		IsMore:        0, // 已获取全部，没有更多

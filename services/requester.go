@@ -96,20 +96,8 @@ func (s *Service) reqCourseType() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqCourseList 请求课程列表
-func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
-	resp, err := s.client.R().SetBody(map[string]interface{}{
-		"category":        category,
-		"order":           order,
-		"filter_complete": 0,
-		"page":            page,
-		"page_size":       limit,
-	}).Post("/api/hades/v1/product/list")
-	return handleHTTPResponse(resp, err)
-}
-
 // reqCourseListV2 请求课程列表
-func (s *Service) reqCourseListV2(category, order string, page, limit int) (io.ReadCloser, error) {
+func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"display_group":   true,
