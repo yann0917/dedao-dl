@@ -238,6 +238,8 @@ Available Commands:
     </table>
 </html>
 
+![follow me](/docs/img/scan_search_green.png)
+
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/yann0917/dedao-dl.svg)](https://starchart.cc/yann0917/dedao-dl)
