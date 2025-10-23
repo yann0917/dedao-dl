@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/olekukonko/tablewriter/tw"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
+	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
 )
 
 var (
-	classID   int
-	articleID int
-	bookID    int
-	compassID int
-	topicID   string
+	classID      int
+	articleID    int
+	bookID       int
+	compassID    int
+	topicID      string
+	courseGroupID int
+	odobGroupID  int
+	aceGroupID   int
 )
 
 var courseTypeCmd = &cobra.Command{
@@ -36,14 +41,16 @@ var courseCmd = &cobra.Command{
 	Use:     "course",
 	Short:   "获取我购买过课程",
 	Long:    `使用 dedao-dl course 获取我购买过的课程`,
-	Example: "dedao-dl course",
+	Example: "dedao-dl course\ndedao-dl course --group-id 12345",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if classID > 0 {
 			return courseInfo(classID)
-
 		}
-		return courseList(app.CateCourse)
+		if courseGroupID > 0 {
+			return groupList(app.CateCourse, courseGroupID)
+		}
+		return courseListFlat(app.CateCourse)
 	},
 }
 
@@ -52,13 +59,16 @@ var compassCmd = &cobra.Command{
 	Short:   "获取我的锦囊",
 	Long:    `使用 dedao-dl ace 获取我的锦囊`,
 	Args:    cobra.OnlyValidArgs,
-	Example: "dedao-dl ace",
+	Example: "dedao-dl ace\ndedao-dl ace --group-id 12345",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if compassID > 0 {
 			return nil
 		}
-		return courseList(app.CateAce)
+		if aceGroupID > 0 {
+			return groupList(app.CateAce, aceGroupID)
+		}
+		return courseListFlat(app.CateAce)
 	},
 }
 
@@ -67,13 +77,16 @@ var odobCmd = &cobra.Command{
 	Short:   "获取我的听书书架",
 	Long:    `使用 dedao-dl odob 获取我的听书书架`,
 	Args:    cobra.OnlyValidArgs,
-	Example: "dedao-dl odob",
+	Example: "dedao-dl odob\ndedao-dl odob --group-id 12345",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if compassID > 0 {
 			return nil
 		}
-		return courseList(app.CateAudioBook)
+		if odobGroupID > 0 {
+			return groupList(app.CateAudioBook, odobGroupID)
+		}
+		return courseListFlat(app.CateAudioBook)
 	},
 }
 
@@ -84,7 +97,12 @@ func init() {
 	rootCmd.AddCommand(odobCmd)
 
 	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID，获取课程信息")
+	courseCmd.PersistentFlags().IntVar(&courseGroupID, "group-id", 0, "分组ID，显示指定分组内的课程")
+
 	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
+	compassCmd.PersistentFlags().IntVar(&aceGroupID, "group-id", 0, "分组ID，显示指定分组内的锦囊")
+
+	odobCmd.PersistentFlags().IntVar(&odobGroupID, "group-id", 0, "分组ID，显示指定分组内的听书")
 }
 
 func courseType() (err error) {
@@ -210,4 +228,156 @@ func courseList(category string) (err error) {
 
 	table.Render()
 	return
+}
+
+// courseListFlat 获取课程列表（扁平化显示，展开所有分组）
+func courseListFlat(category string) (err error) {
+	list, err := app.CourseList(category)
+	if err != nil {
+		return err
+	}
+
+	// Expand all groups
+	allItems, _, expandErr := expandGroups(list.List, category)
+	if expandErr != nil && len(allItems) == 0 {
+		return expandErr
+	}
+
+	// Render using helper
+	return renderCourseTable(allItems, category, renderOptions{})
+}
+
+// groupList 显示指定分组内的课程列表
+func groupList(category string, groupID int) (err error) {
+	list, err := app.GetGroupItems(category, groupID)
+	if err != nil {
+		return err
+	}
+
+	// Render using helper with header
+	return renderCourseTable(list.List, category, renderOptions{
+		header: fmt.Sprintf("📁 分组内容 (Group ID: %d)", groupID),
+	})
+}
+
+// Helper functions for course list rendering
+
+// renderOptions configures table rendering
+type renderOptions struct {
+	header string
+}
+
+// getItemIdentifier extracts the ID and remark for a course item based on category.
+// It handles different content types (ebook, course, audiobook, ace) appropriately.
+// 根据类别提取课程项目的ID和备注信息
+func getItemIdentifier(item services.Course, category string) (id string, remark string) {
+	switch category {
+	case app.CateAce:
+		fallthrough
+	case app.CateAudioBook:
+		if item.Type == 1013 {
+			remark = "名家讲书"
+		}
+		fallthrough
+	case app.CateEbook:
+		id = strconv.Itoa(item.ID)
+	case app.CateCourse:
+		id = strconv.Itoa(item.ClassID)
+	}
+	return
+}
+
+// renderCourseTable renders a list of courses in table format with statistics.
+// It displays items in a formatted table and calculates reading progress statistics.
+// 以表格格式渲染课程列表，并显示统计信息
+func renderCourseTable(items []services.Course, category string, options renderOptions) error {
+	total, reading, done, unread := len(items), 0, 0, 0
+
+	out := os.Stdout
+
+	// Print header if provided
+	if options.header != "" {
+		fmt.Fprintf(out, "\n%s\n", options.header)
+	}
+
+	// Create table
+	table := tablewriter.NewTable(out, tablewriter.WithConfig(tablewriter.Config{
+		Row: tw.CellConfig{
+			Formatting: tw.CellFormatting{
+				AutoWrap:  tw.WrapBreak,
+				Alignment: tw.AlignLeft,
+			},
+			ColMaxWidths: tw.CellWidth{Global: 64},
+		},
+	}))
+	table.Header([]string{"#", "ID", "课程名称", "作者", "购买日期", "价格", "学习进度", "备注"})
+
+	// Render rows
+	for i, p := range items {
+		classID, remark := getItemIdentifier(p, category)
+		table.Append([]string{
+			strconv.Itoa(i),
+			classID,
+			p.Title,
+			p.Author,
+			utils.Unix2String(int64(p.CreateTime)),
+			p.Price,
+			strconv.Itoa(p.Progress) + "%",
+			remark,
+		})
+
+		// Track statistics
+		if p.Progress == 0 {
+			unread++
+		} else if p.Progress == 100 {
+			done++
+		} else {
+			reading++
+		}
+	}
+
+	// Print statistics
+	fmt.Fprintf(out, "\n共 %d 本书, 在读: %d, 读完: %d, 未读: %d\n",
+		total, reading, done, unread)
+
+	table.Render()
+	return nil
+}
+
+// expandGroups expands all groups in a list and returns flattened items.
+// It processes groups sequentially and provides progress feedback for large operations.
+// 展开列表中的所有分组，返回扁平化的项目列表
+func expandGroups(items []services.Course, category string) ([]services.Course, int, error) {
+	var allItems []services.Course
+	var groupCount int
+	var failedGroups []string
+
+	for _, item := range items {
+		if item.IsGroup {
+			groupCount++
+
+			groupItems, err := app.GetGroupItems(category, item.ID)
+			if err != nil {
+				failedGroups = append(failedGroups, fmt.Sprintf("%s (ID: %d)", item.Title, item.ID))
+				fmt.Fprintf(os.Stderr, "⚠️  无法获取分组 %s (ID: %d): %v\n", item.Title, item.ID, err)
+				continue
+			}
+
+			// Handle empty groups explicitly
+			if len(groupItems.List) == 0 {
+				fmt.Fprintf(os.Stderr, "ℹ️  分组 %s (ID: %d) 为空\n", item.Title, item.ID)
+			}
+
+			allItems = append(allItems, groupItems.List...)
+		} else {
+			allItems = append(allItems, item)
+		}
+	}
+
+	// Return partial results with aggregated error
+	if len(failedGroups) > 0 {
+		return allItems, groupCount, fmt.Errorf("无法获取 %d 个分组: %s", len(failedGroups), strings.Join(failedGroups, ", "))
+	}
+
+	return allItems, groupCount, nil
 }
