@@ -80,7 +80,7 @@ var odobCmd = &cobra.Command{
 	Example: "dedao-dl odob\ndedao-dl odob --group-id 12345",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if compassID > 0 {
+		if bookID > 0 {
 			return nil
 		}
 		if odobGroupID > 0 {
@@ -102,6 +102,7 @@ func init() {
 	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
 	compassCmd.PersistentFlags().IntVar(&aceGroupID, "group-id", 0, "分组ID，显示指定分组内的锦囊")
 
+	odobCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "听书 ID")
 	odobCmd.PersistentFlags().IntVar(&odobGroupID, "group-id", 0, "分组ID，显示指定分组内的听书")
 }
 
