@@ -12,7 +12,7 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
-TARGET_EXEC=dedao
+TARGET_EXEC=dedao-dl
 
 setup:
 	mkdir -p Releases

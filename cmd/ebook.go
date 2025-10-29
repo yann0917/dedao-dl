@@ -10,18 +10,25 @@ import (
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
 
+var (
+	ebookGroupID int
+)
+
 var ebookCmd = &cobra.Command{
 	Use:     "ebook",
 	Short:   "获取我的电子书架",
 	Long:    `使用 dedao-dl ebook 获取我的电子书架`,
 	Args:    cobra.OnlyValidArgs,
-	Example: "dedao-dl ebook",
+	Example: "dedao-dl ebook\ndedao-dl ebook --group-id 12345",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if bookID > 0 {
 			return ebookDetail(bookID)
 		}
-		return courseList(app.CateEbook)
+		if ebookGroupID > 0 {
+			return groupList(app.CateEbook, ebookGroupID)
+		}
+		return courseListFlat(app.CateEbook)
 	},
 }
 
@@ -29,6 +36,7 @@ func init() {
 	rootCmd.AddCommand(ebookCmd)
 
 	ebookCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "电子书ID")
+	ebookCmd.PersistentFlags().IntVar(&ebookGroupID, "group-id", 0, "分组ID，显示指定分组内的电子书")
 }
 
 func ebookDetail(id int) (err error) {

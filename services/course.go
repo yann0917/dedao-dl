@@ -236,6 +236,62 @@ func (s *Service) CourseList(category, order string, page, limit int) (response 
 	return
 }
 
+// CourseGroupList fetches a single page of items within a specific group.
+// 获取分组内的课程列表（单页）
+func (s *Service) CourseGroupList(category, order string, groupID, page, limit int) (response *CourseList, err error) {
+	body, err := s.reqCourseGroupList(category, order, groupID, page, limit)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &response); err != nil {
+		return
+	}
+	return
+}
+
+// CourseGroupListAll fetches all items within a specific group across all pages.
+// It handles pagination automatically and aggregates results.
+// 获取分组内的所有课程列表（自动处理分页）
+func (s *Service) CourseGroupListAll(category, order string, groupID int) (data *CourseList, err error) {
+	resp, err := s.CourseGroupList(category, order, groupID, 1, 18)
+	if err != nil {
+		return
+	}
+
+	if resp.Total == 0 {
+		data = resp
+		return
+	}
+
+	total := resp.Total
+	limit := 18
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
+	// 已经获取第一页数据
+	var allCourses []Course
+	allCourses = append(allCourses, resp.List...)
+
+	// 获取剩余页面数据
+	for page := 2; page <= totalPages; page++ {
+		pageResp, err := s.CourseGroupList(category, order, groupID, page, limit)
+		if err != nil {
+			return data, err
+		}
+		allCourses = append(allCourses, pageResp.List...)
+	}
+
+	// 构建完整结果
+	data = &CourseList{
+		List:          allCourses,
+		Total:         total,
+		IsMore:        0, // 已获取全部，没有更多
+		HasSingleBook: resp.HasSingleBook,
+	}
+
+	return
+}
+
 // CourseListV2All 获取V2版本的所有课程列表
 func (s *Service) CourseListAll(category, order string) (data *CourseList, err error) {
 	resp, err := s.CourseList(category, order, 1, 18)

@@ -112,6 +112,24 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 	return handleHTTPResponse(resp, err)
 }
 
+// reqCourseGroupList makes an HTTP request to fetch items within a specific group.
+// It uses the /api/hades/v2/product/group/list endpoint with display_group=false to prevent nesting.
+// 请求分组内的课程列表
+func (s *Service) reqCourseGroupList(category, order string, groupID, page, limit int) (io.ReadCloser, error) {
+	resp, err := s.client.R().SetBody(map[string]interface{}{
+		"category":        category,
+		"display_group":   false, // Prevent nested groups
+		"filter":          "group",
+		"group_id":        groupID,
+		"order":           order,
+		"filter_complete": 0,
+		"page":            page,
+		"page_size":       limit,
+		"sort_type":       "desc",
+	}).Post("/api/hades/v2/product/group/list")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqOutsideDetail 请求名家讲书课程详情
 func (s *Service) reqOutsideDetail(enid string) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{

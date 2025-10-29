@@ -34,3 +34,11 @@ dedao-dl_*
 
 output/
 config.json
+
+# Development artifacts with personal data
+debug*.txt
+debug*.json
+*.lst
+GROUP_*.md
+REFACTORING_*.md
+CODE_REVIEW_*.md

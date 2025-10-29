@@ -75,3 +75,18 @@ func CourseDetail(category string, id int) (course *services.Course, err error) 
 	course = detail
 	return
 }
+
+// GetGroupItems fetches all items within a specific group.
+// Returns an error if the group is empty or doesn't exist.
+// 获取分组内的所有项目
+func GetGroupItems(category string, groupID int) (list *services.CourseList, err error) {
+	list, err = getService().CourseGroupListAll(category, "study", groupID)
+	if err != nil {
+		return
+	}
+	if list == nil {
+		err = errors.New("分组为空或不存在")
+		return
+	}
+	return
+}
