@@ -8,7 +8,7 @@ require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
 	github.com/dgraph-io/badger/v4 v4.8.0
-	github.com/gabriel-vasile/mimetype v1.4.10
+	github.com/gabriel-vasile/mimetype v1.4.11
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/gomarkdown/markdown v0.0.0-20250810172220-2e2c11897d1a
 	github.com/json-iterator/go v1.1.12
