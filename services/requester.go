@@ -204,6 +204,7 @@ func (s *Service) reqArticleInfo(ID string, aType int) (io.ReadCloser, error) {
 
 // reqArticleDetail 请求文章详情
 func (s *Service) reqArticleDetail(token, appID string) (io.ReadCloser, error) {
+	// "sign"
 	resp, err := s.client.R().
 		SetQueryParams(map[string]string{
 			"token":  token,
@@ -363,5 +364,35 @@ func (s *Service) reqTopicNotesList(topicID string) (io.ReadCloser, error) {
 			"version":       2,
 			"topic_id_hazy": topicID,
 		}).Post("/pc/ledgers/topic/notes/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqChannelInfo 请求学习圈频道信息
+// channelID: 频道ID
+func (s *Service) reqChannelInfo(channelID int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"channel_id": channelID,
+		}).
+		Post("/sphere/v1/app/channel/info")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqChannelHomepage 请求学习圈频道首页分类
+func (s *Service) reqChannelHomepage(channelID int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"channel_id": channelID,
+		}).
+		Post("/pc/sphere/v1/app/topic/homepage/v2")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqChannelVipInfo 请求学习圈VIP/权限信息
+// 使用 query 参数 channel_id 并以 POST 方式请求
+func (s *Service) reqChannelVipInfo(channelID int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetQueryParam("channel_id", fmt.Sprintf("%d", channelID)).
+		Post("/sphere/v1/app/vip/info")
 	return handleHTTPResponse(resp, err)
 }

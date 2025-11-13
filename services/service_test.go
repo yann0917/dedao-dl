@@ -169,3 +169,76 @@ func TestTopicNotesList(t *testing.T) {
 	}
 	fmt.Printf("result:=%v \n", result)
 }
+
+func TestChannelInfoParse(t *testing.T) {
+	raw := []byte(`{
+        "h": {"c":0, "e":"", "s":1761825177, "t":8, "apm":"e61ea68f2653001"},
+        "c": {
+          "channel_id": 1000,
+          "is_free": false,
+          "is_sharable": true,
+          "is_show_equity": true,
+          "subscription_ptype": 106,
+          "theme": "ai",
+          "title": "AI 学习圈",
+          "description": "desc",
+          "logo": "https://example/logo.png",
+          "badge": "https://example/badge.png",
+          "theme_color": "#000",
+          "host": {"uid":19, "name":"host", "title":"t", "bio":"b", "avatar":"a", "v_stat":2},
+          "hosts": [{"uid":19, "name":"host", "title":"t", "bio":"b", "avatar":"a", "v_stat":2}],
+          "guests": [{"uid":1, "name":"g", "title":"", "bio":"", "avatar":"", "v_stat":2}],
+          "equity_title": "et",
+          "equity_description": "ed",
+          "guests_url": "gu",
+          "equity_url": "eu",
+          "purchase_url": "pu",
+          "guests_ddurl": "gdd",
+          "equity_ddurl": "edd",
+          "purchase_ddurl": "pdd",
+          "statistics": {"total_subscribers":1, "selling_points":[{"count_desc":"1","name":"n"}], "content_quantity":0, "messages":["m"], "tips":["t"]},
+          "main_button": "mb",
+          "vice_button": "vb",
+          "vice_line": "vl",
+          "style_sheet": {"host_bg":"bg","host_border":"none"},
+          "equity_manage_ddurl": "em",
+          "is_vip": true,
+          "is_pop": false,
+          "show_ai_assistant": false,
+          "show_new_classes_layout": true,
+          "show_coupon_renewal": true,
+          "countdown_tips": ""
+        }
+    }`)
+
+	reader := bytes.NewReader(raw)
+	var out *ChannelInfo
+	if err := handleJSONParse(reader, &out); err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	if out == nil || out.ChannelID != 1000 || out.Title != "AI 学习圈" {
+		t.Fatalf("unexpected result: %#v", out)
+	}
+}
+
+func TestChannelHomepageParse(t *testing.T) {
+	raw := []byte(`{
+        "h": {"c":0, "e":"", "s":1761825177, "t":88, "apm":"e61ea6942032002"},
+        "c": [
+          {"category_id":1, "category_name":"主题找课", "category_icon":"ic", "category_dark_icon":"dic", "list":[
+            {"id":37, "channel_id":1000, "title":"AI办公", "icon":"i", "night_icon":"ni", "intro":"", "description":" ", "status":1, "sort_no":11, "content_type":"video", "show_homepage":1, "dd_url":"u", "items":[
+              {"product_type":65, "product_id":117469, "en_id":"e", "class_id":990, "class_en_id":"ce", "title":"t", "cover":"c", "logo":"l", "summary":"s", "difficulty_level":2, "ddurl":"d", "status":"", "has_video":true, "has_live":false, "duration":1925, "progress":0, "publish_time":1760976000, "learn_count":7333, "is_read":false, "live_status":0, "live_playback_status":0, "live_status_tips":"", "source":{"source_name":"sn", "source_type":66, "source_id":990}}
+            ], "length":1}
+          ]}
+        ]
+    }`)
+
+	reader := bytes.NewReader(raw)
+	var out []ChannelHomepageCategory
+	if err := handleJSONParse(reader, &out); err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	if len(out) == 0 || out[0].CategoryID != 1 || len(out[0].List) == 0 || len(out[0].List[0].Items) == 0 {
+		t.Fatalf("unexpected result: %#v", out)
+	}
+}

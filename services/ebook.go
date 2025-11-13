@@ -396,6 +396,7 @@ type EbookVIPInfo struct {
 	AvatarS            string `json:"avatar_s"`
 	MonthCount         int    `json:"month_count"`
 	TotalCount         int    `json:"total_count"`
+	WeekCount          int    `json:"week_count"`
 	FinishedCount      int    `json:"finished_count"`
 	SavePrice          string `json:"save_price"`
 	IsVip              bool   `json:"is_vip"`
