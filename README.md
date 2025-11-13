@@ -221,6 +221,8 @@ Available Commands:
 
 `./dedao-dl ebook notes -i 158162` 查看电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id
 
+`./dedao-dl ebook 158162 -t4` 下载电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id，-t4 表示下载 markdown 格式的读书笔记
+
 ## References
 
 * [geektime-dl](https://github.com/mmzou/geektime-dl)

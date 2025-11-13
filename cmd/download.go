@@ -76,7 +76,7 @@ var dlEbookCmd = &cobra.Command{
 	Use:   "dle",
 	Short: "下载电子书",
 	Long: `使用 dedao-dl dle 下载电子书
--t 指定下载格式, 1:html, 2:PDF文档, 3:epub, 默认 html`,
+-t 指定下载格式, 1:html, 2:PDF文档, 3:epub, 4:markdown笔记, 默认 html`,
 	Example: "dedao-dl dle 123 -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -87,17 +87,36 @@ var dlEbookCmd = &cobra.Command{
 
 		id, err := strconv.Atoi(args[0])
 		var d app.DeDaoDownloader
-		if err != nil {
-			// args[0] is not an integer, treat as EnID
-			d = &app.EBookDownloadByEnID{
-				DownloadType: downloadType,
-				EnID:         args[0],
+
+		if downloadType == 4 {
+			// 笔记下载格式
+			if err != nil {
+				// args[0] is not an integer, treat as EnID
+				d = &app.EBookNotesDownload{
+					DownloadType: downloadType,
+					EnID:         args[0],
+				}
+			} else {
+				// args[0] is an integer ID
+				d = &app.EBookNotesDownload{
+					DownloadType: downloadType,
+					ID:           id,
+				}
 			}
 		} else {
-			// args[0] is an integer ID
-			d = &app.EBookDownloadByID{
-				DownloadType: downloadType,
-				ID:           id,
+			// 原有的电子书下载格式
+			if err != nil {
+				// args[0] is not an integer, treat as EnID
+				d = &app.EBookDownloadByEnID{
+					DownloadType: downloadType,
+					EnID:         args[0],
+				}
+			} else {
+				// args[0] is an integer ID
+				d = &app.EBookDownloadByID{
+					DownloadType: downloadType,
+					ID:           id,
+				}
 			}
 		}
 		err = app.Download(d)
@@ -115,5 +134,5 @@ func init() {
 	downloadCmd.PersistentFlags().BoolVarP(&courseOrder, "order", "o", false, "是否按顺序展示, 如果为true, 则文件名前缀会加上序号, 如 00x.")
 
 	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
-	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub")
+	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub, 4:markdown笔记")
 }

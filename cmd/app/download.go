@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yann0917/dedao-dl/config"
@@ -43,7 +44,13 @@ type EBookDownloadByID struct {
 }
 
 type EBookDownloadByEnID struct {
-	DownloadType int // 1:html, 2:PDF文档, 3:epub
+	DownloadType int // 1:html, 2:PDF文档, 3:epub, 4:读书笔记 markdown
+	EnID         string
+}
+
+type EBookNotesDownload struct {
+	DownloadType int // 1:html, 2:PDF文档, 3:epub, 4:读书笔记 markdown
+	ID           int
 	EnID         string
 }
 
@@ -853,4 +860,130 @@ func getArticleDetail(aliasID string) (content []services.Content, err error) {
 	}
 
 	return content, nil
+}
+
+// Download 电子书笔记下载实现
+func (d *EBookNotesDownload) Download() error {
+	var detail *services.EbookDetail
+	var err error
+
+	if d.EnID != "" {
+		// 使用 EnID 获取电子书详情
+		detail, err = EbookDetailByEnID(d.EnID)
+	} else if d.ID > 0 {
+		// 使用 ID 获取电子书详情
+		detail, err = EbookDetail(d.ID)
+	} else {
+		return errors.New("必须提供电子书 ID 或 EnID")
+	}
+
+	if err != nil {
+		return fmt.Errorf("获取电子书详情失败: %v", err)
+	}
+
+	// 创建输出目录
+	outputDir := filepath.Join(OutputDir, "EbookNotes", "")
+	if err = os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("创建输出目录失败: %v", err)
+	}
+
+	// 获取笔记列表
+	service := config.Instance.ActiveUserService()
+	if service == nil {
+		return fmt.Errorf("服务未初始化")
+	}
+
+	noteList, err := service.EbookNoteList(detail.Enid)
+	if err != nil {
+		return fmt.Errorf("获取笔记列表失败: %v", err)
+	}
+
+	if len(noteList.List) == 0 {
+		fmt.Println("该电子书暂无笔记")
+		return nil
+	}
+
+	// 使用公共函数排序笔记
+	sortedNotes := SortNotesByChapter(noteList.List, detail.CatalogList)
+
+	// 使用公共函数创建章节映射器
+	getChapterName := CreateChapterMapper(detail.CatalogList)
+
+	// 生成 Markdown 文件
+	return generateNotesMarkdown(detail, sortedNotes, getChapterName, outputDir)
+}
+
+// generateNotesMarkdown 生成笔记的 Markdown 文件
+func generateNotesMarkdown(detail *services.EbookDetail, notes []services.EbookNote, getChapterName func(string) string, outputDir string) error {
+	fileName := filepath.Join(outputDir, utils.FileName(detail.OperatingTitle+"-笔记", "md"))
+
+	// 检查文件是否已存在
+	if _, exist, err := utils.FileSize(fileName); err != nil {
+		return fmt.Errorf("检查文件失败: %v", err)
+	} else if exist {
+		fmt.Printf("笔记文件已存在: %s\n", fileName)
+		return nil
+	}
+
+	var markdown strings.Builder
+
+	// 写入标题和元信息
+	markdown.WriteString(fmt.Sprintf("# %s\n\n", detail.OperatingTitle))
+	markdown.WriteString(fmt.Sprintf("**作者**: %s  \n", detail.BookAuthor))
+	markdown.WriteString(fmt.Sprintf("**发布时间**: %s  \n\n", detail.PublishTime))
+	markdown.WriteString(fmt.Sprintf("**生成时间**: %s  \n\n", time.Now().Format("2006-01-02 15:04:05")))
+	markdown.WriteString("---\n\n")
+
+	// 按章节组织笔记
+	currentChapter := ""
+	for _, note := range notes {
+		// 使用公共函数获取章节信息
+		chapter := GetChapterWithFallback(note, getChapterName, detail.CatalogList)
+
+		// 如果章节发生变化，写入章节标题
+		if chapter != currentChapter {
+			currentChapter = chapter
+			markdown.WriteString(fmt.Sprintf("## %s\n\n", currentChapter))
+		}
+
+		// 写入笔记内容
+		markdown.WriteString(fmt.Sprintf("**创建时间**: %s  \n", FormatNoteTime(note.CreateTime)))
+		markdown.WriteString(fmt.Sprintf("**状态**: %s  \n", GetNoteStatus(note)))
+
+		if note.NoteTitle != "" {
+			markdown.WriteString(fmt.Sprintf("**笔记标题**: %s  \n", note.NoteTitle))
+		}
+
+		// if note.Extra.BookStartPos > 0 && note.Extra.BookOffset > 0 {
+		// 	markdown.WriteString(fmt.Sprintf("**位置**: %d-%d  \n", note.Extra.BookStartPos, note.Extra.BookOffset))
+		// }
+
+		// markdown.WriteString(fmt.Sprintf("**互动数据**: %s  \n\n", FormatNoteInteraction(note)))
+
+		// 主要笔记内容
+		if note.NoteLine != "" {
+			markdown.WriteString(fmt.Sprintf("%s\n\n", note.NoteLine))
+		}
+
+		if note.Note != "" {
+			markdown.WriteString(fmt.Sprintf("> **详细笔记**: %s\n\n", note.Note))
+		}
+
+		markdown.WriteString("---\n\n")
+	}
+
+	// 写入文件
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("创建文件失败: %v", err)
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(markdown.String())
+	if err != nil {
+		return fmt.Errorf("写入文件失败: %v", err)
+	}
+
+	fmt.Printf("笔记文件已生成: %s\n", fileName)
+	return nil
 }
