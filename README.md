@@ -24,6 +24,7 @@
 * 课程可生成PDF，文稿生成 Markdown 文档，也可生成 mp3 文件
 * 每天听本书可下载音频，文稿生成 pdf、Markdown 文档
 * 电子书可下载 html, pdf, epub
+* 电子书读书笔记可导出为 markdown
 * 可切换登录账号
 
 ## 安装
@@ -217,6 +218,8 @@ Available Commands:
 `dedao-dl dle 123 -t 1` 下载电子书，先通过 `dedao-dl ebook` 获取要下载的电子书 id,  下载格式, 1:html, 2:PDF文档, 3:epub (default 1)
 
 `dedao-dl dlo 123 -t 1` 下载听书ID 123 的音频或文稿, 先通过 `dedao-dl odob` 获取要下载的听书 id, -t 下载格式, 1:mp3, 2:PDF文档, 3:markdown文档 (default 1)
+
+`./dedao-dl ebook notes -i 158162` 查看电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id
 
 ## References
 

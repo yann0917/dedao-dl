@@ -396,3 +396,14 @@ func (s *Service) reqChannelVipInfo(channelID int) (io.ReadCloser, error) {
 		Post("/sphere/v1/app/vip/info")
 	return handleHTTPResponse(resp, err)
 }
+
+// reqEbookNoteList 请求电子书笔记列表
+// bookEnid: 电子书的加密ID
+func (s *Service) reqEbookNoteList(bookEnid string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"book_enid": bookEnid,
+		}).
+		Post("/api/pc/ledgers/ebook/list")
+	return handleHTTPResponse(resp, err)
+}

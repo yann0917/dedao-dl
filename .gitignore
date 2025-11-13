@@ -42,3 +42,7 @@ debug*.json
 GROUP_*.md
 REFACTORING_*.md
 CODE_REVIEW_*.md
+
+CLAUDE.md
+.claude/*
+.cursor/*
