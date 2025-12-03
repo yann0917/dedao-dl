@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/JoshVarga/svgparser v0.0.0-20200804023048-5eaba627a7d1
-	github.com/PuerkitoBio/goquery v1.10.3
+	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
 	github.com/dgraph-io/badger/v4 v4.8.0
@@ -48,8 +48,8 @@ require (
 	go.opentelemetry.io/otel v1.38.0 // indirect
 	go.opentelemetry.io/otel/metric v1.38.0 // indirect
 	go.opentelemetry.io/otel/trace v1.38.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
 )
