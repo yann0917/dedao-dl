@@ -112,7 +112,7 @@ func NewService(co *CookieOptions) *Service {
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	client := resty.New()
-	// client.SetDebug(true)
+	client.SetDebug(true)
 	client.SetBaseURL(baseURL).
 		SetCookies(cookies).
 		SetHeader("User-Agent", UserAgent)

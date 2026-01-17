@@ -367,6 +367,74 @@ func (s *Service) reqTopicNotesList(topicID string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqSearchHot search hot
+func (s *Service) reqSearchHot() (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"is_login": 0,
+		}).
+		Post("/api/search/pc/hot")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqSunflowerLabelList index label list
+// nType 2-好看又好查的电子书, 4-精选课程
+func (s *Service) reqSunflowerLabelList(nType int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"label_count": -1,
+			"nav_type":    nType,
+		}).
+		Post("/pc/sunflower/v1/label/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqSunflowerLabelContent index label contents
+// enID /pc/sunflower/v1/label/list 接口 enid
+// nType 2-好看又好查的电子书, 4-精选课程
+func (s *Service) reqSunflowerLabelContent(enID string, nType, page, pageSize int) (io.ReadCloser, error) {
+	var resType string
+	if nType == 2 {
+		resType = "2"
+	} else if nType == 4 {
+		resType = "66"
+	}
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"enid":        enID,
+			"nav_type":    nType,
+			"page":        page,
+			"page_size":   pageSize,
+			"result_type": resType,
+		}).
+		Post("/pc/sunflower/v1/label/content")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqSunflowerResourceList 免费专区
+func (s *Service) reqSunflowerResourceList() (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		Get("/pc/sunflower/v1/resource/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqAlgoFilter index filter
+// 1. 获取全部，参数：cName default "心理学"， pageSize = 18, pType="66"
+func (s *Service) reqAlgoFilter(param AlgoFilterParam) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(param).
+		Post("/pc/label/v2/algo/pc/filter/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqAlgoProduct index label contents
+func (s *Service) reqAlgoProduct(param AlgoFilterParam) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(param).
+		Post("/pc/label/v2/algo/pc/product/list")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqChannelInfo 请求学习圈频道信息
 // channelID: 频道ID
 func (s *Service) reqChannelInfo(channelID int) (io.ReadCloser, error) {
