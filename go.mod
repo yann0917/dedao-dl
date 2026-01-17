@@ -8,16 +8,15 @@ require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
 	github.com/dgraph-io/badger/v4 v4.8.0
-	github.com/gabriel-vasile/mimetype v1.4.11
+	github.com/gabriel-vasile/mimetype v1.4.12
 	github.com/go-resty/resty/v2 v2.17.1
 	github.com/gomarkdown/markdown v0.0.0-20250810172220-2e2c11897d1a
 	github.com/json-iterator/go v1.1.12
 	github.com/mattn/go-colorable v0.1.14
-	github.com/mitchellh/mapstructure v1.5.0
 	github.com/olekukonko/tablewriter v1.1.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/sync v0.18.0
+	golang.org/x/sync v0.19.0
 )
 
 require (

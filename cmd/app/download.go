@@ -26,6 +26,7 @@ type DeDaoDownloader interface {
 type CourseDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
+	EnID         string
 	AID          int
 	IsMerge      bool
 	IsComment    bool
@@ -38,13 +39,9 @@ type OdobDownload struct {
 	ID           int
 }
 
-type EBookDownloadByID struct {
+type EBookDownload struct {
 	DownloadType int // 1:html, 2:PDF文档, 3:epub
 	ID           int
-}
-
-type EBookDownloadByEnID struct {
-	DownloadType int // 1:html, 2:PDF文档, 3:epub, 4:读书笔记 markdown
 	EnID         string
 }
 
@@ -55,14 +52,30 @@ type EBookNotesDownload struct {
 }
 
 func (d *CourseDownload) Download() error {
-	course, err := CourseInfo(d.ID)
+	var course *services.CourseInfo
+	var err error
+
+	if d.EnID != "" {
+		course, err = getService().CourseInfo(d.EnID)
+	} else if d.ID > 0 {
+		course, err = CourseInfo(d.ID)
+	} else {
+		return errors.New("course ID or EnID is required")
+	}
+
 	if err != nil {
 		return err
 	}
 
 	switch d.DownloadType {
 	case 1: // mp3
-		articles, err := ArticleList(d.ID, "")
+		enid := course.ClassInfo.Enid
+		count := course.ClassInfo.CurrentArticleCount
+		if count == 0 {
+			count = course.ClassInfo.PhaseNum
+		}
+
+		articles, err := ArticleListByEnId(enid, count, "")
 		if err != nil {
 			return err
 		}
@@ -96,7 +109,7 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
-		if err := DownloadPdfCourse(d, path); err != nil {
+		if err := DownloadPdfCourse(d, course, path); err != nil {
 			return err
 		}
 		if len(errs) > 0 {
@@ -109,7 +122,7 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
-		if err := DownloadMarkdownCourse(d, path); err != nil {
+		if err := DownloadMarkdownCourse(d, course, path); err != nil {
 			return err
 		}
 	}
@@ -190,16 +203,18 @@ func (d *OdobDownload) Download() error {
 	return nil
 }
 
-func (d *EBookDownloadByEnID) Download() error {
-	detail, err := EbookDetailByEnID(d.EnID)
-	if err != nil {
-		return err
-	}
-	return downloadEBook(detail, d.DownloadType)
-}
+func (d *EBookDownload) Download() error {
+	var detail *services.EbookDetail
+	var err error
 
-func (d *EBookDownloadByID) Download() error {
-	detail, err := EbookDetail(d.ID)
+	if d.EnID != "" {
+		detail, err = EbookDetailByEnID(d.EnID)
+	} else if d.ID > 0 {
+		detail, err = EbookDetail(d.ID)
+	} else {
+		return errors.New("必须提供电子书 ID 或 EnID")
+	}
+
 	if err != nil {
 		return err
 	}
@@ -282,7 +297,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 			continue
 		}
 
-		if article.VideoStatus == 0 && len(article.AudioAliasIds) > 0 {
+		if article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
 			audioIds[article.ID] = article.Audio.AliasID
 
 			var urls []downloader.URL
@@ -615,8 +630,24 @@ func getMdHeader(level int) string {
 	return ""
 }
 
-func DownloadMarkdownCourse(d *CourseDownload, path string) error {
-	list, err := ArticleList(d.ID, "")
+func courseArticleDetailByEnid(articleEnid string) (detail *services.ArticleDetail, err error) {
+	info, err := getService().ArticleInfo(articleEnid, 1)
+	if err != nil {
+		return
+	}
+	token := info.DdArticleToken
+	appid := "1632426125495894021"
+	detail, err = getService().ArticleDetail(token, articleEnid, appid)
+	return
+}
+
+func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path string) error {
+	enid := course.ClassInfo.Enid
+	count := course.ClassInfo.CurrentArticleCount
+	if count == 0 {
+		count = course.ClassInfo.PhaseNum
+	}
+	list, err := ArticleListByEnId(enid, count, "")
 	if err != nil {
 		return err
 	}
@@ -631,12 +662,11 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
-		detail, enId, err := ArticleDetail(d.ID, v.ID)
+		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
 		}
-		// fmt.Printf("%#v\n", detail)
 
 		var content []services.Content
 		err = jsoniter.UnmarshalFromString(detail.Content, &content)
@@ -665,7 +695,7 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 		res := ContentsToMarkdown(content)
 		if d.IsComment {
 			// 添加留言
-			commentList, err := ArticleCommentList(enId, "like", 1, 20)
+			commentList, err := ArticleCommentList(v.Enid, "like", 1, 20)
 			if err == nil {
 				res += articleCommentsToMarkdown(commentList.List)
 			}
@@ -707,8 +737,13 @@ func DownloadMarkdownCourse(d *CourseDownload, path string) error {
 	return nil
 }
 
-func DownloadPdfCourse(d *CourseDownload, path string) error {
-	list, err := ArticleList(d.ID, "")
+func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path string) error {
+	enid := course.ClassInfo.Enid
+	count := course.ClassInfo.CurrentArticleCount
+	if count == 0 {
+		count = course.ClassInfo.PhaseNum
+	}
+	list, err := ArticleListByEnId(enid, count, "")
 	if err != nil {
 		return err
 	}
@@ -723,12 +758,11 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
-		detail, enId, err := ArticleDetail(d.ID, v.ID)
+		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
 			return err
 		}
-		// fmt.Printf("%#v\n", detail)
 
 		var content []services.Content
 		err = jsoniter.UnmarshalFromString(detail.Content, &content)
@@ -757,7 +791,7 @@ func DownloadPdfCourse(d *CourseDownload, path string) error {
 		res := ContentsToMarkdown(content)
 		if d.IsComment {
 			// 添加留言
-			commentList, err := ArticleCommentList(enId, "like", 1, 20)
+			commentList, err := ArticleCommentList(v.Enid, "like", 1, 20)
 			if err == nil {
 				res += articleCommentsToMarkdown(commentList.List)
 			}

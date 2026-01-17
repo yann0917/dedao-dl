@@ -1,10 +1,9 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"math"
-
-	"errors"
 
 	"github.com/yann0917/dedao-dl/services"
 	"github.com/yann0917/dedao-dl/utils"
@@ -17,7 +16,10 @@ func ArticleList(id int, chapterID string) (list *services.ArticleList, err erro
 		return
 	}
 	enid := info.Enid
-	count := float64(info.PublishNum)
+	return ArticleListByEnId(enid, info.PublishNum, chapterID)
+}
+
+func ArticleListByEnId(enid string, count int, chapterID string) (list *services.ArticleList, err error) {
 	page := int(math.Ceil(float64(count) / 20.0))
 	maxID := 0
 	var lists []services.ArticleIntro
@@ -31,9 +33,11 @@ func ArticleList(id int, chapterID string) (list *services.ArticleList, err erro
 		}
 		lists = append(lists, list.List...)
 	}
+	if list == nil {
+		list = &services.ArticleList{}
+	}
 	list.List = lists
 	return
-
 }
 
 // ArticleInfo article info

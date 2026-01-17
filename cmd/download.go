@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"strconv"
-
 	"errors"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
@@ -19,11 +18,14 @@ var downloadCmd = &cobra.Command{
 -m 是否合并课程文稿(仅支持markdown), 默认不合并
 -c 是否下载课程热门留言(仅支持markdown), 默认不下载`,
 	Example: "dedao-dl dl 123 -t 1 -m",
+	Args:    cobra.RangeArgs(1, 2),
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id, err := strconv.Atoi(args[0])
+		enid := ""
 		if err != nil {
-			return errors.New("课程ID错误")
+			id = 0
+			enid = args[0]
 		}
 		aid := 0
 		if len(args) > 1 {
@@ -36,6 +38,7 @@ var downloadCmd = &cobra.Command{
 		d := &app.CourseDownload{
 			DownloadType: downloadType,
 			ID:           id,
+			EnID:         enid,
 			AID:          aid,
 			IsMerge:      courseMerge,
 			IsComment:    courseComment,
@@ -104,16 +107,13 @@ var dlEbookCmd = &cobra.Command{
 				}
 			}
 		} else {
-			// 原有的电子书下载格式
 			if err != nil {
-				// args[0] is not an integer, treat as EnID
-				d = &app.EBookDownloadByEnID{
+				d = &app.EBookDownload{
 					DownloadType: downloadType,
 					EnID:         args[0],
 				}
 			} else {
-				// args[0] is an integer ID
-				d = &app.EBookDownloadByID{
+				d = &app.EBookDownload{
 					DownloadType: downloadType,
 					ID:           id,
 				}

@@ -7,10 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/mitchellh/mapstructure"
 	"github.com/yann0917/dedao-dl/utils"
 )
 
@@ -61,9 +61,9 @@ type CookieOptions struct {
 	ISID          string `json:"isid"`
 	Iget          string `json:"iget"`
 	Token         string `json:"token"`
-	GuardDeviceID string `json:"_guard_device_id" mapstructure:"_guard_device_id"`
-	SID           string `json:"_sid" mapstructure:"_sid"`
-	AcwTc         string `json:"acw_tc" mapstructure:"acw_tc"`
+	GuardDeviceID string `json:"_guard_device_id"`
+	SID           string `json:"_sid"`
+	AcwTc         string `json:"acw_tc"`
 	AliyungfTc    string `json:"aliyungf_tc"`
 	CookieStr     string `json:"cookieStr"`
 }
@@ -112,7 +112,7 @@ func NewService(co *CookieOptions) *Service {
 		Domain: "www." + dedaoCommURL.Host,
 	})
 	client := resty.New()
-	client.SetDebug(true)
+	client.SetDebug(false)
 	client.SetBaseURL(baseURL).
 		SetCookies(cookies).
 		SetHeader("User-Agent", UserAgent)
@@ -218,14 +218,59 @@ func ParseCookies(cookie string, v interface{}) (err error) {
 	if cookie == "" {
 		return errors.New("cookie is empty")
 	}
-	list := strings.Split(cookie, "; ")
+	list := strings.Split(cookie, ";")
 	cookieM := make(map[string]string, len(list))
-	for _, v := range list {
-		item := strings.Split(v, "=")
-		if len(item) > 1 {
-			cookieM[item[0]] = item[1]
+	for _, item := range list {
+		parts := strings.Split(item, "=")
+		if len(parts) > 1 {
+			if parts[1] != "" {
+				cookieM[strings.TrimSpace(parts[0])] = parts[1]
+			}
 		}
 	}
-	err = mapstructure.Decode(cookieM, v)
-	return
+
+	// 创建大小写不敏感的 map（为了兼容 mapstructure 的行为）
+	cookieMInsensitive := make(map[string]string)
+	for k, v := range cookieM {
+		cookieMInsensitive[strings.ToLower(k)] = v
+	}
+
+	// 使用反射将 map 的值赋给结构体
+	value := reflect.ValueOf(v)
+	if value.Kind() != reflect.Ptr || value.Elem().Kind() != reflect.Struct {
+		return errors.New("v must be a pointer to struct")
+	}
+
+	elem := value.Elem()
+	structType := elem.Type()
+
+	for i := 0; i < elem.NumField(); i++ {
+		field := elem.Field(i)
+		if !field.CanSet() {
+			continue
+		}
+
+		fieldType := structType.Field(i)
+
+		// 获取 json tag
+		tag := fieldType.Tag.Get("json")
+		if tag == "" || tag == "-" {
+			continue
+		}
+
+		// 处理逗号后面的选项
+		jsonName := strings.Split(tag, ",")[0]
+		if jsonName == "" {
+			jsonName = fieldType.Name
+		}
+
+		// 查找 map 中的值（大小写不敏感）
+		if mapValue, ok := cookieMInsensitive[strings.ToLower(jsonName)]; ok {
+			if field.Kind() == reflect.String {
+				field.SetString(mapValue)
+			}
+		}
+	}
+
+	return nil
 }

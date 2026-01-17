@@ -51,6 +51,11 @@ type Article struct {
 	AppIDStr    string `json:"AppIdStr"`
 }
 
+type Advertisement struct {
+	AdImg string `json:"ad_img"`
+	AdURL string `json:"ad_url"`
+}
+
 // ArticleIntro article introduce
 type ArticleIntro struct {
 	ArticleBase
@@ -105,11 +110,17 @@ type ArticleBase struct {
 	RecommendTitle string   `json:"recommend_title"`
 	AudioAliasIds  []string `json:"audio_alias_ids"`
 	IsBuy          bool     `json:"is_buy"`
-	DdMediaID      int      `json:"dd_media_id"`
+	DdMediaID      int64    `json:"dd_media_id"`
 	DdMediaIDStr   string   `json:"dd_media_id_str"`
 	VideoStatus    int      `json:"video_status"` // 1-video
 	DdLiveID       int      `json:"dd_live_id"`
 	NotJoinPlan    int      `json:"not_join_plan"`
+
+	IsRedPacketTry        bool           `json:"is_red_packet_try"`
+	RedPacketExpireTime   string         `json:"red_packet_expire_time"`
+	Advertisement         *Advertisement `json:"advertisement,omitempty"`
+	IsShowPlayLaterButton bool           `json:"is_show_play_later_button"`
+	IsAddPlayLater        bool           `json:"is_add_play_later"`
 }
 
 // ArticleList class article list

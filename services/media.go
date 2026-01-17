@@ -5,6 +5,7 @@ type MediaBaseInfo struct {
 	MediaType     int    `json:"media_type"` // 1-audio,2-video
 	SourceID      string `json:"source_id"`
 	SecurityToken string `json:"security_token"`
+	SourceURL     string `json:"source_url"`
 }
 
 // Audio audio 每天听本书音频详情
@@ -85,6 +86,7 @@ type Video struct {
 	CoverImg         string  `json:"cover_img"`
 	DdMediaID        int64   `json:"dd_media_id"`
 	DdMediaIDStr     string  `json:"dd_media_id_str"`
+	M3u8Token        string  `json:"m3u8_token"`
 	Duration         int     `json:"duration"`
 	Bitrate480       string  `json:"bitrate_480"`
 	Bitrate480Size   int     `json:"bitrate_480_size"`
@@ -101,6 +103,12 @@ type Video struct {
 	LogID            string  `json:"log_id"`
 	LogType          string  `json:"log_type"`
 	Caption          string  `json:"caption"`
+	VttCaption       string  `json:"vtt_caption"`
+	VideoAudio       string  `json:"video_audio"`
+	MediaFiles       any     `json:"media_files"`
+	SourceName       string  `json:"source_name"`
+	SourceType       int     `json:"source_type"`
+	SourceID         int     `json:"source_id"`
 }
 
 // AudioList audio basic info list

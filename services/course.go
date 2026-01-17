@@ -176,53 +176,6 @@ func (c *Course) HasAudio() bool {
 	return c.AudioDetail.LogType == "audio"
 }
 
-func EnlightenClub() (detail Course) {
-
-	return Course{
-		Enid:           "5L9DznlwYyOVdwasGdKmbWABv0Zk4a",
-		ID:             252,
-		Type:           0,
-		ClassType:      0,
-		ClassID:        252,
-		HasExtra:       false,
-		ClassFinished:  false,
-		Title:          "罗辑思维·启发俱乐部",
-		Intro:          "罗振宇，又称\"罗胖\"，得到App和罗辑思维创始人。",
-		Author:         "罗振宇·得到App创始人",
-		Icon:           "https://piccdn3.umiwi.com/img/202004/05/202004050004416065909398.jpeg",
-		CreateTime:     1472925194,
-		LastRead:       "",
-		Progress:       0,
-		Duration:       0,
-		CourseNum:      0,
-		PublishNum:     1076,
-		LogID:          "252",
-		LogType:        "free_column",
-		IsTop:          0,
-		LastActionTime: 0,
-		IsNew:          0,
-		IsFinished:     0,
-		Size:           "",
-		DdURL:          "",
-		AssetsType:     0,
-		DrmToken:       "",
-		AudioDetail:    Audio{},
-		ProductPrice:   0,
-		Price:          "0.00",
-		ProductIntro:   "",
-		HasPlayAuth:    false,
-		ExtInfo:        nil,
-		Status:         0,
-		DdExtURL:       "",
-		IsCollected:    false,
-		WendaExtInfo: struct {
-			AnswerID int `json:"answer_id"`
-		}{},
-		ClassExtReview: ClassExtReview{},
-		PlanStatus:     0,
-	}
-}
-
 // CourseListV2 获取V2版本的课程列表
 func (s *Service) CourseList(category, order string, page, limit int) (response *CourseList, err error) {
 	body, err := s.reqCourseList(category, order, page, limit)
@@ -319,10 +272,6 @@ func (s *Service) CourseListAll(category, order string) (data *CourseList, err e
 			return data, err
 		}
 		allCourses = append(allCourses, pageResp.List...)
-	}
-	// 启发俱乐部
-	if category == CateCourse {
-		allCourses = append(allCourses, EnlightenClub())
 	}
 
 	// 构建完整结果

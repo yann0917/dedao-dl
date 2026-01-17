@@ -15,14 +15,14 @@ import (
 )
 
 var (
-	classID      int
-	articleID    int
-	bookID       int
-	compassID    int
-	topicID      string
+	classID       int
+	articleID     int
+	bookID        int
+	compassID     int
+	topicID       string
 	courseGroupID int
-	odobGroupID  int
-	aceGroupID   int
+	odobGroupID   int
+	aceGroupID    int
 )
 
 var courseTypeCmd = &cobra.Command{

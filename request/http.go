@@ -52,7 +52,7 @@ func Get(url string) (io.ReadCloser, error) {
 		return nil, err
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("http error: status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("http error: status code %d", resp.StatusCode())
 	}
 	data := resp.Body()
 	reader := bytes.NewReader(data)
