@@ -221,7 +221,8 @@ func ParseCookies(cookie string, v interface{}) (err error) {
 	list := strings.Split(cookie, ";")
 	cookieM := make(map[string]string, len(list))
 	for _, item := range list {
-		parts := strings.Split(item, "=")
+		// Use SplitN to handle values containing '=' (e.g., base64 encoded tokens)
+		parts := strings.SplitN(item, "=", 2)
 		if len(parts) > 1 {
 			if parts[1] != "" {
 				cookieM[strings.TrimSpace(parts[0])] = parts[1]
