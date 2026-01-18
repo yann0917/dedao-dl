@@ -126,22 +126,54 @@ func (s *Service) CourseDetail(category string, id int) (detail *Course, err err
 		return
 	}
 
-	for _, v := range list.List {
+	switch category {
+	case CateCourse, CateEbook, CateAudioBook:
+	default:
+		err = errors.New("please make sure to enter the correct course ID")
+		return
+	}
+
+	matches := func(v Course) bool {
 		switch category {
 		case CateCourse:
-			if v.ClassID == id {
-				detail = &v
-				return
-			}
+			return v.ClassID == id
 		case CateEbook, CateAudioBook:
-			if v.ID == id {
-				detail = &v
-				return
-			}
+			return v.ID == id
 		default:
-			err = errors.New("please make sure to enter the correct course ID")
+			return false
+		}
+	}
+
+	var groupIDs []int
+	for _, v := range list.List {
+		if v.IsGroup {
+			groupIDs = append(groupIDs, v.ID)
+			continue
+		}
+		if matches(v) {
+			detail = &v
 			return
 		}
+	}
+
+	var groupErr error
+	for _, groupID := range groupIDs {
+		groupList, err1 := s.CourseGroupListAll(category, "study", groupID)
+		if err1 != nil {
+			groupErr = err1
+			continue
+		}
+		for _, v := range groupList.List {
+			if matches(v) {
+				detail = &v
+				return
+			}
+		}
+	}
+
+	if groupErr != nil {
+		err = groupErr
+		return
 	}
 	err = errors.New("you have not purchased the course, cannot get course information")
 	return

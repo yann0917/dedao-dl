@@ -26,10 +26,16 @@ func CourseList(category string) (list *services.CourseList, err error) {
 	switch category {
 	case CateCourse:
 		for _, course := range list.List {
+			if course.IsGroup || course.ClassID <= 0 {
+				continue
+			}
 			config.Instance.SetCourseCache(category, course.ClassID, course)
 		}
-	case CateAudioBook, CateEbook:
+	case CateAudioBook, CateEbook, CateAce:
 		for _, course := range list.List {
+			if course.IsGroup || course.ID <= 0 {
+				continue
+			}
 			config.Instance.SetCourseCache(category, course.ID, course)
 		}
 	}
@@ -87,6 +93,23 @@ func GetGroupItems(category string, groupID int) (list *services.CourseList, err
 	if list == nil {
 		err = errors.New("分组为空或不存在")
 		return
+	}
+
+	switch category {
+	case CateCourse:
+		for _, course := range list.List {
+			if course.IsGroup || course.ClassID <= 0 {
+				continue
+			}
+			config.Instance.SetCourseCache(category, course.ClassID, course)
+		}
+	case CateAudioBook, CateEbook, CateAce:
+		for _, course := range list.List {
+			if course.IsGroup || course.ID <= 0 {
+				continue
+			}
+			config.Instance.SetCourseCache(category, course.ID, course)
+		}
 	}
 	return
 }
