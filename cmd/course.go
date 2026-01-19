@@ -23,6 +23,8 @@ var (
 	courseGroupID int
 	odobGroupID   int
 	aceGroupID    int
+	classEnID     string
+	articleEnID   string
 )
 
 var courseTypeCmd = &cobra.Command{

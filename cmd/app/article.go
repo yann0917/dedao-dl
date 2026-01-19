@@ -40,6 +40,44 @@ func ArticleListByEnId(enid string, count int, chapterID string) (list *services
 	return
 }
 
+func ArticleListAllByEnId(enid, chapterID string) (list *services.ArticleList, err error) {
+	maxID := 0
+	var lists []services.ArticleIntro
+	for {
+		pageList, err1 := getService().ArticleList(enid, chapterID, maxID)
+		if err1 != nil {
+			err = err1
+			return
+		}
+		if pageList == nil || len(pageList.List) == 0 {
+			break
+		}
+		lists = append(lists, pageList.List...)
+		lastID := pageList.List[len(pageList.List)-1].ID
+		if lastID == maxID {
+			break
+		}
+		maxID = lastID
+		list = pageList
+	}
+	if list == nil {
+		list = &services.ArticleList{}
+	}
+	list.List = lists
+	return
+}
+
+func ArticleDetailByEnId(articleEnid string) (detail *services.ArticleDetail, err error) {
+	info, err := getService().ArticleInfo(articleEnid, 1)
+	if err != nil {
+		return
+	}
+	token := info.DdArticleToken
+	appid := "1632426125495894021"
+	detail, err = getService().ArticleDetail(token, articleEnid, appid)
+	return
+}
+
 // ArticleInfo article info
 // get article token, audio token, media security token etc
 func ArticleInfo(id, aid int) (info *services.ArticleInfo, aEnid string, err error) {

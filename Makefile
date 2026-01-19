@@ -21,7 +21,7 @@ build-linux: setup
 	$(BUILD_ENV) GOARCH=amd64 GOOS=linux $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-linux-amd64
 
 build-osx: setup
-	$(UILD_ENV) GOARCH=amd64 GOOS=darwin $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-darwin-amd64
+	$(BUILD_ENV) GOARCH=amd64 GOOS=darwin $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-darwin-amd64
 
 build-windows: setup
 	$(BUILD_ENV) GOARCH=amd64 GOOS=windows $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-windows-amd64.exe
@@ -32,7 +32,7 @@ build:
 	$(BUILD_ENV) $(GOBUILD) $(RACE) $(LDFLAGS) -o $(TARGET_EXEC) -v .
 
 test:
-	$(GOTEST) $(RACE) -v ./test
+	$(GOTEST) $(RACE) -v ./...
 
 enable-race:
 	$(eval RACE = -race)
@@ -47,6 +47,5 @@ run:
 clean:
 	$(GOCLEAN)
 	rm -rf Releases
-
 
 
