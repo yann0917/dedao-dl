@@ -9,7 +9,7 @@ type ArticleDetail struct {
 
 // Content article Content
 type Content struct {
-	Aid      string      `json:"aid"`
+	Aid      interface{} `json:"aid"` // string or number
 	AliasID  string      `json:"aliasId"`
 	Contents interface{} `json:"contents"`
 	Desc     string      `json:"desc"`
