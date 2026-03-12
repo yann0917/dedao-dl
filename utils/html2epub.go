@@ -1,19 +1,19 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"mime"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"errors"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bmaupin/go-epub"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/yann0917/dedao-dl/request"
 )
 
@@ -97,11 +97,11 @@ func (h *HtmlToEpub) setCover() (err error) {
 		h.Cover = temp.Name()
 	}
 
-	m, err := mimetype.DetectFile(h.Cover)
+	coverExt, err := detectFileImageExt(h.Cover)
 	if err != nil {
 		return fmt.Errorf("can't detect cover mime type %s", err)
 	}
-	cover, err := h.book.AddImage(h.Cover, "cover"+m.Extension())
+	cover, err := h.book.AddImage(h.Cover, "cover"+coverExt)
 	if err != nil {
 		return fmt.Errorf("can't add cover %s", err)
 	}
@@ -275,25 +275,22 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 		localFile = fd.Name()
 	}
 
-	// check mime
-	fmime, err := mimetype.DetectFile(localFile)
-	{
-		if err != nil {
-			log.Printf("can't detect image mime of %s: %s", src, err)
-			return
-		}
-		if !strings.HasPrefix(fmime.String(), "image") {
-			log.Printf("mime of %s is %s instead of images", src, fmime.String())
-			return
-		}
+	ext, mimeType, err := detectFileImageExtAndType(localFile)
+	if err != nil {
+		log.Printf("can't detect image mime of %s: %s", src, err)
+		return
+	}
+	if !strings.HasPrefix(mimeType, "image/") {
+		log.Printf("mime of %s is %s instead of images", src, mimeType)
+		return
 	}
 
 	// add image
 	internalName := fmt.Sprintf("image_%03d", h.imgIdx)
 	{
 		h.imgIdx += 1
-		if !strings.HasSuffix(internalName, fmime.Extension()) {
-			internalName += fmime.Extension()
+		if !strings.HasSuffix(internalName, ext) {
+			internalName += ext
 		}
 		internalRef, err = h.book.AddImage(localFile, internalName)
 		if err != nil {
@@ -308,6 +305,28 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 	}
 
 	img.SetAttr("src", internalRef)
+}
+
+func detectFileImageExt(filePath string) (string, error) {
+	ext, _, err := detectFileImageExtAndType(filePath)
+	return ext, err
+}
+
+func detectFileImageExtAndType(filePath string) (string, string, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", "", err
+	}
+	mimeType := http.DetectContentType(data)
+	extensions, err := mime.ExtensionsByType(mimeType)
+	if err != nil || len(extensions) == 0 {
+		ext := strings.ToLower(filepath.Ext(filePath))
+		if ext == "" {
+			return "", mimeType, fmt.Errorf("unknown file extension for %s", filePath)
+		}
+		return ext, mimeType, nil
+	}
+	return extensions[0], mimeType, nil
 }
 
 func (h *HtmlToEpub) openLocalFile(htmlFile string, ref string) (fd *os.File, err error) {
