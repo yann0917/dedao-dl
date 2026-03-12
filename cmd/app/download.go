@@ -290,6 +290,9 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int, isOrder bool) []downloader.Datum {
 	data := downloader.EmptyData
 	audioIds := map[int]string{}
+	if articles == nil {
+		return data
+	}
 
 	audioData := make([]*downloader.Datum, 0)
 	for _, article := range articles.List {
@@ -297,7 +300,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 			continue
 		}
 
-		if article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
+		if article.Audio != nil && article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
 			audioIds[article.ID] = article.Audio.AliasID
 
 			var urls []downloader.URL
