@@ -10,7 +10,7 @@ Thank you for your interest in contributing to dedao-dl! We welcome contribution
   - Clear description of the bug
   - Steps to reproduce
   - Expected and actual behavior
-  - Your environment (OS, Python version, etc.)
+  - Your environment (OS, Go version, etc.)
 
 ### Suggesting Enhancements
 - Use the Issues tab to suggest new features
@@ -27,12 +27,16 @@ Thank you for your interest in contributing to dedao-dl! We welcome contribution
 ## Development Setup
 
 1. Clone the repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Test your changes before submitting
+2. Ensure you have Go (>=1.18) installed
+3. Install dependencies using Go Modules (`go mod tidy`)
+4. Format your code with `gofmt` before committing (`gofmt -w .`)
+5. Run tests with `go test ./...` 
+6. Ensure your changes do not break existing tests
 
 ## Code Style
 
-- Follow PEP 8 guidelines
+- Format all code with gofmt (`gofmt -w .`)
+- Follow idiomatic Go code style conventions
 - Write clear, descriptive commit messages
 - Add comments for complex logic
 
