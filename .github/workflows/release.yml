@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   contents: write
 
@@ -45,28 +48,29 @@ jobs:
             ext: .exe
             archive: zip
             upx: true
-          - goos: windows
-            goarch: arm64
-            ext: .exe
-            archive: zip
-            upx: true
     env:
       BINARY_NAME: dedao-dl
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
 
       - name: Install UPX
         if: matrix.upx
-        uses: crazy-max/ghaction-upx@v3
-        with:
-          version: latest
+        run: |
+          set -euo pipefail
+          if command -v upx >/dev/null 2>&1; then
+            upx --version
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y upx-ucl || sudo apt-get install -y upx
+          upx --version
 
       - name: Build binary
         env:
@@ -99,7 +103,7 @@ jobs:
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.goos }}-${{ matrix.goarch }}
           path: |
@@ -113,12 +117,12 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
           merge-multiple: true
