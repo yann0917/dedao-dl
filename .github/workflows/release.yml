@@ -1,0 +1,156 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            ext: ""
+            archive: tar.gz
+            upx: true
+          - goos: linux
+            goarch: arm64
+            ext: ""
+            archive: tar.gz
+            upx: true
+          - goos: darwin
+            goarch: amd64
+            ext: ""
+            archive: tar.gz
+            upx: false
+          - goos: darwin
+            goarch: arm64
+            ext: ""
+            archive: tar.gz
+            upx: false
+          - goos: windows
+            goarch: amd64
+            ext: .exe
+            archive: zip
+            upx: true
+          - goos: windows
+            goarch: arm64
+            ext: .exe
+            archive: zip
+            upx: true
+    env:
+      BINARY_NAME: dedao-dl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install UPX
+        if: matrix.upx
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          version: latest
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          output="dist/${BINARY_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+          go build -trimpath -ldflags="-s -w" -o "$output" .
+
+      - name: Compress with UPX
+        if: matrix.upx
+        run: |
+          set -euo pipefail
+          target="dist/${BINARY_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
+          upx --best --lzma "$target"
+
+      - name: Package binary
+        run: |
+          set -euo pipefail
+          name="${BINARY_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          target="${name}${{ matrix.ext }}"
+          cd dist
+          if [ "${{ matrix.archive }}" = "zip" ]; then
+            zip -9 "${name}.zip" "$target"
+          else
+            tar -czf "${name}.tar.gz" "$target"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate release metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          latest_tag="$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
+          if [ -z "$latest_tag" ]; then
+            tag="v0.1.0"
+          else
+            version="${latest_tag#v}"
+            IFS='.' read -r major minor patch <<< "$version"
+            patch=$((patch + 1))
+            tag="v${major}.${minor}.${patch}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Generate checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: |
+            dist/*
