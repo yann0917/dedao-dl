@@ -1,6 +1,6 @@
 module github.com/yann0917/dedao-dl
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/JoshVarga/svgparser v0.0.0-20200804023048-5eaba627a7d1
@@ -15,7 +15,7 @@ require (
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/sync v0.19.0
+	golang.org/x/sync v0.20.0
 )
 
 require (
