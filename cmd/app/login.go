@@ -19,8 +19,11 @@ func LoginByCookie(cookie string) (err error) {
 	}
 	// save config
 	u.CookieStr = cookie
-	config.Instance.SetUser(&u)
-	config.Instance.Save()
+	_, err = config.Instance.SetUser(&u)
+	if err != nil {
+		return
+	}
+	err = config.Instance.Save()
 	return
 }
 
@@ -51,6 +54,9 @@ func LoginByQr() error {
 			}
 			if check.Data.Status == 1 {
 				err = LoginByCookie(cookie)
+				if err != nil {
+					return err
+				}
 				fmt.Println("扫码成功")
 				return nil
 			} else if check.Data.Status == 2 {
