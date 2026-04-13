@@ -1,13 +1,7 @@
 package downloader
 
 import (
-	"fmt"
-	"os"
-	"regexp"
 	"sort"
-	"strconv"
-
-	"github.com/olekukonko/tablewriter"
 )
 
 // URL for url information
@@ -59,52 +53,6 @@ type AudioMediaMap struct {
 
 // EmptyData empty data list
 var EmptyData = make([]Datum, 0)
-
-// PrintInfo print info
-func (data *Data) PrintInfo() {
-	if len(data.Data) == 0 {
-		fmt.Println(data.Type + "目录为空")
-		return
-	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-
-	header := []string{"#", "ID", "类型", "名称"}
-	for key := range data.Data[0].Streams {
-		header = append(header, key)
-	}
-	header = append(header, "下载")
-
-	table.Header(header)
-	i := 0
-	for _, p := range data.Data {
-		reg, _ := regexp.Compile(" \\| ")
-		title := reg.ReplaceAllString(p.Title, " ")
-
-		isCanDL := ""
-		if p.IsCanDL {
-			isCanDL = " ✔"
-		}
-
-		value := []string{strconv.Itoa(i), strconv.Itoa(p.ID), p.Type, title}
-
-		if len(p.Streams) > 0 {
-			for _, stream := range p.Streams {
-				value = append(value, fmt.Sprintf("%.2fMB (%d Bytes)\n", float64(stream.Size)/(1024*1024), stream.Size))
-			}
-		} else {
-			for range data.Data[0].Streams {
-				value = append(value, " -")
-			}
-		}
-
-		value = append(value, isCanDL)
-
-		table.Append(value)
-		i++
-	}
-	table.Render()
-}
 
 func (v *Datum) genSortedStreams() {
 	for k, data := range v.Streams {

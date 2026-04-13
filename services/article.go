@@ -389,7 +389,7 @@ func (s *Service) ArticleInfo(enid string, aType int) (info *ArticleInfo, err er
 }
 
 // ArticleDetail get article detail
-func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail, err error) {
+func (s *Service) ArticleDetail(token, appID string) (detail *ArticleDetail, err error) {
 
 	body, err := s.reqArticleDetail(token, appID)
 	if err != nil {
