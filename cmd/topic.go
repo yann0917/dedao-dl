@@ -37,6 +37,9 @@ func topicAll() (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(list)
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"#", "ID", "话题名称", "话题参与数"})
 
@@ -58,6 +61,12 @@ func notesList(id string) (err error) {
 	list, err := app.TopicNotesList(id)
 	if err != nil {
 		return
+	}
+	if outputJSON {
+		return printJSON(map[string]interface{}{
+			"detail": detail,
+			"notes":  list,
+		})
 	}
 	out := os.Stdout
 	fmt.Fprint(out, "话题名称："+detail.Name+"\n")

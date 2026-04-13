@@ -34,6 +34,9 @@ func freeInfo(enid string) (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(info)
+	}
 
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)
@@ -88,6 +91,9 @@ func freeList() (err error) {
 	list, err := service.SunflowerResourceList()
 	if err != nil {
 		return
+	}
+	if outputJSON {
+		return printJSON(list)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)

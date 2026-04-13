@@ -44,6 +44,9 @@ func searchSuggest() (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(resp)
+	}
 
 	table := tablewriter.NewTable(os.Stdout, tablewriter.WithConfig(tablewriter.Config{
 		Row: tw.CellConfig{

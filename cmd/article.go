@@ -67,6 +67,9 @@ func articleList(id int) (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(list)
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"#", "ID", "课程名称", "更新时间", "音频进度", "是否阅读"})
 
@@ -96,6 +99,17 @@ func articleDetail(id, aid int) (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		var content []services.Content
+		if unmarshalErr := jsoniter.UnmarshalFromString(detail.Content, &content); unmarshalErr != nil {
+			return unmarshalErr
+		}
+		return printJSON(map[string]interface{}{
+			"detail":   detail,
+			"content":  content,
+			"markdown": app.ContentsToMarkdown(content),
+		})
+	}
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)
 
@@ -111,6 +125,9 @@ func articleListByEnID(enid string) (err error) {
 	list, err := app.ArticleListAllByEnId(enid, "")
 	if err != nil {
 		return
+	}
+	if outputJSON {
+		return printJSON(list)
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"#", "ID", "课程名称", "更新时间", "音频进度", "是否阅读"})
@@ -139,6 +156,17 @@ func articleDetailByEnID(articleEnid string) (err error) {
 	detail, err := app.ArticleDetailByEnId(articleEnid)
 	if err != nil {
 		return
+	}
+	if outputJSON {
+		var content []services.Content
+		if unmarshalErr := jsoniter.UnmarshalFromString(detail.Content, &content); unmarshalErr != nil {
+			return unmarshalErr
+		}
+		return printJSON(map[string]interface{}{
+			"detail":   detail,
+			"content":  content,
+			"markdown": app.ContentsToMarkdown(content),
+		})
 	}
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)

@@ -44,6 +44,9 @@ func ebookDetail(id int) (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(detail)
+	}
 
 	out := os.Stdout
 	table := tablewriter.NewWriter(out)
