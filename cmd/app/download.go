@@ -295,14 +295,6 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 		}
 	}
 
-	if article == nil {
-		return nil, "", errors.New("未找到听书资源，请检查输入的 ID/EnID 是否正确")
-	}
-
-	if aliasID == "" && article.Type == 13 {
-		return nil, "", errors.New("无法解析听书音频 audio_id，请使用音频详情链接中的 id 参数重试")
-	}
-
 	return article, aliasID, nil
 }
 
