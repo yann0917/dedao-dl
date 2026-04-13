@@ -84,6 +84,20 @@ type OdobVipUser struct {
 	}
 }
 
+// OdobVIPInfo 获取每天听本书 VIP 信息
+func (s *Service) OdobVIPInfo() (info *OdobVipUser, err error) {
+	body, err := s.reqOdobVIPInfo()
+	if err != nil {
+		return
+	}
+	defer body.Close()
+
+	if err = handleJSONParse(body, &info); err != nil {
+		return
+	}
+	return
+}
+
 // User get user info
 func (s *Service) User() (user *User, err error) {
 	body, err := s.reqUser()

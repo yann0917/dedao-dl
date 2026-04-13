@@ -42,8 +42,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dedao-dl login -q`
 - `dedao-dl login -c "<cookie>"`
 - `dedao-dl who`
+- `dedao-dl user`
 - `dedao-dl users`
 - `dedao-dl su <uid>`
+- `dedao-dl vip-ebook`
+- `dedao-dl vip-odob`
 
 搜索：
 
