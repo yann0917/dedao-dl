@@ -2,9 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 )
@@ -17,7 +15,7 @@ func init() {
 	rootCmd.AddCommand(channelCmd)
 	channelCmd.AddCommand(channelInfoCmd)
 	channelCmd.AddCommand(channelHomepageCmd)
-	channelCmd.AddCommand(channelHomepageCmd)
+	channelCmd.AddCommand(channelVipCmd)
 
 	channelInfoCmd.Flags().IntVarP(&channelID, "id", "i", 0, "频道ID")
 	channelVipCmd.Flags().IntVarP(&channelID, "id", "i", 0, "频道ID")
@@ -42,9 +40,7 @@ var channelInfoCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		enc := jsoniter.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		return enc.Encode(info)
+		return printJSON(info)
 	},
 }
 
@@ -61,9 +57,7 @@ var channelHomepageCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		enc := jsoniter.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		return enc.Encode(cats)
+		return printJSON(cats)
 	},
 }
 
@@ -80,8 +74,6 @@ var channelVipCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		enc := jsoniter.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
-		return enc.Encode(info)
+		return printJSON(info)
 	},
 }

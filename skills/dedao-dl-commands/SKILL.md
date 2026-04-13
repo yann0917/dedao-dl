@@ -48,8 +48,11 @@ dedao-dl --json dl <courseID|courseEnid> -t 1
 dedao-dl login -q
 dedao-dl login -c "<cookie>"
 dedao-dl who
+dedao-dl user
 dedao-dl users
 dedao-dl su <uid>
+dedao-dl vip-ebook
+dedao-dl vip-odob
 ```
 
 ### 搜索
