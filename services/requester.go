@@ -312,7 +312,7 @@ func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 // reqOdobAudioDetail 请求每天听本书音频详情
 // topicIDStr: https://www.dedao.cn/audioBook/detail?id=xxx 中的 id
 func (s *Service) reqOdobAudioDetail(topicIDStr string) (io.ReadCloser, error) {
-	resp, err := s.client.SetDebug(true).R().
+	resp, err := s.client.R().
 		// SetBody(map[string]interface{}{
 		// 	"alias_id": topicIDStr,
 		// }).
@@ -326,7 +326,7 @@ func (s *Service) reqOdobAudioDetail(topicIDStr string) (io.ReadCloser, error) {
 // reqOdobAudioDetail 请求每天听本书音频详情
 // aliasID: reqOdobAudioDetail 返回的 alias_id
 func (s *Service) reqOdobAudioDetailAlias(aliasID string) (io.ReadCloser, error) {
-	resp, err := s.client.SetDebug(true).R().
+	resp, err := s.client.R().
 		SetBody(map[string]interface{}{
 			"alias_id": aliasID,
 		}).
