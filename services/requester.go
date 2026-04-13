@@ -309,13 +309,12 @@ func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqOdobAudioDetail 请求每天听本书书 音频 info
-func (s *Service) reqOdobAudioDetail(aliasID string) (io.ReadCloser, error) {
+// reqOdobAudioDetail 请求每天听本书音频详情
+// topicIDStr: https://www.dedao.cn/audioBook/detail?id=xxx 中的 id
+func (s *Service) reqOdobAudioDetail(topicIDStr string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
-		SetBody(map[string]interface{}{
-			"alias_id": aliasID,
-		}).
-		Post("pc/odob/pc/audio/detail/alias")
+		SetQueryParam("topic_id_str", topicIDStr).
+		Get("/pc/odob/pc/audio/detail")
 
 	return handleHTTPResponse(resp, err)
 }

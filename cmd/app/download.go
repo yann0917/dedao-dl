@@ -191,7 +191,7 @@ func (d *OdobDownload) Download() error {
 	return nil
 }
 
-// resolveTarget resolves odob resource from id/enid/alias without relying on bookshelf listing.
+// resolveTarget resolves odob resource from id/topic_id_str/audio_id without relying on bookshelf listing.
 func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string, err error) {
 	if d.ID > 0 {
 		article = config.Instance.GetCourseCache(CateAudioBook, d.ID)
@@ -204,20 +204,52 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 		}
 	}
 
-	// For non-numeric input, first try it as audio alias directly.
+	// For non-numeric input, first treat it as topic_id_str and resolve audio_id.
 	if d.EnID != "" {
-		if info, infoErr := OdobArticleInfo(d.EnID); infoErr == nil && info != nil {
-			aliasID = d.EnID
-			if info.Audio.AliasID != "" {
-				aliasID = info.Audio.AliasID
-			}
-			if article == nil {
-				article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
-			}
-			if aliasID != "" {
-				return article, aliasID, nil
-			}
+		detail, detailErr := getService().AudioDetailByTopicIDStr(d.EnID)
+		if detailErr != nil {
+			return nil, "", fmt.Errorf("通过 topic_id_str 获取听书详情失败: %w", detailErr)
 		}
+		if detail == nil {
+			return nil, "", errors.New("通过 topic_id_str 获取听书详情失败: 返回为空")
+		}
+
+		aliasID = detail.AudioID
+		if aliasID == "" {
+			return nil, "", errors.New("听书详情中未返回 audio_id")
+		}
+
+		info, infoErr := OdobArticleInfo(aliasID)
+		if infoErr != nil {
+			return nil, "", fmt.Errorf("通过 audio_id 获取文章信息失败: %w", infoErr)
+		}
+		if info == nil {
+			return nil, "", errors.New("通过 audio_id 获取文章信息失败: 返回为空")
+		}
+
+		if article == nil {
+			article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
+		}
+		if article != nil {
+			if article.Enid == "" {
+				article.Enid = d.EnID
+			}
+			if article.Title == "" || article.Title == "每天听本书" {
+				article.Title = detail.Title
+			}
+			article.HasPlayAuth = article.HasPlayAuth || detail.HasPlayAuth
+			if article.AudioDetail.MP3PlayURL == "" {
+				article.AudioDetail.MP3PlayURL = detail.MP3PlayURL
+			}
+			if article.AudioDetail.Size == 0 {
+				article.AudioDetail.Size = detail.Size
+			}
+			if article.AudioDetail.TopicEncodeID == "" {
+				article.AudioDetail.TopicEncodeID = d.EnID
+			}
+			article.AudioDetail.AliasID = aliasID
+		}
+		return article, aliasID, nil
 	}
 
 	// Fallback to list/cache matching for ID/enid (if available).
@@ -268,7 +300,7 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 	}
 
 	if aliasID == "" && article.Type == 13 {
-		return nil, "", errors.New("无法解析听书音频 aliasID，请尝试使用 alias 作为参数，或先执行 odob 列表确认资源")
+		return nil, "", errors.New("无法解析听书音频 audio_id，请使用音频详情链接中的 id 参数重试")
 	}
 
 	return article, aliasID, nil
@@ -290,12 +322,16 @@ func buildOdobCourseFromArticleInfo(info *services.ArticleInfo, aliasID string, 
 	return &services.Course{
 		ID:          courseID,
 		ClassID:     info.ClassID,
+		Enid:        info.Audio.TopicEncodeID,
 		Title:       title,
 		Type:        13,
 		HasPlayAuth: info.Audio.HasPlayAuth || info.IsBuy == 1,
 		AudioDetail: services.Audio{
-			AliasID: aliasID,
-			Size:    info.Audio.Size,
+			AudioID:       aliasID,
+			AliasID:       aliasID,
+			TopicEncodeID: info.Audio.TopicEncodeID,
+			MP3PlayURL:    info.Audio.MP3PlayURL,
+			Size:          info.Audio.Size,
 		},
 	}
 }
@@ -450,12 +486,19 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 	audioIds := map[int]string{}
 	audioData := make([]*downloader.Datum, 0)
 	aliasID := article.AudioDetail.AliasID
+	topicIDStr := article.Enid
+	if topicIDStr == "" {
+		topicIDStr = article.AudioDetail.TopicEncodeID
+	}
 
 	if article.Type == 13 {
-		audioIds[aid] = article.AudioDetail.AliasID
+		audioIds[aid] = aliasID
 
 		var urls []downloader.URL
-		key := article.Enid
+		key := topicIDStr
+		if key == "" {
+			key = aliasID
+		}
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
@@ -467,18 +510,32 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		if !article.HasPlayAuth {
 			isCanDL = false
 		}
-		detail, err := getService().AudioDetailAlias(aliasID)
-		if err != nil {
-			fmt.Println(err)
-			return nil
+		m3u8URL := article.AudioDetail.MP3PlayURL
+		if m3u8URL == "" && topicIDStr != "" {
+			detail, err := getService().AudioDetailByTopicIDStr(topicIDStr)
+			if err != nil {
+				fmt.Println(err)
+				return nil
+			}
+			m3u8URL = detail.MP3PlayURL
+			if aliasID == "" {
+				aliasID = detail.AudioID
+				if aliasID == "" {
+					aliasID = detail.AliasID
+				}
+			}
+			if article.Title == "" {
+				article.Title = detail.Title
+			}
+			isCanDL = isCanDL && detail.HasPlayAuth
 		}
 		datum := &downloader.Datum{
 			ID:      aid,
-			Enid:    article.Enid,
+			Enid:    key,
 			ClassID: article.ClassID,
 			Title:   article.Title,
 			IsCanDL: isCanDL,
-			M3U8URL: detail.MP3PlayURL,
+			M3U8URL: m3u8URL,
 			Streams: streams,
 			Type:    "audio",
 		}

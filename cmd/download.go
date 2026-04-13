@@ -62,9 +62,9 @@ var dlOdobCmd = &cobra.Command{
 -t 指定下载格式, 1:mp3, 2:PDF文档, 3:markdown文档, 默认 mp3
 参数支持:
 1) 听书ID（数字）
-2) enid/alias（字符串）
-建议优先使用 enid（链接里的 id 参数）
-其中 enid 为详情链接里的 id 参数，例如:
+2) topic_id_str（字符串）
+建议优先使用音频详情链接里的 id 参数（topic_id_str）
+例如:
 https://www.dedao.cn/audioBook/detail?id=ZV1po7jlgBdObqZXy0GNR4wLzxya5v`,
 	Example: "dedao-dl dlo 123 -t 1\ndedao-dl dlo ZV1po7jlgBdObqZXy0GNR4wLzxya5v -t 1",
 	PreRunE: AuthFunc,
