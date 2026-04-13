@@ -153,7 +153,23 @@ func (s *Service) AudioDetailByTopicIDStr(topicIDStr string) (detail *Audio, err
 	return
 }
 
-// AudioDetailAlias kept for compatibility; parameter now expects topic_id_str.
+// AudioDetailAlias
+// 先通过 AudioDetailByTopicIDStr 获取 audio_id，再通过 AudioDetailAlias 获取音频详情
 func (s *Service) AudioDetailAlias(topicIDStr string) (detail *Audio, err error) {
-	return s.AudioDetailByTopicIDStr(topicIDStr)
+	detail, err = s.AudioDetailByTopicIDStr(topicIDStr)
+	if err != nil {
+		return
+	}
+
+	adetail := AudioDetail{}
+	body, err := s.reqOdobAudioDetailAlias(detail.AudioID)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &adetail); err != nil {
+		return
+	}
+	detail = &adetail.Detail
+	return
 }

@@ -206,7 +206,7 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 
 	// For non-numeric input, first treat it as topic_id_str and resolve audio_id.
 	if d.EnID != "" {
-		detail, detailErr := getService().AudioDetailByTopicIDStr(d.EnID)
+		detail, detailErr := getService().AudioDetailAlias(d.EnID)
 		if detailErr != nil {
 			return nil, "", fmt.Errorf("通过 topic_id_str 获取听书详情失败: %w", detailErr)
 		}
@@ -214,17 +214,17 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 			return nil, "", errors.New("通过 topic_id_str 获取听书详情失败: 返回为空")
 		}
 
-		aliasID = detail.AudioID
+		aliasID = detail.AliasID
 		if aliasID == "" {
-			return nil, "", errors.New("听书详情中未返回 audio_id")
+			return nil, "", errors.New("听书详情中未返回 alias_id")
 		}
 
 		info, infoErr := OdobArticleInfo(aliasID)
 		if infoErr != nil {
-			return nil, "", fmt.Errorf("通过 audio_id 获取文章信息失败: %w", infoErr)
+			return nil, "", fmt.Errorf("通过 alias_id 获取文章信息失败: %w", infoErr)
 		}
 		if info == nil {
-			return nil, "", errors.New("通过 audio_id 获取文章信息失败: 返回为空")
+			return nil, "", errors.New("通过 alias_id 获取文章信息失败: 返回为空")
 		}
 
 		if article == nil {
@@ -506,7 +506,7 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		}
 		m3u8URL := article.AudioDetail.MP3PlayURL
 		if m3u8URL == "" && topicIDStr != "" {
-			detail, err := getService().AudioDetailByTopicIDStr(topicIDStr)
+			detail, err := getService().AudioDetailAlias(topicIDStr)
 			if err != nil {
 				fmt.Println(err)
 				return nil
