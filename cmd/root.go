@@ -14,6 +14,13 @@ var rootCmd = &cobra.Command{
 		love by spf13 and friends in Go.`,
 }
 
+// outputJSON 控制命令输出 JSON 格式
+var outputJSON bool
+
+func init() {
+	rootCmd.PersistentFlags().BoolVar(&outputJSON, "json", false, "以 JSON 格式输出结果")
+}
+
 // AuthFunc check login
 var AuthFunc = func(cmd *cobra.Command, args []string) error {
 	if config.Instance.ActiveUID == "" {

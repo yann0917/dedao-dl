@@ -113,6 +113,9 @@ func courseType() (err error) {
 	if err != nil {
 		return
 	}
+	if outputJSON {
+		return printJSON(list)
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"#", "名称", "统计", "分类标签"})
 
@@ -127,6 +130,9 @@ func courseInfo(id int) (err error) {
 	info, err := app.CourseInfo(id)
 	if err != nil {
 		return
+	}
+	if outputJSON {
+		return printJSON(info)
 	}
 
 	out := os.Stdout
@@ -337,6 +343,20 @@ func renderCourseTable(items []services.Course, category string, options renderO
 		} else {
 			reading++
 		}
+	}
+
+	if outputJSON {
+		return printJSON(map[string]interface{}{
+			"header":   options.header,
+			"category": category,
+			"items":    items,
+			"stats": map[string]int{
+				"total":   total,
+				"reading": reading,
+				"done":    done,
+				"unread":  unread,
+			},
+		})
 	}
 
 	// Print statistics

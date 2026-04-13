@@ -50,12 +50,24 @@ func getEbookNotesList(id int) error {
 	}
 
 	if len(noteList.List) == 0 {
+		if outputJSON {
+			return printJSON(map[string]interface{}{
+				"book":  detail,
+				"notes": []interface{}{},
+			})
+		}
 		fmt.Println("该电子书暂无笔记")
 		return nil
 	}
 
 	// 使用公共函数排序笔记列表
 	sortedNotes := app.SortNotesByChapter(noteList.List, detail.CatalogList)
+	if outputJSON {
+		return printJSON(map[string]interface{}{
+			"book":  detail,
+			"notes": sortedNotes,
+		})
+	}
 
 	// 使用公共函数创建章节映射器
 	getChapterName := app.CreateChapterMapper(detail.CatalogList)

@@ -102,6 +102,10 @@ func init() {
 // current login user
 func who() {
 	activeUser := config.Instance.ActiveUser()
+	if outputJSON {
+		_ = printJSON(activeUser)
+		return
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"UID", "姓名", "头像"})
 	table.Append([]string{activeUser.UIDHazy, activeUser.Name, activeUser.Avatar})
@@ -110,6 +114,10 @@ func who() {
 
 // users get login user list
 func users() {
+	if outputJSON {
+		_ = printJSON(config.Instance.Users)
+		return
+	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"#", "UID", "姓名", "头像"})
 	for i, user := range config.Instance.Users {
