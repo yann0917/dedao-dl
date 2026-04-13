@@ -377,6 +377,17 @@ func (s *Service) reqSearchHot() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqSearchSuggest 搜索建议
+func (s *Service) reqSearchSuggest(query string, searchType int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"query":      query,
+			"searchType": searchType,
+		}).
+		Post("/api/search/pc/suggest")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqSunflowerLabelList index label list
 // nType 2-好看又好查的电子书, 4-精选课程
 func (s *Service) reqSunflowerLabelList(nType int) (io.ReadCloser, error) {

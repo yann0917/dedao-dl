@@ -64,6 +64,39 @@ type SearchTot struct {
 	RecommendMap []Recommend `json:"recommend_map"`
 }
 
+type SearchSuggestGroup struct {
+	Type      int                 `json:"type"`
+	TabType   int                 `json:"tab_type"`
+	TrackName string              `json:"track_name"`
+	Total     int                 `json:"total"`
+	List      []SearchSuggestItem `json:"list"`
+}
+
+type SearchSuggestItem struct {
+	ID        int                `json:"id"`
+	Type      int                `json:"type"`
+	Tname     string             `json:"tname"`
+	Title     string             `json:"title"`
+	Author    string             `json:"author"`
+	Content   string             `json:"content"`
+	URL       string             `json:"url"`
+	GoodsID   string             `json:"goods_id"`
+	GoodsType string             `json:"goods_type"`
+	Extra     SearchSuggestExtra `json:"extra"`
+}
+
+type SearchSuggestExtra struct {
+	Enid           string `json:"enid"`
+	Image          string `json:"image"`
+	Press          string `json:"press"`
+	DoubanScore    string `json:"douban_score"`
+	RecommendScore string `json:"recommend_score"`
+}
+
+type SearchSuggestResp struct {
+	List []SearchSuggestGroup `json:"list"`
+}
+
 type Navigation struct {
 	Enid         string  `json:"enid"`
 	Id           int     `json:"id"`
@@ -352,6 +385,19 @@ func (s *Service) SearchHot() (list *SearchTot, err error) {
 	}
 	defer body.Close()
 	if err = handleJSONParse(body, &list); err != nil {
+		return
+	}
+	return
+}
+
+// SearchSuggest 搜索建议
+func (s *Service) SearchSuggest(query string, searchType int) (resp *SearchSuggestResp, err error) {
+	body, err := s.reqSearchSuggest(query, searchType)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &resp); err != nil {
 		return
 	}
 	return
