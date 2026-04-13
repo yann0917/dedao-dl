@@ -37,6 +37,7 @@ type CourseDownload struct {
 type OdobDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
+	EnID         string
 }
 
 type EBookDownload struct {
@@ -132,26 +133,13 @@ func (d *CourseDownload) Download() error {
 
 func (d *OdobDownload) Download() error {
 	fileName := "每天听本书"
-	article := config.Instance.GetCourseCache(CateAudioBook, d.ID)
-	aliasID := ""
-	if article != nil {
-		aliasID = article.AudioDetail.AliasID
+	article, aliasID, err := d.resolveTarget()
+	if err != nil {
+		return err
 	}
-	if aliasID == "" {
-		list, err := CourseList(CateAudioBook)
-		if err != nil {
-			return nil
-		}
-		for _, course := range list.List {
-			if d.ID > 0 && course.ID == d.ID {
-				article = &course
-				break
-			}
-		}
-	}
-
-	if article == nil {
-		return nil
+	audioID := article.ID
+	if audioID <= 0 {
+		audioID = d.ID
 	}
 
 	switch d.DownloadType {
@@ -160,7 +148,7 @@ func (d *OdobDownload) Download() error {
 			Title: fileName,
 		}
 		downloadData.Type = "audio"
-		downloadData.Data = extractOdobDownloadData(d.ID, article)
+		downloadData.Data = extractOdobDownloadData(audioID, article)
 		errs := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		if err != nil {
@@ -201,6 +189,115 @@ func (d *OdobDownload) Download() error {
 		}
 	}
 	return nil
+}
+
+// resolveTarget resolves odob resource from id/enid/alias without relying on bookshelf listing.
+func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string, err error) {
+	if d.ID > 0 {
+		article = config.Instance.GetCourseCache(CateAudioBook, d.ID)
+	}
+
+	if article != nil {
+		aliasID = article.AudioDetail.AliasID
+		if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
+			aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
+		}
+	}
+
+	// For non-numeric input, first try it as audio alias directly.
+	if d.EnID != "" {
+		if info, infoErr := OdobArticleInfo(d.EnID); infoErr == nil && info != nil {
+			aliasID = d.EnID
+			if info.Audio.AliasID != "" {
+				aliasID = info.Audio.AliasID
+			}
+			if article == nil {
+				article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
+			}
+			if aliasID != "" {
+				return article, aliasID, nil
+			}
+		}
+	}
+
+	// Fallback to list/cache matching for ID/enid (if available).
+	if article == nil || aliasID == "" {
+		list, listErr := CourseList(CateAudioBook)
+		if listErr == nil && list != nil {
+			for _, course := range list.List {
+				if (d.ID > 0 && course.ID == d.ID) || (d.EnID != "" && course.Enid == d.EnID) {
+					c := course
+					article = &c
+					aliasID = article.AudioDetail.AliasID
+					if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
+						aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
+					}
+					break
+				}
+			}
+		}
+	}
+
+	// Directly resolve alias by detail_id to support non-bookshelf resources.
+	if aliasID == "" && d.ID > 0 {
+		if info, infoErr := getService().ArticleInfo(strconv.Itoa(d.ID), 1); infoErr == nil && info != nil {
+			aliasID = info.Audio.AliasID
+			if aliasID == "" && len(info.ArticleInfo.AudioAliasIds) > 0 {
+				aliasID = info.ArticleInfo.AudioAliasIds[0]
+			}
+			if aliasID != "" {
+				if article == nil {
+					article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
+				}
+				return article, aliasID, nil
+			}
+		}
+	}
+
+	if article == nil && d.EnID != "" {
+		article = &services.Course{
+			ID:    d.ID,
+			Enid:  d.EnID,
+			Title: d.EnID,
+			Type:  13,
+		}
+	}
+
+	if article == nil {
+		return nil, "", errors.New("未找到听书资源，请检查输入的 ID/EnID 是否正确")
+	}
+
+	if aliasID == "" && article.Type == 13 {
+		return nil, "", errors.New("无法解析听书音频 aliasID，请尝试使用 alias 作为参数，或先执行 odob 列表确认资源")
+	}
+
+	return article, aliasID, nil
+}
+
+func buildOdobCourseFromArticleInfo(info *services.ArticleInfo, aliasID string, fallbackID int) *services.Course {
+	courseID := fallbackID
+	if courseID <= 0 {
+		courseID = info.ClassID
+	}
+	title := info.ArticleTitle
+	if title == "" {
+		title = info.ClassTitle
+	}
+	if title == "" {
+		title = "每天听本书"
+	}
+
+	return &services.Course{
+		ID:          courseID,
+		ClassID:     info.ClassID,
+		Title:       title,
+		Type:        13,
+		HasPlayAuth: info.Audio.HasPlayAuth || info.IsBuy == 1,
+		AudioDetail: services.Audio{
+			AliasID: aliasID,
+			Size:    info.Audio.Size,
+		},
+	}
 }
 
 func (d *EBookDownload) Download() error {
