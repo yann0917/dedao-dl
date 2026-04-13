@@ -206,7 +206,7 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 
 	// For non-numeric input, first treat it as topic_id_str and resolve audio_id.
 	if d.EnID != "" {
-		detail, detailErr := getService().AudioDetailByTopicIDStr(d.EnID)
+		detail, detailErr := getService().AudioDetailAlias(d.EnID)
 		if detailErr != nil {
 			return nil, "", fmt.Errorf("通过 topic_id_str 获取听书详情失败: %w", detailErr)
 		}
@@ -214,17 +214,17 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 			return nil, "", errors.New("通过 topic_id_str 获取听书详情失败: 返回为空")
 		}
 
-		aliasID = detail.AudioID
+		aliasID = detail.AliasID
 		if aliasID == "" {
-			return nil, "", errors.New("听书详情中未返回 audio_id")
+			return nil, "", errors.New("听书详情中未返回 alias_id")
 		}
 
 		info, infoErr := OdobArticleInfo(aliasID)
 		if infoErr != nil {
-			return nil, "", fmt.Errorf("通过 audio_id 获取文章信息失败: %w", infoErr)
+			return nil, "", fmt.Errorf("通过 alias_id 获取文章信息失败: %w", infoErr)
 		}
 		if info == nil {
-			return nil, "", errors.New("通过 audio_id 获取文章信息失败: 返回为空")
+			return nil, "", errors.New("通过 alias_id 获取文章信息失败: 返回为空")
 		}
 
 		if article == nil {
@@ -422,7 +422,6 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 // 生成课程下载数据
 func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int, isOrder bool) []downloader.Datum {
 	data := downloader.EmptyData
-	audioIds := map[int]string{}
 	if articles == nil {
 		return data
 	}
@@ -434,8 +433,6 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 		}
 
 		if article.Audio != nil && article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
-			audioIds[article.ID] = article.Audio.AliasID
-
 			var urls []downloader.URL
 			key := article.Enid
 			streams := map[string]downloader.Stream{
@@ -471,7 +468,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 	}
 
 	if flag == 1 {
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 	}
 
 	for _, d := range audioData {
@@ -483,7 +480,6 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 // 生成 AudioBook 下载数据
 func extractOdobDownloadData(aid int, article *services.Course) []downloader.Datum {
 	data := downloader.EmptyData
-	audioIds := map[int]string{}
 	audioData := make([]*downloader.Datum, 0)
 	aliasID := article.AudioDetail.AliasID
 	topicIDStr := article.Enid
@@ -492,8 +488,6 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 	}
 
 	if article.Type == 13 {
-		audioIds[aid] = aliasID
-
 		var urls []downloader.URL
 		key := topicIDStr
 		if key == "" {
@@ -512,7 +506,7 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		}
 		m3u8URL := article.AudioDetail.MP3PlayURL
 		if m3u8URL == "" && topicIDStr != "" {
-			detail, err := getService().AudioDetailByTopicIDStr(topicIDStr)
+			detail, err := getService().AudioDetailAlias(topicIDStr)
 			if err != nil {
 				fmt.Println(err)
 				return nil
@@ -541,7 +535,7 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		}
 
 		audioData = append(audioData, datum)
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 
 		for _, d := range audioData {
 			data = append(data, *d)
@@ -562,8 +556,6 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		for i, audio := range details.OdobAudioDetailList {
 			// 使用音频的 SourceID 作为 ID
 			audioID := audio.SourceID
-
-			audioIds[audioID] = audio.AliasID
 
 			key := audio.TopicEncodeID
 			if key == "" {
@@ -610,7 +602,7 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		}
 
 		// 处理流数据
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 
 		// 将数据添加到结果集
 		for _, d := range audioData {
@@ -621,11 +613,11 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 	return data
 }
 
-func handleStreams(audioData []*downloader.Datum, audioIds map[int]string) {
+func handleStreams(audioData []*downloader.Datum) {
 	wgp := utils.NewWaitGroupPool(10)
 	for _, datum := range audioData {
 		wgp.Add()
-		go func(datum *downloader.Datum, streams map[int]string) {
+		go func(datum *downloader.Datum) {
 			defer func() {
 				wgp.Done()
 			}()
@@ -647,7 +639,7 @@ func handleStreams(audioData []*downloader.Datum, audioIds map[int]string) {
 					}
 				}
 			}
-		}(datum, audioIds)
+		}(datum)
 	}
 	wgp.Wait()
 }
@@ -794,7 +786,7 @@ func courseArticleDetailByEnid(articleEnid string) (detail *services.ArticleDeta
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, articleEnid, appid)
+	detail, err = getService().ArticleDetail(token, appid)
 	return
 }
 
