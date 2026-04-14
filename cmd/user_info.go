@@ -17,8 +17,8 @@ func init() {
 var userCmd = &cobra.Command{
 	Use:     "user",
 	Short:   "获取当前登录用户信息",
-	Long:    `使用 dedao-dl user 获取 /api/pc/user/info 返回的用户信息。`,
-	Example: "dedao-dl user\n" + "dedao-dl --json user",
+	Long:    `获取当前登录用户信息。默认展示：昵称(nickname)、用户标识(uid_hazy)、今日学习时长(today_study_time)、连续学习天数(study_serial_days)、是否会员(is_v)、是否讲师(is_teacher)；使用 --json 可查看完整字段（如头像 avatar、会员信息 vip_user）。`,
+	Example: "dedao-dl user -h\n" + "dedao-dl user\n" + "dedao-dl --json user",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		info, err := app.User()
@@ -36,16 +36,16 @@ func renderUserTable(info *services.User) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"字段", "值"})
 	if info == nil {
-		table.Append([]string{"result", "接口返回为空，请使用 --json 排查"})
+		table.Append([]string{"结果", "接口返回为空，请使用 --json 排查"})
 		table.Render()
 		return nil
 	}
-	table.Append([]string{"nickname", info.Nickname})
-	table.Append([]string{"uid_hazy", info.UIDHazy})
-	table.Append([]string{"today_study_time", strconv.Itoa(info.TodayStudyTime)})
-	table.Append([]string{"study_serial_days", strconv.Itoa(info.StudySerialDays)})
-	table.Append([]string{"is_v", strconv.Itoa(info.IsV)})
-	table.Append([]string{"is_teacher", strconv.Itoa(info.IsTeacher)})
+	table.Append([]string{"昵称(nickname)", info.Nickname})
+	table.Append([]string{"用户标识(uid_hazy)", info.UIDHazy})
+	table.Append([]string{"今日学习时长(today_study_time)", strconv.Itoa(info.TodayStudyTime)})
+	table.Append([]string{"连续学习天数(study_serial_days)", strconv.Itoa(info.StudySerialDays)})
+	table.Append([]string{"是否会员(is_v)", strconv.Itoa(info.IsV)})
+	table.Append([]string{"是否讲师(is_teacher)", strconv.Itoa(info.IsTeacher)})
 	table.Render()
 	return nil
 }

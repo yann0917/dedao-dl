@@ -21,6 +21,7 @@ description: "提供 dedao-dl 纯命令用法速查。用户询问 dedao-dl 某�
 - 用户未指定时，默认给最常用参数
 - 若面向 agent 调用，默认所有命令使用 `dedao-dl --json <command> ...`
 - 对 ID 同时说明两类：数字 ID 与 URL `id`；数字 ID 需先拉列表建立 ID 与 enid 映射
+- 用户询问某个子命令时，默认同时给 `dedao-dl <command> -h` 便于自查参数
 
 ## 全部命令清单
 
@@ -30,6 +31,10 @@ description: "提供 dedao-dl 纯命令用法速查。用户询问 dedao-dl 某�
 dedao-dl -h
 dedao-dl <command> -h
 dedao-dl --json <command> ...
+```
+
+```text
+所有子命令均支持 -h/--help；不确定参数时，优先执行 dedao-dl <command> -h。
 ```
 
 ### Agent 默认写法

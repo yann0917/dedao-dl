@@ -17,8 +17,8 @@ func init() {
 var vipEbookCmd = &cobra.Command{
 	Use:     "vip-ebook",
 	Short:   "获取电子书 VIP 信息",
-	Long:    `使用 dedao-dl vip-ebook 获取 /api/pc/ebook2/v1/vip/info 返回结果。`,
-	Example: "dedao-dl vip-ebook\n" + "dedao-dl --json vip-ebook",
+	Long:    `获取电子书 VIP 信息。默认展示：用户ID(uid)、昵称(nickname)、是否会员(is_vip)、是否过期(is_expire)、月度配额(month_count)、周度配额(week_count)、总配额(total_count)、已用配额(finished_count)、价格说明(price_desc)、节省金额(save_price)、错误提示(err_tips)；使用 --json 可查看完整字段。`,
+	Example: "dedao-dl vip-ebook -h\n" + "dedao-dl vip-ebook\n" + "dedao-dl --json vip-ebook",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		info, err := app.EbookVIPInfo()
@@ -36,22 +36,22 @@ func renderEbookVIPTable(info *services.EbookVIPInfo) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header([]string{"字段", "值"})
 	if info == nil {
-		table.Append([]string{"result", "接口返回为空，请使用 --json 排查"})
+		table.Append([]string{"结果", "接口返回为空，请使用 --json 排查"})
 		table.Render()
 		return nil
 	}
 
-	table.Append([]string{"uid", strconv.Itoa(info.UID)})
-	table.Append([]string{"nickname", info.Nickname})
-	table.Append([]string{"is_vip", strconv.FormatBool(info.IsVip)})
-	table.Append([]string{"is_expire", strconv.FormatBool(info.IsExpire)})
-	table.Append([]string{"month_count", strconv.Itoa(info.MonthCount)})
-	table.Append([]string{"week_count", strconv.Itoa(info.WeekCount)})
-	table.Append([]string{"total_count", strconv.Itoa(info.TotalCount)})
-	table.Append([]string{"finished_count", strconv.Itoa(info.FinishedCount)})
-	table.Append([]string{"price_desc", info.PriceDesc})
-	table.Append([]string{"save_price", info.SavePrice})
-	table.Append([]string{"err_tips", info.ErrTips})
+	table.Append([]string{"用户ID(uid)", strconv.Itoa(info.UID)})
+	table.Append([]string{"昵称(nickname)", info.Nickname})
+	table.Append([]string{"是否会员(is_vip)", strconv.FormatBool(info.IsVip)})
+	table.Append([]string{"是否过期(is_expire)", strconv.FormatBool(info.IsExpire)})
+	table.Append([]string{"月度配额(month_count)", strconv.Itoa(info.MonthCount)})
+	table.Append([]string{"周度配额(week_count)", strconv.Itoa(info.WeekCount)})
+	table.Append([]string{"总配额(total_count)", strconv.Itoa(info.TotalCount)})
+	table.Append([]string{"已用配额(finished_count)", strconv.Itoa(info.FinishedCount)})
+	table.Append([]string{"价格说明(price_desc)", info.PriceDesc})
+	table.Append([]string{"节省金额(save_price)", info.SavePrice})
+	table.Append([]string{"错误提示(err_tips)", info.ErrTips})
 	table.Render()
 	return nil
 }
