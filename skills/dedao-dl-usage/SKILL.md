@@ -27,6 +27,7 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - 用户没登录时，先引导执行登录相关命令，再继续后续步骤。
 - 涉及下载格式时，明确 `-t` 含义，避免误用。
 - 若用户提供报错文本，先复述关键错误，再给分步排查。
+- 用户询问某个子命令时，默认同时给 `dedao-dl <command> -h` 便于自查参数。
 
 ## 全部命令速查（不要遗漏）
 
@@ -35,6 +36,7 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dedao-dl`
 - 全局参数：`--json`
 - 帮助：`dedao-dl -h`、`dedao-dl <command> -h`
+- 说明：所有子命令均支持 `-h/--help`，不确定参数时优先执行 `dedao-dl <command> -h`
 - agent 默认：`dedao-dl --json <command> ...`
 
 账号与会话：
