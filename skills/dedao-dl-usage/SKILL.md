@@ -125,6 +125,29 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - 电子书阅读页：`https://www.dedao.cn/ebook/reader?id=<ebookEnid>` -> `dle <ebookEnid>`
 - 文章详情页若有文章 `enid` -> `article --articleEnID <articleEnid>`
 
+## 从链接自动识别并下载
+
+当用户提供得到链接时，自动识别内容类型并执行下载：
+
+**链接识别规则：**
+- 听书链接：`https://www.dedao.cn/audioBook/detail?id=<id>` → 提取 `id` 参数
+- 电子书链接：`https://www.dedao.cn/ebook/detail?id=<id>` 或 `/ebook/reader?id=<id>` → 提取 `id`/`bookId` 参数
+- 课程链接：`https://www.dedao.cn/course/detail?id=<id>` 或 `/course/article?id=<id>` → 提取 `id`/`articleId` 参数
+
+**自动下载流程：**
+1. 解析 URL 识别内容类型（audioBook/ebook/course）
+2. 提取 URL 中的 `id` 参数值
+3. 根据类型选择对应命令：
+   - 听书：`dlo <id> -t 1` (MP3) + `dlo <id> -t 2` (PDF) + `dlo <id> -t 3` (Markdown)
+   - 电子书：`dle <id>`
+   - 课程：`dl <id>`
+4. 执行下载并返回文件路径
+
+**示例：**
+- 输入：`https://www.dedao.cn/audioBook/detail?id=Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 识别：听书，ID = `Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 执行：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 1/2/3`
+
 search 结果到命令映射（基于真实返回结构）：
 
 - 电子书：`track_name=ebook` 或 `goods_type=2` -> `dle <extra.enid> -t <1|2|3|4>`
@@ -188,6 +211,15 @@ search 结果到命令映射（基于真实返回结构）：
 - 先登录：`dedao-dl login -q`
 - 直接下载：`dedao-dl dl ZWy... -t 1`
 - 若要 Markdown 合并并带热门留言：`dedao-dl dl ZWy... -t 3 -m -c`
+
+用户：`https://www.dedao.cn/audioBook/detail?id=Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+
+回答：
+
+- 识别为听书，ID: `Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 下载音频：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 1`
+- 下载PDF：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 2`
+- 下载Markdown：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 3`
 
 用户：`dle 的 t=4 是什么？`
 
