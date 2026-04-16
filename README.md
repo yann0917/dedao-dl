@@ -159,6 +159,25 @@ Available Commands:
 +----+-----+-------------------------+---------------------------------+---------------------+--------+----------+
 ```
 
+`course/odob/ebook` 支持分页与排序参数：
+
+```bash
+dedao-dl course --page 1 --limit 18
+dedao-dl course --order buy --page 1 --limit 18
+dedao-dl course --group-id 12345 --page 1 --limit 18
+dedao-dl odob --page 1 --limit 18
+dedao-dl odob --group-id 12345 --page 1 --limit 18
+dedao-dl ebook --page 1 --limit 18
+dedao-dl ebook --group-id 12345 --page 1 --limit 18
+```
+
+参数规则说明：
+
+* `--page` 和 `--limit` 需要同时传；都不传时保持原逻辑（自动拉取全部）
+* 分页模式（同时传 `--page` 和 `--limit`）下不展开分组，只展示当前页原始列表
+* `course --order` 支持 `study`（默认）和 `buy`（最近购买）
+* `odob --order`、`ebook --order` 仅支持 `study`
+
 `dedao-dl free` 获取免费课程列表
 
 ```

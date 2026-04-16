@@ -60,14 +60,21 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 
 - `dedao-dl cat`
 - `dedao-dl course`
+- `dedao-dl course --page <page> --limit <limit>`
+- `dedao-dl course --order <study|buy>`
 - `dedao-dl course --group-id <groupID>`
+- `dedao-dl course --group-id <groupID> --page <page> --limit <limit>`
 - `dedao-dl course -i <courseID>`
 - `dedao-dl ace`
 - `dedao-dl ace --group-id <groupID>`
 - `dedao-dl odob`
+- `dedao-dl odob --page <page> --limit <limit>`
 - `dedao-dl odob --group-id <groupID>`
+- `dedao-dl odob --group-id <groupID> --page <page> --limit <limit>`
 - `dedao-dl ebook`
+- `dedao-dl ebook --page <page> --limit <limit>`
 - `dedao-dl ebook --group-id <groupID>`
+- `dedao-dl ebook --group-id <groupID> --page <page> --limit <limit>`
 - `dedao-dl ebook -i <ebookID>`
 - `dedao-dl free`
 - `dedao-dl free <enid>`
@@ -105,7 +112,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dle -t`：`1=html`，`2=PDF`，`3=epub`，`4=markdown笔记`
 - `search --type`：默认 `0`
 - `search` 结果中用于后续命令的 enid 字段：`extra.enid`
-- `--json`：机器可读输出，便于脚本处理
+- `--json`：agent 可读输出，便于脚本处理
+- `course --order`：`study`（默认）或 `buy`（最近购买）
+- `odob --order`、`ebook --order`：仅支持 `study`
+- `course/odob/ebook --page --limit`：两个参数需要同时传；不传则自动拉全量
+- 分页模式行为：不展开分组，仅返回当前页原始列表
 
 ## URL 到参数映射规则
 
