@@ -30,7 +30,7 @@ var (
 var courseTypeCmd = &cobra.Command{
 	Use:     "cat",
 	Short:   "获取课程分类",
-	Long:    `使用 dedao-dl cat 获取课程分类`,
+	Long:    `使用 dedao-dl cat 获取课程分类标签以及每个分类下的数量统计`,
 	Example: "dedao-dl cat",
 	Args:    cobra.NoArgs,
 	PreRunE: AuthFunc,
