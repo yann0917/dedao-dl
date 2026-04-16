@@ -198,7 +198,9 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 	}
 
 	if article != nil {
-		aliasID = article.AudioDetail.AliasID
+		if article.AudioDetail != nil {
+			aliasID = article.AudioDetail.AliasID
+		}
 		if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
 			aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
 		}
@@ -238,6 +240,9 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 				article.Title = detail.Title
 			}
 			article.HasPlayAuth = article.HasPlayAuth || detail.HasPlayAuth
+			if article.AudioDetail == nil {
+				article.AudioDetail = &services.Audio{}
+			}
 			if article.AudioDetail.MP3PlayURL == "" {
 				article.AudioDetail.MP3PlayURL = detail.MP3PlayURL
 			}
@@ -260,7 +265,9 @@ func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string
 				if (d.ID > 0 && course.ID == d.ID) || (d.EnID != "" && course.Enid == d.EnID) {
 					c := course
 					article = &c
-					aliasID = article.AudioDetail.AliasID
+					if article.AudioDetail != nil {
+						aliasID = article.AudioDetail.AliasID
+					}
 					if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
 						aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
 					}
@@ -318,7 +325,7 @@ func buildOdobCourseFromArticleInfo(info *services.ArticleInfo, aliasID string, 
 		Title:       title,
 		Type:        13,
 		HasPlayAuth: info.Audio.HasPlayAuth || info.IsBuy == 1,
-		AudioDetail: services.Audio{
+		AudioDetail: &services.Audio{
 			AudioID:       aliasID,
 			AliasID:       aliasID,
 			TopicEncodeID: info.Audio.TopicEncodeID,
@@ -473,9 +480,12 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 func extractOdobDownloadData(aid int, article *services.Course) []downloader.Datum {
 	data := downloader.EmptyData
 	audioData := make([]*downloader.Datum, 0)
-	aliasID := article.AudioDetail.AliasID
+	var aliasID string
+	if article.AudioDetail != nil {
+		aliasID = article.AudioDetail.AliasID
+	}
 	topicIDStr := article.Enid
-	if topicIDStr == "" {
+	if topicIDStr == "" && article.AudioDetail != nil {
 		topicIDStr = article.AudioDetail.TopicEncodeID
 	}
 
@@ -485,10 +495,14 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		if key == "" {
 			key = aliasID
 		}
+		audioSize := 0
+		if article.AudioDetail != nil {
+			audioSize = article.AudioDetail.Size
+		}
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
-				Size:    article.AudioDetail.Size,
+				Size:    audioSize,
 				Quality: key,
 			},
 		}
@@ -496,7 +510,10 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		if !article.HasPlayAuth {
 			isCanDL = false
 		}
-		m3u8URL := article.AudioDetail.MP3PlayURL
+		m3u8URL := ""
+		if article.AudioDetail != nil {
+			m3u8URL = article.AudioDetail.MP3PlayURL
+		}
 		if m3u8URL == "" && topicIDStr != "" {
 			detail, err := getService().AudioDetailAlias(topicIDStr)
 			if err != nil {

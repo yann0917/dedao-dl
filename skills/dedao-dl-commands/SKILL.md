@@ -80,14 +80,21 @@ search 的 id/goods_id 是数字标识；默认优先用 extra.enid 继续执行
 ```bash
 dedao-dl cat
 dedao-dl course
+dedao-dl course --page <page> --limit <limit>
+dedao-dl course --order <study|buy>
 dedao-dl course --group-id <groupID>
+dedao-dl course --group-id <groupID> --page <page> --limit <limit>
 dedao-dl course -i <courseID>
 dedao-dl ace
 dedao-dl ace --group-id <groupID>
 dedao-dl odob
+dedao-dl odob --page <page> --limit <limit>
 dedao-dl odob --group-id <groupID>
+dedao-dl odob --group-id <groupID> --page <page> --limit <limit>
 dedao-dl ebook
+dedao-dl ebook --page <page> --limit <limit>
 dedao-dl ebook --group-id <groupID>
+dedao-dl ebook --group-id <groupID> --page <page> --limit <limit>
 dedao-dl ebook -i <ebookID>
 dedao-dl free
 dedao-dl free <enid>
@@ -136,6 +143,10 @@ dl  -t: 1=mp3 2=PDF 3=markdown
 dl  -m: markdown 合并章节
 dl  -c: markdown 下载热门留言
 dl  -o: 文件名前加序号
+course --order: study(默认) 或 buy(最近购买)
+odob/ebook --order: 仅支持 study
+course/odob/ebook --page + --limit: 同时传则按页拉取，不传则自动拉全量
+分页模式: 不展开分组，仅返回当前页原始列表
 dlo -t: 1=mp3 2=PDF 3=markdown
 dle -t: 1=html 2=PDF 3=epub 4=markdown笔记
 search --type: 默认 0

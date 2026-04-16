@@ -205,7 +205,7 @@ func (c *CourseInfo) IsSubscribe() bool {
 
 // HasAudio include audio
 func (c *Course) HasAudio() bool {
-	return c.AudioDetail.LogType == "audio"
+	return c.AudioDetail != nil && c.AudioDetail.LogType == "audio"
 }
 
 // CourseListV2 获取V2版本的课程列表
