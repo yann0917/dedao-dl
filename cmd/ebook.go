@@ -25,10 +25,14 @@ var ebookCmd = &cobra.Command{
 		if bookID > 0 {
 			return ebookDetail(bookID)
 		}
-		if ebookGroupID > 0 {
-			return groupList(app.CateEbook, ebookGroupID)
+		query, err := buildListQuery(app.CateEbook, listOrder, listPage, listLimit)
+		if err != nil {
+			return err
 		}
-		return courseListFlat(app.CateEbook)
+		if ebookGroupID > 0 {
+			return groupList(app.CateEbook, ebookGroupID, query)
+		}
+		return courseListByQuery(app.CateEbook, query)
 	},
 }
 
@@ -36,7 +40,10 @@ func init() {
 	rootCmd.AddCommand(ebookCmd)
 
 	ebookCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "电子书ID")
-	ebookCmd.PersistentFlags().IntVar(&ebookGroupID, "group-id", 0, "分组ID，显示指定分组内的电子书")
+	ebookCmd.PersistentFlags().IntVarP(&ebookGroupID, "group-id", "g", 0, "分组ID，显示指定分组内的电子书")
+	ebookCmd.PersistentFlags().IntVarP(&listPage, "page", "p", 0, "页码（与 --limit 一起使用）")
+	ebookCmd.PersistentFlags().IntVarP(&listLimit, "limit", "l", 0, "每页数量（与 --page 一起使用）")
+	ebookCmd.PersistentFlags().StringVar(&listOrder, "order", "study", "排序方式：study（默认）")
 }
 
 func ebookDetail(id int) (err error) {

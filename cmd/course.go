@@ -25,6 +25,9 @@ var (
 	aceGroupID    int
 	classEnID     string
 	articleEnID   string
+	listPage      int
+	listLimit     int
+	listOrder     string
 )
 
 var courseTypeCmd = &cobra.Command{
@@ -49,10 +52,14 @@ var courseCmd = &cobra.Command{
 		if classID > 0 {
 			return courseInfo(classID)
 		}
-		if courseGroupID > 0 {
-			return groupList(app.CateCourse, courseGroupID)
+		query, err := buildListQuery(app.CateCourse, listOrder, listPage, listLimit)
+		if err != nil {
+			return err
 		}
-		return courseListFlat(app.CateCourse)
+		if courseGroupID > 0 {
+			return groupList(app.CateCourse, courseGroupID, query)
+		}
+		return courseListByQuery(app.CateCourse, query)
 	},
 }
 
@@ -67,10 +74,14 @@ var compassCmd = &cobra.Command{
 		if compassID > 0 {
 			return nil
 		}
-		if aceGroupID > 0 {
-			return groupList(app.CateAce, aceGroupID)
+		query, err := buildListQuery(app.CateAce, "study", 0, 0)
+		if err != nil {
+			return err
 		}
-		return courseListFlat(app.CateAce)
+		if aceGroupID > 0 {
+			return groupList(app.CateAce, aceGroupID, query)
+		}
+		return courseListByQuery(app.CateAce, query)
 	},
 }
 
@@ -85,10 +96,14 @@ var odobCmd = &cobra.Command{
 		if bookID > 0 {
 			return nil
 		}
-		if odobGroupID > 0 {
-			return groupList(app.CateAudioBook, odobGroupID)
+		query, err := buildListQuery(app.CateAudioBook, listOrder, listPage, listLimit)
+		if err != nil {
+			return err
 		}
-		return courseListFlat(app.CateAudioBook)
+		if odobGroupID > 0 {
+			return groupList(app.CateAudioBook, odobGroupID, query)
+		}
+		return courseListByQuery(app.CateAudioBook, query)
 	},
 }
 
@@ -99,13 +114,19 @@ func init() {
 	rootCmd.AddCommand(odobCmd)
 
 	courseCmd.PersistentFlags().IntVarP(&classID, "id", "i", 0, "课程 ID，获取课程信息")
-	courseCmd.PersistentFlags().IntVar(&courseGroupID, "group-id", 0, "分组ID，显示指定分组内的课程")
+	courseCmd.PersistentFlags().IntVarP(&courseGroupID, "group-id", "g", 0, "分组ID，显示指定分组内的课程")
+	courseCmd.PersistentFlags().IntVarP(&listPage, "page", "p", 0, "页码（与 --limit 一起使用）")
+	courseCmd.PersistentFlags().IntVarP(&listLimit, "limit", "l", 0, "每页数量（与 --page 一起使用）")
+	courseCmd.PersistentFlags().StringVar(&listOrder, "order", "study", "排序方式：study（默认）或 buy")
 
 	compassCmd.PersistentFlags().IntVarP(&compassID, "id", "i", 0, "锦囊 ID")
-	compassCmd.PersistentFlags().IntVar(&aceGroupID, "group-id", 0, "分组ID，显示指定分组内的锦囊")
+	compassCmd.PersistentFlags().IntVarP(&aceGroupID, "group-id", "g", 0, "分组ID，显示指定分组内的锦囊")
 
 	odobCmd.PersistentFlags().IntVarP(&bookID, "id", "i", 0, "听书 ID")
-	odobCmd.PersistentFlags().IntVar(&odobGroupID, "group-id", 0, "分组ID，显示指定分组内的听书")
+	odobCmd.PersistentFlags().IntVarP(&odobGroupID, "group-id", "g", 0, "分组ID，显示指定分组内的听书")
+	odobCmd.PersistentFlags().IntVarP(&listPage, "page", "p", 0, "页码（与 --limit 一起使用）")
+	odobCmd.PersistentFlags().IntVarP(&listLimit, "limit", "l", 0, "每页数量（与 --page 一起使用）")
+	odobCmd.PersistentFlags().StringVar(&listOrder, "order", "study", "排序方式：study（默认）")
 }
 
 func courseType() (err error) {
@@ -184,7 +205,7 @@ func courseInfo(id int) (err error) {
 }
 
 func courseList(category string) (err error) {
-	list, err := app.CourseList(category)
+	list, err := app.CourseListWithOptions(category, "study", 0, 0)
 	if err != nil {
 		return
 	}
@@ -239,15 +260,68 @@ func courseList(category string) (err error) {
 	return
 }
 
+type listQuery struct {
+	Order string
+	Page  int
+	Limit int
+}
+
+func (q listQuery) isPaged() bool {
+	return q.Page > 0 && q.Limit > 0
+}
+
+func buildListQuery(category, order string, page, limit int) (listQuery, error) {
+	query := listQuery{
+		Order: strings.ToLower(strings.TrimSpace(order)),
+		Page:  page,
+		Limit: limit,
+	}
+
+	if query.Order == "" {
+		query.Order = "study"
+	}
+	if query.Page < 0 || query.Limit < 0 {
+		return listQuery{}, fmt.Errorf("page 和 limit 不能小于 0")
+	}
+	if (query.Page == 0) != (query.Limit == 0) {
+		return listQuery{}, fmt.Errorf("page 和 limit 需要同时传递")
+	}
+
+	switch category {
+	case app.CateCourse:
+		if query.Order != "study" && query.Order != "buy" {
+			return listQuery{}, fmt.Errorf("course 的 order 仅支持 study 或 buy")
+		}
+	case app.CateAudioBook, app.CateEbook:
+		if query.Order != "study" {
+			return listQuery{}, fmt.Errorf("%s 的 order 仅支持 study", category)
+		}
+	}
+
+	return query, nil
+}
+
+func courseListByQuery(category string, query listQuery) (err error) {
+	if query.isPaged() {
+		list, err := app.CourseListWithOptions(category, query.Order, query.Page, query.Limit)
+		if err != nil {
+			return err
+		}
+		// 分页模式下不展开分组，直接展示当前页原始数据。
+		return renderCourseTable(list.List, category, renderOptions{})
+	}
+	return courseListFlat(category, query.Order)
+}
+
 // courseListFlat 获取课程列表（扁平化显示，展开所有分组）
-func courseListFlat(category string) (err error) {
-	list, err := app.CourseList(category)
+func courseListFlat(category, order string) (err error) {
+	list, err := app.CourseListWithOptions(category, order, 0, 0)
 	if err != nil {
 		return err
 	}
 
 	// Expand all groups
-	allItems, _, expandErr := expandGroups(list.List, category)
+	allItems, _, expandErr := expandGroups(list.List, category, order)
 	if expandErr != nil && len(allItems) == 0 {
 		return expandErr
 	}
@@ -257,8 +331,8 @@ func courseListFlat(category string) (err error) {
 }
 
 // groupList 显示指定分组内的课程列表
-func groupList(category string, groupID int) (err error) {
-	list, err := app.GetGroupItems(category, groupID)
+func groupList(category string, groupID int, query listQuery) (err error) {
+	list, err := app.GetGroupItemsWithOptions(category, query.Order, groupID, query.Page, query.Limit)
 	if err != nil {
 		return err
 	}
@@ -370,7 +444,7 @@ func renderCourseTable(items []services.Course, category string, options renderO
 // expandGroups expands all groups in a list and returns flattened items.
 // It processes groups sequentially and provides progress feedback for large operations.
 // 展开列表中的所有分组，返回扁平化的项目列表
-func expandGroups(items []services.Course, category string) ([]services.Course, int, error) {
+func expandGroups(items []services.Course, category, order string) ([]services.Course, int, error) {
 	var allItems []services.Course
 	var groupCount int
 	var failedGroups []string
@@ -379,7 +453,7 @@ func expandGroups(items []services.Course, category string) ([]services.Course, 
 		if item.IsGroup {
 			groupCount++
 
-			groupItems, err := app.GetGroupItems(category, item.ID)
+			groupItems, err := app.GetGroupItemsWithOptions(category, order, item.ID, 0, 0)
 			if err != nil {
 				failedGroups = append(failedGroups, fmt.Sprintf("%s (ID: %d)", item.Title, item.ID))
 				fmt.Fprintf(os.Stderr, "⚠️  无法获取分组 %s (ID: %d): %v\n", item.Title, item.ID, err)
