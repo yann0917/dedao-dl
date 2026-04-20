@@ -16,3 +16,25 @@ func EbookVIPInfo() (*services.EbookVIPInfo, error) {
 func OdobVIPInfo() (*services.OdobVipUser, error) {
 	return getService().OdobVIPInfo()
 }
+
+// Recent 获取用户最近学习情况
+func Recent(maxID int64, pageSize int, productType, uidHazy string, filterProductType bool) (*services.RecentResponse, error) {
+	service := getService()
+	if uidHazy == "" {
+		user, err := service.User()
+		if err != nil {
+			return nil, err
+		}
+		uidHazy = user.UIDHazy
+	}
+
+	req := services.RecentRequest{
+		FilterProductType: filterProductType,
+		MaxID:             maxID,
+		PageSize:          pageSize,
+		ProductType:       productType,
+		UID:               nil,
+		UIDHazy:           uidHazy,
+	}
+	return service.Recent(req)
+}

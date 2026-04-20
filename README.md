@@ -119,6 +119,7 @@ Available Commands:
   help        Help about any command
   login       登录得到 pc 端 https://www.dedao.cn
   odob        获取我的听书书架
+  recent      查询用户最近学习情况
   su          切换登录过的账号
   topic       获取推荐话题列表
   users       查看登录过的用户列表
@@ -177,6 +178,25 @@ dedao-dl ebook --group-id 12345 --page 1 --limit 18
 * 分页模式（同时传 `--page` 和 `--limit`）下不展开分组，只展示当前页原始列表
 * `course --order` 支持 `study`（默认）和 `buy`（最近购买）
 * `odob --order`、`ebook --order` 仅支持 `study`
+
+`dedao-dl recent` 查询最近学习情况（默认使用当前登录用户 uid_hazy）
+
+```bash
+dedao-dl recent -h
+dedao-dl recent
+dedao-dl recent --page-size 20 --max-id 0
+dedao-dl recent --product-type 66 --filter-product-type=true
+dedao-dl recent --uid-hazy <uid_hazy>
+dedao-dl --json recent
+```
+
+参数说明：
+
+* `--uid-hazy` 默认自动读取当前登录用户，也可显式指定
+* `--page-size` 每页数量，默认 `20`
+* `--max-id` 分页游标，默认 `0`
+* `--product-type` 产品类型过滤（如 `66`）
+* `--filter-product-type` 是否按 `product_type` 过滤，默认 `true`
 
 `dedao-dl free` 获取免费课程列表
 
@@ -264,6 +284,20 @@ dedao-dl ebook --group-id 12345 --page 1 --limit 18
 `./dedao-dl ebook notes -i 158162` 查看电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id
 
 `./dedao-dl ebook 158162 -t4` 下载电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id，-t4 表示下载 markdown 格式的读书笔记
+
+## Skills 使用说明
+
+仓库内置两个面向 agent 的技能说明文件，位于 `skills/` 目录：
+
+* `skills/dedao-dl-commands/SKILL.md`：纯命令速查，适合“命令怎么写、参数怎么传、给我可复制命令”的场景
+* `skills/dedao-dl-usage/SKILL.md`：完整用法与排障，适合“从登录到下载流程”和“报错排查”的场景
+
+推荐使用方式：
+
+* 只要命令：优先使用 `dedao-dl-commands`
+* 要步骤和排查：使用 `dedao-dl-usage`
+* 面向 agent 自动化时，默认使用 JSON 输出：`dedao-dl --json <command> ...`
+* 不确定参数时，先执行：`dedao-dl <command> -h`
 
 ## References
 

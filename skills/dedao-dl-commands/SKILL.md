@@ -41,6 +41,7 @@ dedao-dl --json <command> ...
 
 ```bash
 dedao-dl --json who
+dedao-dl --json recent
 dedao-dl --json search --query "<关键词>" --type 0
 dedao-dl --json course
 dedao-dl --json article --id <courseID>
@@ -54,6 +55,11 @@ dedao-dl login -q
 dedao-dl login -c "<cookie>"
 dedao-dl who
 dedao-dl user
+dedao-dl recent
+dedao-dl recent -h
+dedao-dl recent --page-size 20 --max-id 0
+dedao-dl recent --product-type 66 --filter-product-type=true
+dedao-dl recent --uid-hazy <uid_hazy>
 dedao-dl users
 dedao-dl su <uid>
 dedao-dl vip-ebook
@@ -151,6 +157,11 @@ dlo -t: 1=mp3 2=PDF 3=markdown
 dle -t: 1=html 2=PDF 3=epub 4=markdown笔记
 search --type: 默认 0
 search enid: 来自 list[].list[].extra.enid
+recent --uid-hazy: 默认自动读取当前登录用户 uid_hazy；也可显式指定
+recent --page-size: 每页数量，默认 20
+recent --max-id: 分页游标，默认 0
+recent --product-type: 产品类型过滤（如 66）
+recent --filter-product-type: 是否按 product_type 过滤，默认 true
 ```
 
 ## ID 输入规则

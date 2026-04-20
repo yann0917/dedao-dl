@@ -45,6 +45,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dedao-dl login -c "<cookie>"`
 - `dedao-dl who`
 - `dedao-dl user`
+- `dedao-dl recent`
+- `dedao-dl recent -h`
+- `dedao-dl recent --page-size 20 --max-id 0`
+- `dedao-dl recent --product-type 66 --filter-product-type=true`
+- `dedao-dl recent --uid-hazy <uid_hazy>`
 - `dedao-dl users`
 - `dedao-dl su <uid>`
 - `dedao-dl vip-ebook`
@@ -112,6 +117,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dle -t`：`1=html`，`2=PDF`，`3=epub`，`4=markdown笔记`
 - `search --type`：默认 `0`
 - `search` 结果中用于后续命令的 enid 字段：`extra.enid`
+- `recent --uid-hazy`：默认自动读取当前登录用户 `uid_hazy`，也可显式指定
+- `recent --page-size`：每页数量，默认 `20`
+- `recent --max-id`：分页游标，默认 `0`
+- `recent --product-type`：产品类型过滤（如 `66`）
+- `recent --filter-product-type`：是否按 `product_type` 过滤，默认 `true`
 - `--json`：agent 可读输出，便于脚本处理
 - `course --order`：`study`（默认）或 `buy`（最近购买）
 - `odob --order`、`ebook --order`：仅支持 `study`
@@ -124,6 +134,29 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - 听书详情页：`https://www.dedao.cn/audioBook/detail?id=<topic_id_str>` -> `dlo <topic_id_str>`
 - 电子书阅读页：`https://www.dedao.cn/ebook/reader?id=<ebookEnid>` -> `dle <ebookEnid>`
 - 文章详情页若有文章 `enid` -> `article --articleEnID <articleEnid>`
+
+## 从链接自动识别并下载
+
+当用户提供得到链接时，自动识别内容类型并执行下载：
+
+**链接识别规则：**
+- 听书链接：`https://www.dedao.cn/audioBook/detail?id=<id>` → 提取 `id` 参数
+- 电子书链接：`https://www.dedao.cn/ebook/detail?id=<id>` 或 `/ebook/reader?id=<id>` → 提取 `id`/`bookId` 参数
+- 课程链接：`https://www.dedao.cn/course/detail?id=<id>` 或 `/course/article?id=<id>` → 提取 `id`/`articleId` 参数
+
+**自动下载流程：**
+1. 解析 URL 识别内容类型（audioBook/ebook/course）
+2. 提取 URL 中的 `id` 参数值
+3. 根据类型选择对应命令：
+   - 听书：`dlo <id> -t 1` (MP3) + `dlo <id> -t 2` (PDF) + `dlo <id> -t 3` (Markdown)
+   - 电子书：`dle <id>`
+   - 课程：`dl <id>`
+4. 执行下载并返回文件路径
+
+**示例：**
+- 输入：`https://www.dedao.cn/audioBook/detail?id=Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 识别：听书，ID = `Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 执行：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 1/2/3`
 
 search 结果到命令映射（基于真实返回结构）：
 
@@ -188,6 +221,15 @@ search 结果到命令映射（基于真实返回结构）：
 - 先登录：`dedao-dl login -q`
 - 直接下载：`dedao-dl dl ZWy... -t 1`
 - 若要 Markdown 合并并带热门留言：`dedao-dl dl ZWy... -t 3 -m -c`
+
+用户：`https://www.dedao.cn/audioBook/detail?id=Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+
+回答：
+
+- 识别为听书，ID: `Rv3lLYg5JjEB0jZMB0y6z4X89keKpV`
+- 下载音频：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 1`
+- 下载PDF：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 2`
+- 下载Markdown：`dedao-dl dlo Rv3lLYg5JjEB0jZMB0y6z4X89keKpV -t 3`
 
 用户：`dle 的 t=4 是什么？`
 
