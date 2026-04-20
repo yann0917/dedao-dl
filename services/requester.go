@@ -90,6 +90,14 @@ func (s *Service) reqUser() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqRecent 请求用户最近学习情况
+func (s *Service) reqRecent(param RecentRequest) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(param).
+		Post("/api/pc/blade/v2/recent")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqCourseType 请求首页课程分类列表
 func (s *Service) reqCourseType() (io.ReadCloser, error) {
 	resp, err := s.client.R().Post("/api/hades/v1/index/detail")
