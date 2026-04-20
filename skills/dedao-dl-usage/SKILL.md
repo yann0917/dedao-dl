@@ -45,6 +45,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dedao-dl login -c "<cookie>"`
 - `dedao-dl who`
 - `dedao-dl user`
+- `dedao-dl recent`
+- `dedao-dl recent -h`
+- `dedao-dl recent --page-size 20 --max-id 0`
+- `dedao-dl recent --product-type 66 --filter-product-type=true`
+- `dedao-dl recent --uid-hazy <uid_hazy>`
 - `dedao-dl users`
 - `dedao-dl su <uid>`
 - `dedao-dl vip-ebook`
@@ -112,6 +117,11 @@ description: "提供 dedao-dl 全量用法与排障指南。用户提到 dedao-d
 - `dle -t`：`1=html`，`2=PDF`，`3=epub`，`4=markdown笔记`
 - `search --type`：默认 `0`
 - `search` 结果中用于后续命令的 enid 字段：`extra.enid`
+- `recent --uid-hazy`：默认自动读取当前登录用户 `uid_hazy`，也可显式指定
+- `recent --page-size`：每页数量，默认 `20`
+- `recent --max-id`：分页游标，默认 `0`
+- `recent --product-type`：产品类型过滤（如 `66`）
+- `recent --filter-product-type`：是否按 `product_type` 过滤，默认 `true`
 - `--json`：agent 可读输出，便于脚本处理
 - `course --order`：`study`（默认）或 `buy`（最近购买）
 - `odob --order`、`ebook --order`：仅支持 `study`
