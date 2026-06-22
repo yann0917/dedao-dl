@@ -4,9 +4,9 @@ import { Card } from "@/components/ui/Card"
 
 const quickLinks = [
   {
-    to: "/courses",
-    title: "课程工作区",
-    description: "把分类、列表和详情集中在独立页面，首页只做总览与分发。",
+    to: "/purchased/courses",
+    title: "已购课程",
+    description: "进入已购资产域，继续查看课程列表、分组和文章消费链路。",
     icon: BookOpen,
   },
   {

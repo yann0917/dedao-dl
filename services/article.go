@@ -361,8 +361,12 @@ type ArticleComment struct {
 
 // ArticleList get class article list
 func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleList, err error) {
+	return s.ArticleListWithOptions(id, chapterID, 30, maxID, false)
+}
 
-	body, err := s.reqArticleList(id, chapterID, maxID)
+// ArticleListWithOptions get class article list with count/maxID/reverse options.
+func (s *Service) ArticleListWithOptions(id, chapterID string, count, maxID int, reverse bool) (list *ArticleList, err error) {
+	body, err := s.reqArticleListWithOptions(id, chapterID, count, maxID, reverse)
 	if err != nil {
 		return
 	}

@@ -14,6 +14,7 @@ func registerCourseRoutes(group *gin.RouterGroup) {
 	course.GET("/categories", listCourseCategories)
 	course.GET("/list", listCourses)
 	course.GET("/info", getCourseInfo)
+	course.GET("/articles", listCourseArticles)
 }
 
 func listCourseCategories(c *gin.Context) {
@@ -30,8 +31,17 @@ func listCourses(c *gin.Context) {
 	order := c.DefaultQuery("order", "study")
 	page := readQueryInt(c, "page", 1)
 	limit := readQueryInt(c, "limit", 18)
+	groupID := readQueryInt(c, "groupId", 0)
 
-	data, err := config.Instance.ActiveUserService().CourseList(category, order, page, limit)
+	var (
+		data *services.CourseList
+		err  error
+	)
+	if groupID > 0 {
+		data, err = config.Instance.ActiveUserService().CourseGroupList(category, order, groupID, page, limit)
+	} else {
+		data, err = config.Instance.ActiveUserService().CourseList(category, order, page, limit)
+	}
 	if err != nil {
 		fail(c, http.StatusBadGateway, err.Error())
 		return
@@ -47,6 +57,24 @@ func getCourseInfo(c *gin.Context) {
 	}
 
 	data, err := config.Instance.ActiveUserService().CourseInfo(enid)
+	if err != nil {
+		fail(c, http.StatusBadGateway, err.Error())
+		return
+	}
+	ok(c, data)
+}
+
+func listCourseArticles(c *gin.Context) {
+	enid := c.Query("enid")
+	if enid == "" {
+		fail(c, http.StatusBadRequest, "缺少 enid 参数")
+		return
+	}
+
+	count := readQueryInt(c, "count", 30)
+	maxID := readQueryInt(c, "maxId", 0)
+	reverse := c.DefaultQuery("reverse", "0") == "1"
+	data, err := config.Instance.ActiveUserService().ArticleListWithOptions(enid, "", count, maxID, reverse)
 	if err != nil {
 		fail(c, http.StatusBadGateway, err.Error())
 		return

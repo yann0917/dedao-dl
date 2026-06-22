@@ -1,12 +1,22 @@
-import { Home, LayoutGrid, Loader2, Search, UserCircle2 } from "lucide-react"
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
+import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Search, UserCircle2 } from "lucide-react"
+import type { ComponentType } from "react"
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/cn"
 import { useAuth } from "@/providers/AuthProvider"
 
-const navItems = [
+const primaryNavItems = [
   { to: "/", label: "首页", icon: Home, end: true },
-  { to: "/courses", label: "课程", icon: LayoutGrid },
+]
+
+const purchasedNavItems = [
+  { to: "/purchased/courses", label: "课程", icon: GraduationCap },
+  { to: "/purchased/ebooks", label: "电子书", icon: BookMarked },
+  { to: "/purchased/audios", label: "听书", icon: Headphones },
+  { to: "/purchased/compass", label: "锦囊", icon: Compass },
+]
+
+const accountNavItems = [
   { to: "/user", label: "用户", icon: UserCircle2 },
 ]
 
@@ -20,13 +30,53 @@ export function AppShell() {
     navigate("/login", { replace: true })
   }
 
+  const isActiveNav = (to: string, end?: boolean) => {
+    if (end) {
+      return location.pathname === to
+    }
+
+    if (to === "/purchased/courses") {
+      return location.pathname.startsWith("/purchased/courses") || location.pathname.startsWith("/courses/")
+    }
+
+    if (to === "/purchased/ebooks") {
+      return location.pathname.startsWith("/purchased/ebooks") || location.pathname.startsWith("/ebooks/")
+    }
+
+    if (to === "/purchased/audios") {
+      return (
+        location.pathname.startsWith("/purchased/audios") ||
+        location.pathname.startsWith("/audios/") ||
+        location.pathname.startsWith("/audio-groups/")
+      )
+    }
+
+    return location.pathname.startsWith(to)
+  }
+
+  const renderNavLink = (item: { to: string; label: string; icon: ComponentType<{ className?: string }>; end?: boolean }) => (
+    <Link
+      className={cn(
+        "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
+        isActiveNav(item.to, item.end)
+          ? "bg-white text-slate-950"
+          : "text-slate-300 hover:bg-slate-900 hover:text-white",
+      )}
+      key={item.to}
+      to={item.to}
+    >
+      <item.icon className="h-4 w-4" />
+      {item.label}
+    </Link>
+  )
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto grid min-h-screen max-w-[1600px] grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[260px_1fr] lg:px-6">
         <aside className="rounded-3xl border border-white/70 bg-slate-950 p-5 text-slate-50 shadow-soft">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary">
-              <LayoutGrid className="h-6 w-6" />
+              <GraduationCap className="h-6 w-6" />
             </div>
             <div>
               <p className="text-lg font-semibold">dedao-dl Web</p>
@@ -34,25 +84,21 @@ export function AppShell() {
             </div>
           </div>
 
-          <nav className="mt-8 space-y-2">
-            {navItems.map((item) => (
-              <NavLink
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
-                    isActive
-                      ? "bg-white text-slate-950"
-                      : "text-slate-300 hover:bg-slate-900 hover:text-white",
-                  )
-                }
-                end={item.end}
-                key={item.to}
-                to={item.to}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </NavLink>
-            ))}
+          <nav className="mt-8 space-y-6">
+            <div className="space-y-2">
+              {primaryNavItems.map((item) => renderNavLink(item))}
+            </div>
+
+            <div>
+              <p className="px-4 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">已购</p>
+              <div className="mt-2 space-y-2">
+                {purchasedNavItems.map((item) => renderNavLink(item))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {accountNavItems.map((item) => renderNavLink(item))}
+            </div>
           </nav>
 
           <div className="mt-8 rounded-3xl bg-slate-900 p-4">

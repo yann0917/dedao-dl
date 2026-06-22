@@ -27,7 +27,7 @@ export function HomePage() {
   const portal = useHomePortal()
 
   const handleSelectCourse = (enid: string) => {
-    navigate(`/courses?enid=${encodeURIComponent(enid)}`)
+    navigate(`/courses/${encodeURIComponent(enid)}/articles?from=home`)
   }
 
   const handleNavigateCategory = (category: HomeCategory, labelEnid: string) => {
@@ -48,7 +48,9 @@ export function HomePage() {
       return
     }
 
-    navigate(`/courses?enid=${encodeURIComponent(resource.enid)}`)
+    navigate(
+      `/courses/${encodeURIComponent(resource.enid)}/articles?from=home&parentTitle=${encodeURIComponent(resource.name || "免费课程")}`,
+    )
   }
 
   const handleSelectShelfLabel = (kind: "course" | "ebook", label: HomeNavigation) => {

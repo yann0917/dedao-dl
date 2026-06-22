@@ -6,10 +6,14 @@ import { AudioGroupPage } from "@/pages/AudioGroupPage"
 import { AudioArticleListPage } from "@/pages/AudioArticleListPage"
 import { ArticleDetailPage } from "@/pages/ArticleDetailPage"
 import { CategoryPage } from "@/pages/CategoryPage"
+import { CourseArticleListPage } from "@/pages/CourseArticleListPage"
 import { CoursePage } from "@/pages/CoursePage"
 import { EbookDetailPage } from "@/pages/EbookDetailPage"
 import { HomePage } from "@/pages/HomePage"
 import { LoginPage } from "@/pages/LoginPage"
+import { PurchasedAudioPage } from "@/pages/PurchasedAudioPage"
+import { PurchasedCompassPage } from "@/pages/PurchasedCompassPage"
+import { PurchasedEbookPage } from "@/pages/PurchasedEbookPage"
 import { UserCenterPage } from "@/pages/UserCenterPage"
 
 export const router = createBrowserRouter([
@@ -31,7 +35,31 @@ export const router = createBrowserRouter([
       },
       {
         path: "courses",
+        element: <Navigate replace to="/purchased/courses" />,
+      },
+      {
+        path: "purchased",
+        element: <Navigate replace to="/purchased/courses" />,
+      },
+      {
+        path: "purchased/courses",
         element: <CoursePage />,
+      },
+      {
+        path: "purchased/ebooks",
+        element: <PurchasedEbookPage />,
+      },
+      {
+        path: "purchased/audios",
+        element: <PurchasedAudioPage />,
+      },
+      {
+        path: "purchased/compass",
+        element: <PurchasedCompassPage />,
+      },
+      {
+        path: "courses/:enid/articles",
+        element: <CourseArticleListPage />,
       },
       {
         path: "category",

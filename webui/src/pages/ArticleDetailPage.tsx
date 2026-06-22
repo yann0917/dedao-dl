@@ -60,6 +60,7 @@ export function ArticleDetailPage() {
     const groupEnid = searchParams.get("groupEnid")
     const parentEnid = searchParams.get("parentEnid")
     const parentTitle = searchParams.get("parentTitle")
+    const listFrom = searchParams.get("listFrom") || "course"
 
     if (from === "audio-group" && groupEnid) {
       return {
@@ -78,7 +79,18 @@ export function ArticleDetailPage() {
     if (from === "course") {
       return {
         label: parentTitle || classInfo?.name || "课程文章",
-        action: () => navigate(-1),
+        action: () => {
+          if (parentEnid) {
+            navigate(
+              `/courses/${encodeURIComponent(parentEnid)}/articles?from=${encodeURIComponent(listFrom)}&parentTitle=${encodeURIComponent(
+                parentTitle || classInfo?.name || "课程文章",
+              )}`,
+            )
+            return
+          }
+
+          navigate("/purchased/courses")
+        },
       }
     }
 

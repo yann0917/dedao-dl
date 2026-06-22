@@ -117,7 +117,9 @@ export function CategoryPage() {
 
   const handleOpenProduct = (item: AlgoProductItem) => {
     if (item.item_type === 66 && item.id_out) {
-      navigate(`/courses?enid=${encodeURIComponent(item.id_out)}`)
+      navigate(
+        `/courses/${encodeURIComponent(item.id_out)}/articles?from=algo&parentTitle=${encodeURIComponent(item.name || item.intro || "课程内容")}`,
+      )
       return
     }
 

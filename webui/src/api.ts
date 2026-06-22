@@ -54,15 +54,40 @@ export type CourseListItem = {
   id: number
   class_id: number
   enid: string
+  type: number
   title: string
   name: string
   intro: string
   subtitle: string
   cover: string
+  icon: string
   index_img: string
   author: string
   lecturer_name: string
   price_desc: string
+  price: string
+  dd_url: string
+  duration: number
+  progress: number
+  publish_num: number
+  course_num: number
+  is_group: boolean
+  group_id: number
+  has_play_auth: boolean
+  audio_detail?: {
+    alias_id: string
+    mp3_play_url: string
+    icon: string
+  } | null
+  odob_group_ext_info?: {
+    odob_alias_list: string[]
+    progress_percent: number
+    audio_detail?: {
+      alias_id: string
+      mp3_play_url: string
+      icon: string
+    } | null
+  } | null
 }
 
 export type CourseListResponse = {
@@ -73,6 +98,7 @@ export type CourseListResponse = {
 
 export type CourseInfoResponse = {
   class_info: {
+    enid: string
     name: string
     intro: string
     lecturer_name: string
@@ -80,6 +106,7 @@ export type CourseInfoResponse = {
     learn_user_count: number
     current_article_count: number
     square_img: string
+    index_img: string
     share_summary: string
     price_desc: string
   }
@@ -87,6 +114,33 @@ export type CourseInfoResponse = {
     title: string
     content: string
   }>
+}
+
+export type CourseArticleItem = {
+  id: number
+  enid: string
+  class_id: number
+  class_enid: string
+  title: string
+  logo: string
+  summary: string
+  publish_time: number
+  cur_learn_count: number
+  is_buy: boolean
+  is_read: boolean
+  video_status: number
+  audio_alias_ids: string[]
+  audio?: AudioDetailResponse
+}
+
+export type CourseArticleListResponse = {
+  article_list: CourseArticleItem[]
+  class_id: number
+  ptype: number
+  pid: number
+  reverse: boolean
+  chapter_id: string
+  max_id: number
 }
 
 export type SearchHotResponse = {
@@ -593,6 +647,15 @@ export const api = {
     categories: () => request<CourseCategoryResponse>("/api/course/categories"),
     list: (params: URLSearchParams) => request<CourseListResponse>(`/api/course/list?${params.toString()}`),
     info: (enid: string) => request<CourseInfoResponse>(`/api/course/info?enid=${encodeURIComponent(enid)}`),
+    articles: (enid: string, options?: { count?: number; maxId?: number; reverse?: boolean }) => {
+      const query = new URLSearchParams({
+        enid,
+        count: String(options?.count ?? 30),
+        maxId: String(options?.maxId ?? 0),
+        reverse: options?.reverse ? "1" : "0",
+      })
+      return request<CourseArticleListResponse>(`/api/course/articles?${query.toString()}`)
+    },
   },
   search: {
     hot: () => request<SearchHotResponse>("/api/search/hot"),

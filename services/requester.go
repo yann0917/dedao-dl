@@ -161,16 +161,21 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 // reqArticleList 请求文章列表
 // chapterID = "" 获取所有的文章列表，否则只获取该章节的文章列表
 func (s *Service) reqArticleList(ID, chapterID string, maxID int) (io.ReadCloser, error) {
+	return s.reqArticleListWithOptions(ID, chapterID, 30, maxID, false)
+}
+
+// reqArticleListWithOptions 请求文章列表，支持 count/maxID/reverse 选项。
+func (s *Service) reqArticleListWithOptions(ID, chapterID string, count, maxID int, reverse bool) (io.ReadCloser, error) {
 	resp, err := s.client.R().
 		SetBody(map[string]interface{}{
 			"chapter_id":      chapterID,
-			"count":           30,
+			"count":           count,
 			"detail_id":       ID,
 			"include_edge":    false,
 			"is_unlearn":      false,
 			"max_id":          maxID,
 			"max_order_num":   0,
-			"reverse":         false,
+			"reverse":         reverse,
 			"since_id":        0,
 			"since_order_num": 0,
 			"unlearn_switch":  false,
