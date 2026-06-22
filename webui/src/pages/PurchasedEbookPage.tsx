@@ -33,9 +33,17 @@ export function PurchasedEbookPage() {
                 去得到打开
               </Button>
             ) : null}
-            <Button className="h-9 px-3" disabled variant="ghost">
+            <Button
+              className="h-9 px-3"
+              onClick={() =>
+                helpers.navigate(
+                  `/ebooks/${encodeURIComponent(item.enid)}/comments?title=${encodeURIComponent(item.title || item.name || "电子书书评")}`,
+                )
+              }
+              variant="ghost"
+            >
               <MessageSquare className="mr-2 h-4 w-4" />
-              书评后续接入
+              查看书评
             </Button>
           </>
         )

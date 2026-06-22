@@ -7,7 +7,9 @@ import { AudioArticleListPage } from "@/pages/AudioArticleListPage"
 import { ArticleDetailPage } from "@/pages/ArticleDetailPage"
 import { CategoryPage } from "@/pages/CategoryPage"
 import { CourseArticleListPage } from "@/pages/CourseArticleListPage"
+import { CourseDetailPage } from "@/pages/CourseDetailPage"
 import { CoursePage } from "@/pages/CoursePage"
+import { EbookCommentPage } from "@/pages/EbookCommentPage"
 import { EbookDetailPage } from "@/pages/EbookDetailPage"
 import { HomePage } from "@/pages/HomePage"
 import { LoginPage } from "@/pages/LoginPage"
@@ -58,6 +60,10 @@ export const router = createBrowserRouter([
         element: <PurchasedCompassPage />,
       },
       {
+        path: "courses/:enid",
+        element: <CourseDetailPage />,
+      },
+      {
         path: "courses/:enid/articles",
         element: <CourseArticleListPage />,
       },
@@ -68,6 +74,10 @@ export const router = createBrowserRouter([
       {
         path: "ebooks/:enid",
         element: <EbookDetailPage />,
+      },
+      {
+        path: "ebooks/:enid/comments",
+        element: <EbookCommentPage />,
       },
       {
         path: "audios/:enid",

@@ -50,6 +50,26 @@ export type CourseCategoryResponse = {
   }
 }
 
+export type PurchasedNavbarChild = {
+  name: string
+  count: number
+  filter: string
+  show_count: boolean
+}
+
+export type PurchasedNavbarItem = {
+  id: number
+  name: string
+  category: string
+  channel_type: string
+  item_type: string
+  children: PurchasedNavbarChild[]
+}
+
+export type PurchasedNavbarResponse = {
+  list: PurchasedNavbarItem[]
+}
+
 export type CourseListItem = {
   id: number
   class_id: number
@@ -101,14 +121,44 @@ export type CourseInfoResponse = {
     enid: string
     name: string
     intro: string
+    highlight: string
     lecturer_name: string
     lecturer_title: string
+    lecturer_avatar: string
+    lecturer_intro: string
+    lecturer_name_and_title: string
     learn_user_count: number
     current_article_count: number
+    phase_num: number
+    is_finished: number
     square_img: string
     index_img: string
+    outline_img: string
     share_summary: string
     price_desc: string
+    dd_url: string
+    share_url: string
+    is_subscribe: number
+    is_in_vip: boolean
+    is_vip: boolean
+    collection: {
+      is_collected: boolean
+      collection_count: number
+    }
+  }
+  user_type: string
+  class_reviews_count: number
+  class_comment_info?: {
+    count: number
+    average_score: string
+    comment_list: Array<{
+      id: number
+      title: string
+      score: number
+      no_style_content: string
+      nickname: string
+      avatar_s: string
+    }>
   }
   items: Array<{
     title: string
@@ -437,6 +487,33 @@ export type EbookDetailResponse = {
   notesError?: string
 }
 
+export type EbookCommentItem = {
+  note_id: number
+  note_title: string
+  note_line: string
+  note_line_style: string
+  create_time: number
+  notes_owner: {
+    name: string
+    avatar: string
+    slogan: string
+  }
+  notes_count?: {
+    like_count: number
+    comment_count: number
+  }
+}
+
+export type EbookCommentResponse = {
+  total: number
+  list: EbookCommentItem[]
+  ebook_score: {
+    average_score: string
+    score_info: string[]
+    total: string
+  }
+}
+
 export type AudioDetailResponse = {
   topic_encode_id: string
   audio_id: string
@@ -645,6 +722,7 @@ export const api = {
   },
   course: {
     categories: () => request<CourseCategoryResponse>("/api/course/categories"),
+    navbar: () => request<PurchasedNavbarResponse>("/api/course/navbar"),
     list: (params: URLSearchParams) => request<CourseListResponse>(`/api/course/list?${params.toString()}`),
     info: (enid: string) => request<CourseInfoResponse>(`/api/course/info?enid=${encodeURIComponent(enid)}`),
     articles: (enid: string, options?: { count?: number; maxId?: number; reverse?: boolean }) => {
@@ -676,6 +754,10 @@ export const api = {
   },
   ebook: {
     detail: (enid: string) => request<EbookDetailResponse>(`/api/ebook/detail?enid=${encodeURIComponent(enid)}`),
+    comments: (enid: string, page = 1, limit = 15, sort = "like_count") =>
+      request<EbookCommentResponse>(
+        `/api/ebook/comments?enid=${encodeURIComponent(enid)}&page=${page}&limit=${limit}&sort=${encodeURIComponent(sort)}`,
+      ),
   },
   audio: {
     detail: (enid: string) => request<AudioDetailResponse>(`/api/audio/detail?enid=${encodeURIComponent(enid)}`),

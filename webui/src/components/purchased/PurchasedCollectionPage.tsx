@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
-import { api, type CourseListItem } from "@/api"
+import { api, type CourseListItem, type PurchasedNavbarChild } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 
@@ -63,9 +63,19 @@ function resolveFallbackIcon(icon: PurchasedCollectionConfig["icon"]) {
   return Compass
 }
 
+function ensureAllFilter(options: PurchasedNavbarChild[]) {
+  if (options.some((item) => item.filter === "all")) {
+    return options
+  }
+
+  return [{ name: "全部", count: 0, filter: "all", show_count: false }, ...options]
+}
+
 export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
   const navigate = useNavigate()
   const [items, setItems] = useState<CourseListItem[]>([])
+  const [filterOptions, setFilterOptions] = useState<PurchasedNavbarChild[]>([])
+  const [currentFilter, setCurrentFilter] = useState("all")
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -79,7 +89,39 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
 
   useEffect(() => {
     void loadItems(false, 1)
-  }, [config.category, groupMode.active, groupMode.groupId])
+  }, [config.category, currentFilter, groupMode.active, groupMode.groupId])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadNavbar = async () => {
+      try {
+        const data = await api.course.navbar()
+        if (cancelled) {
+          return
+        }
+
+        const matched = data.list.find((item) => item.category === config.category)
+        setFilterOptions(ensureAllFilter(matched?.children ?? []))
+      } catch {
+        if (!cancelled) {
+          setFilterOptions([])
+        }
+      }
+    }
+
+    setCurrentFilter("all")
+    setGroupMode({
+      active: false,
+      groupId: 0,
+      title: "",
+    })
+    void loadNavbar()
+
+    return () => {
+      cancelled = true
+    }
+  }, [config.category])
 
   const hasMore = useMemo(() => items.length < total, [items.length, total])
   const PageIcon = resolvePageIcon(config.icon)
@@ -96,6 +138,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
     try {
       const params = new URLSearchParams({
         category: config.category,
+        filter: currentFilter,
         order: "study",
         page: String(targetPage),
         limit: "20",
@@ -140,6 +183,16 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
     })
   }
 
+  const handleFilterChange = (filter: string) => {
+    if (filter === currentFilter) {
+      return
+    }
+
+    setItems([])
+    setPage(1)
+    setCurrentFilter(filter)
+  }
+
   const openItem = (item: CourseListItem) => {
     if (item.is_group) {
       enterGroup(item)
@@ -182,6 +235,28 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
           ) : null}
         </div>
       </section>
+
+      {!groupMode.active && filterOptions.length > 0 ? (
+        <Card className="p-4">
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((item) => {
+              const active = currentFilter === item.filter
+
+              return (
+                <Button
+                  className={active ? "border-primary bg-primary text-white hover:bg-primary/90" : undefined}
+                  key={item.filter}
+                  onClick={() => handleFilterChange(item.filter)}
+                  variant="outline"
+                >
+                  {item.name}
+                  {item.show_count ? ` (${item.count})` : ""}
+                </Button>
+              )
+            })}
+          </div>
+        </Card>
+      ) : null}
 
       {error ? (
         <Card className="border border-rose-200 bg-rose-50">

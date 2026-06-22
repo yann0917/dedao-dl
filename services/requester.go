@@ -104,12 +104,22 @@ func (s *Service) reqCourseType() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqNavbar 请求已购导航栏配置
+func (s *Service) reqNavbar() (io.ReadCloser, error) {
+	resp, err := s.client.R().Get("/api/hades/v1/navbar/get")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqCourseListV2 请求课程列表
 func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
+	return s.reqCourseListWithFilter(category, order, CatAll, page, limit)
+}
+
+func (s *Service) reqCourseListWithFilter(category, order, filter string, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"display_group":   true,
-		"filter":          "all",
+		"filter":          filter,
 		"group_id":        0,
 		"order":           order,
 		"filter_complete": 0,
@@ -124,10 +134,14 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 // It uses the /api/hades/v2/product/group/list endpoint with display_group=false to prevent nesting.
 // 请求分组内的课程列表
 func (s *Service) reqCourseGroupList(category, order string, groupID, page, limit int) (io.ReadCloser, error) {
+	return s.reqCourseGroupListWithFilter(category, order, CatAll, groupID, page, limit)
+}
+
+func (s *Service) reqCourseGroupListWithFilter(category, order, filter string, groupID, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"display_group":   false, // Prevent nested groups
-		"filter":          "group",
+		"filter":          filter,
 		"group_id":        groupID,
 		"order":           order,
 		"filter_complete": 0,
@@ -197,6 +211,32 @@ func (s *Service) reqArticleCommentList(enId, sort string, page, limit int) (io.
 			"sort_by":      sort,
 			"source_type":  65,
 		}).Post("/pc/ledgers/notes/article_comment_list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookCommentList 请求电子评分及书评列表
+func (s *Service) reqEbookCommentList(enid, sort string, page, limit int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"enid":      enid,
+			"page":      page,
+			"page_size": limit,
+			"sort":      sort,
+			"ptype":     2,
+		}).
+		Post("/pc/ebook2/v1/comment/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookShelfRemove 请求移出电子书书架
+func (s *Service) reqEbookShelfRemove(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"pids":  ids,
+			"ptype": 2,
+		}).
+		Post("/api/pc/hades/v1/product/remove")
+
 	return handleHTTPResponse(resp, err)
 }
 

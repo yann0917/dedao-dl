@@ -150,13 +150,19 @@ export function EbookDetailPage() {
             <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">
               {detail.book_intro || detail.author_info || "暂无简介"}
             </p>
-            {detail.add_studylist_dd_url ? (
-              <div className="mt-5">
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button
+                onClick={() => navigate(`/ebooks/${encodeURIComponent(enid)}/comments?title=${encodeURIComponent(detail.title || "电子书书评")}`)}
+                variant="outline"
+              >
+                查看书评
+              </Button>
+              {detail.add_studylist_dd_url ? (
                 <Button onClick={() => window.open(detail.add_studylist_dd_url, "_blank", "noopener,noreferrer")}>
                   去得到查看完整电子书
                 </Button>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </Card>
 
           <Card className="p-6">

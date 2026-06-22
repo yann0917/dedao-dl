@@ -27,7 +27,7 @@ export function HomePage() {
   const portal = useHomePortal()
 
   const handleSelectCourse = (enid: string) => {
-    navigate(`/courses/${encodeURIComponent(enid)}/articles?from=home`)
+    navigate(`/courses/${encodeURIComponent(enid)}?from=home`)
   }
 
   const handleNavigateCategory = (category: HomeCategory, labelEnid: string) => {
@@ -49,7 +49,7 @@ export function HomePage() {
     }
 
     navigate(
-      `/courses/${encodeURIComponent(resource.enid)}/articles?from=home&parentTitle=${encodeURIComponent(resource.name || "免费课程")}`,
+      `/courses/${encodeURIComponent(resource.enid)}?from=home&parentTitle=${encodeURIComponent(resource.name || "课程详情")}`,
     )
   }
 
