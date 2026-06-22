@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222.2 47.4% 11.2%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+  --primary: 217.2 91.2% 59.8%;
+  --secondary: 215 27.9% 16.9%;
+  --muted: 210 40% 96.1%;
+  --border: 214.3 31.8% 91.4%;
+  --radius: 1.25rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-image:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 1));
+  color: hsl(var(--foreground));
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}

@@ -293,6 +293,7 @@ func (c *ConfigsData) ActiveUser() *Dedao {
 func (c *ConfigsData) setActiveUser(u *Dedao) {
 	c.ActiveUID = u.UIDHazy
 	c.activeUser = u
+	c.service = nil
 }
 
 // LoginUserCount 登录用户数量
@@ -311,6 +312,26 @@ func (c *ConfigsData) SwitchUser(u *User) error {
 	}
 
 	return errors.New("用户不存在")
+}
+
+func (c *ConfigsData) HasActiveUser() bool {
+	return c.activeUser != nil && c.activeUser.UIDHazy != ""
+}
+
+func (c *ConfigsData) LogoutActiveUser() error {
+	if c.activeUser != nil && c.activeUser.UIDHazy != "" {
+		c.DeleteUser(&c.activeUser.User)
+	}
+
+	c.activeUser = nil
+	c.ActiveUID = ""
+	c.service = nil
+
+	if len(c.Users) > 0 {
+		c.setActiveUser(c.Users[0])
+	}
+
+	return c.Save()
 }
 
 // SetCourseCache 保存课程数据到 Badger 数据库

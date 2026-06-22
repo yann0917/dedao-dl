@@ -8,6 +8,7 @@ import (
 
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 // LoginByCookie login by cookie
@@ -38,6 +39,9 @@ func LoginByQr() error {
 	code, err := service.GetQrcode(token)
 	if err != nil {
 		return err
+	}
+	if code != nil {
+		utils.New().Get(services.QRCodeAuthorizeURL(code.Data.QrCodeString)).Print()
 	}
 
 	ticker := time.NewTicker(time.Duration(1) * time.Second)
