@@ -19,15 +19,15 @@ export function Button({
 }: ButtonProps) {
   const variantClass =
     variant === "outline"
-      ? "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+      ? "border border-border bg-surface-panel text-text-secondary hover:bg-surface-soft"
       : variant === "ghost"
-        ? "bg-transparent text-slate-600 hover:bg-slate-100"
-        : "bg-primary text-white hover:bg-primary/90"
+        ? "bg-transparent text-text-secondary hover:bg-surface-soft"
+        : "bg-accent text-accent-foreground hover:bg-accent/90"
 
   return (
     <button
       className={cn(
-        "inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50",
         variantClass,
         className,
       )}

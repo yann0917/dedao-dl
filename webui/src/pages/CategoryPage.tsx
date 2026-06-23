@@ -205,11 +205,6 @@ export function CategoryPage() {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
-        <p className="text-sm text-slate-500">分类结果页</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">{init.classfcName}</h2>
-      </section>
-
       {explorer.error ? (
         <Card className="border border-rose-200 bg-rose-50">
           <div className="p-4 text-sm text-rose-700">{explorer.error}</div>

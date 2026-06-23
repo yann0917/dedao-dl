@@ -3,15 +3,81 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 40% 98%;
-  --foreground: 222.2 47.4% 11.2%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 47.4% 11.2%;
-  --primary: 217.2 91.2% 59.8%;
-  --secondary: 215 27.9% 16.9%;
-  --muted: 210 40% 96.1%;
-  --border: 214.3 31.8% 91.4%;
+  --bg-page: 36 42% 97%;
+  --bg-panel: 0 0% 100%;
+  --bg-soft: 34 48% 95%;
+  --bg-inverse: 22 18% 14%;
+  --text-primary: 24 18% 16%;
+  --text-secondary: 24 12% 28%;
+  --text-muted: 25 8% 46%;
+  --text-inverse: 40 33% 96%;
+  --accent: 28 88% 56%;
+  --accent-foreground: 0 0% 100%;
+  --accent-soft: 32 100% 94%;
+  --danger: 0 72% 52%;
+  --danger-foreground: 0 0% 100%;
+  --danger-soft: 0 86% 95%;
+  --success: 148 50% 38%;
+  --success-foreground: 0 0% 100%;
+  --success-soft: 150 45% 94%;
+  --warning: 33 86% 52%;
+  --warning-foreground: 24 18% 16%;
+  --warning-soft: 38 100% 94%;
+  --border-default: 32 22% 85%;
+  --border-strong: 28 28% 74%;
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-panel);
+  --card-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--bg-inverse);
+  --secondary-foreground: var(--text-inverse);
+  --muted: var(--bg-soft);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
   --radius: 1.25rem;
+}
+
+.dark {
+  --bg-page: 24 18% 8%;
+  --bg-panel: 24 16% 11%;
+  --bg-soft: 24 14% 16%;
+  --bg-inverse: 30 24% 94%;
+  --text-primary: 34 24% 94%;
+  --text-secondary: 30 16% 82%;
+  --text-muted: 28 10% 66%;
+  --text-inverse: 24 20% 14%;
+  --accent: 29 84% 61%;
+  --accent-foreground: 22 32% 10%;
+  --accent-soft: 28 42% 18%;
+  --danger: 0 76% 68%;
+  --danger-foreground: 0 0% 100%;
+  --danger-soft: 0 40% 19%;
+  --success: 148 46% 54%;
+  --success-foreground: 24 20% 10%;
+  --success-soft: 148 30% 18%;
+  --warning: 35 88% 64%;
+  --warning-foreground: 24 20% 12%;
+  --warning-soft: 34 38% 18%;
+  --border-default: 24 12% 24%;
+  --border-strong: 24 14% 34%;
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-panel);
+  --card-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: var(--accent-foreground);
+  --secondary: var(--bg-soft);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-soft);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--accent);
+  color-scheme: dark;
 }
 
 * {
@@ -26,12 +92,17 @@ body,
 
 body {
   margin: 0;
+  background-color: hsl(var(--background));
   background-image:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 32%),
-    radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 1));
+    radial-gradient(circle at top left, rgba(251, 146, 60, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(248, 244, 238, 1));
   color: hsl(var(--foreground));
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    background-image 0.2s ease;
 }
 
 button,
@@ -42,4 +113,126 @@ input {
 img {
   display: block;
   max-width: 100%;
+}
+
+html.dark body {
+  background-image:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.16), transparent 26%),
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 22%),
+    linear-gradient(180deg, rgba(30, 17, 11, 0.98), rgba(23, 16, 13, 1));
+}
+
+/* Centralized dark-mode overrides for the most common utility classes in the current UI. */
+html.dark .bg-white,
+html.dark .bg-white\/90 {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: rgba(15, 23, 42, 0.74) !important;
+}
+
+html.dark .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.88) !important;
+}
+
+html.dark .bg-slate-900 {
+  background-color: rgba(15, 23, 42, 0.96) !important;
+}
+
+html.dark .bg-slate-950 {
+  background-color: rgba(2, 6, 23, 0.96) !important;
+}
+
+html.dark .border-white\/70 {
+  border-color: rgba(51, 65, 85, 0.72) !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-100 {
+  border-color: rgba(71, 85, 105, 0.68) !important;
+}
+
+html.dark .text-slate-950,
+html.dark .text-slate-900 {
+  color: rgb(241 245 249) !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: rgb(203 213 225) !important;
+}
+
+html.dark .text-slate-500 {
+  color: rgb(148 163 184) !important;
+}
+
+html.dark .text-slate-400 {
+  color: rgb(100 116 139) !important;
+}
+
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: rgba(30, 41, 59, 0.88) !important;
+}
+
+html.dark .hover\:bg-slate-900:hover {
+  background-color: rgba(30, 41, 59, 0.96) !important;
+}
+
+html.dark .bg-rose-50 {
+  background-color: rgba(127, 29, 29, 0.3) !important;
+}
+
+html.dark .border-rose-200 {
+  border-color: rgba(190, 24, 93, 0.45) !important;
+}
+
+html.dark .text-rose-700 {
+  color: rgb(253 164 175) !important;
+}
+
+html.dark .bg-orange-50,
+html.dark .bg-orange-100 {
+  background-color: rgba(154, 52, 18, 0.34) !important;
+}
+
+html.dark .text-orange-700,
+html.dark .text-orange-600 {
+  color: rgb(253 186 116) !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
+  background-color: rgba(146, 64, 14, 0.34) !important;
+}
+
+html.dark .text-amber-700 {
+  color: rgb(253 230 138) !important;
+}
+
+html.dark .bg-emerald-100 {
+  background-color: rgba(6, 95, 70, 0.34) !important;
+}
+
+html.dark .text-emerald-700 {
+  color: rgb(110 231 183) !important;
+}
+
+html.dark .bg-sky-50,
+html.dark .bg-sky-100 {
+  background-color: rgba(7, 89, 133, 0.34) !important;
+}
+
+html.dark .text-sky-700,
+html.dark .text-sky-600 {
+  color: rgb(125 211 252) !important;
+}
+
+html.dark .bg-violet-100 {
+  background-color: rgba(91, 33, 182, 0.34) !important;
+}
+
+html.dark .text-violet-700 {
+  color: rgb(196 181 253) !important;
 }

@@ -9,9 +9,41 @@ var config = {
                 ring: "hsl(var(--ring))",
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
+                surface: {
+                    page: "hsl(var(--bg-page))",
+                    panel: "hsl(var(--bg-panel))",
+                    soft: "hsl(var(--bg-soft))",
+                    inverse: "hsl(var(--bg-inverse))",
+                },
+                text: {
+                    primary: "hsl(var(--text-primary))",
+                    secondary: "hsl(var(--text-secondary))",
+                    muted: "hsl(var(--text-muted))",
+                    inverse: "hsl(var(--text-inverse))",
+                },
                 primary: {
                     DEFAULT: "hsl(var(--primary))",
                     foreground: "hsl(var(--primary-foreground))",
+                },
+                accent: {
+                    DEFAULT: "hsl(var(--accent))",
+                    foreground: "hsl(var(--accent-foreground))",
+                    soft: "hsl(var(--accent-soft))",
+                },
+                danger: {
+                    DEFAULT: "hsl(var(--danger))",
+                    foreground: "hsl(var(--danger-foreground))",
+                    soft: "hsl(var(--danger-soft))",
+                },
+                success: {
+                    DEFAULT: "hsl(var(--success))",
+                    foreground: "hsl(var(--success-foreground))",
+                    soft: "hsl(var(--success-soft))",
+                },
+                warning: {
+                    DEFAULT: "hsl(var(--warning))",
+                    foreground: "hsl(var(--warning-foreground))",
+                    soft: "hsl(var(--warning-soft))",
                 },
                 secondary: {
                     DEFAULT: "hsl(var(--secondary))",

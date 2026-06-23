@@ -2,6 +2,7 @@ import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Search, 
 import type { ComponentType } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
+import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton"
 import { cn } from "@/lib/cn"
 import { useAuth } from "@/providers/AuthProvider"
 
@@ -59,8 +60,8 @@ export function AppShell() {
       className={cn(
         "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
         isActiveNav(item.to, item.end)
-          ? "bg-white text-slate-950"
-          : "text-slate-300 hover:bg-slate-900 hover:text-white",
+          ? "bg-accent-soft text-accent"
+          : "text-text-inverse/78 hover:bg-white/10 hover:text-text-inverse",
       )}
       key={item.to}
       to={item.to}
@@ -71,16 +72,16 @@ export function AppShell() {
   )
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-surface-page text-text-primary">
       <div className="mx-auto grid min-h-screen max-w-[1600px] grid-cols-1 gap-6 px-4 py-4 lg:grid-cols-[260px_1fr] lg:px-6">
-        <aside className="rounded-3xl border border-white/70 bg-slate-950 p-5 text-slate-50 shadow-soft">
+        <aside className="rounded-3xl border border-border bg-surface-inverse p-5 text-text-inverse shadow-soft">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/15 text-accent">
               <GraduationCap className="h-6 w-6" />
             </div>
             <div>
               <p className="text-lg font-semibold">dedao-dl Web</p>
-              <p className="text-xs text-slate-400">统一 Web 工作台</p>
+              <p className="text-xs text-text-inverse/68">统一 Web 工作台</p>
             </div>
           </div>
 
@@ -90,7 +91,7 @@ export function AppShell() {
             </div>
 
             <div>
-              <p className="px-4 text-xs font-medium uppercase tracking-[0.18em] text-slate-500">已购</p>
+              <p className="px-4 text-xs font-medium uppercase tracking-[0.18em] text-text-inverse/46">已购</p>
               <div className="mt-2 space-y-2">
                 {purchasedNavItems.map((item) => renderNavLink(item))}
               </div>
@@ -101,27 +102,25 @@ export function AppShell() {
             </div>
           </nav>
 
-          <div className="mt-8 rounded-3xl bg-slate-900 p-4">
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">当前页面</p>
-            <p className="mt-2 text-sm text-slate-200">{location.pathname}</p>
-          </div>
         </aside>
 
         <div className="flex min-h-0 flex-col gap-6 pb-28">
-          <header className="rounded-3xl border border-white/70 bg-white/90 px-5 py-4 shadow-soft backdrop-blur">
+          <header className="rounded-3xl border border-border bg-surface-panel px-5 py-4 shadow-soft backdrop-blur">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <p className="text-sm text-slate-500">工作台</p>
-                <h1 className="text-2xl font-semibold text-slate-950">登录后工作台</h1>
+                <p className="text-sm text-text-muted">工作台</p>
+                <h1 className="text-2xl font-semibold text-text-primary">登录后工作台</h1>
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm text-text-muted">
                   <Search className="h-4 w-4" />
                   <span>全局搜索建设中</span>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-slate-50">
+                <ThemeToggleButton className="rounded-2xl" />
+
+                <div className="flex items-center gap-3 rounded-2xl bg-surface-inverse px-4 py-3 text-text-inverse">
                   {loading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -133,7 +132,7 @@ export function AppShell() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{user?.nickname ?? "未登录"}</p>
-                    <p className="truncate text-xs text-slate-400">{user ? "当前账号" : "等待用户信息"}</p>
+                    <p className="truncate text-xs text-text-inverse/66">{user ? "当前账号" : "等待用户信息"}</p>
                   </div>
                   <Button className="rounded-xl" onClick={() => void handleLogout()} variant="outline">
                     退出

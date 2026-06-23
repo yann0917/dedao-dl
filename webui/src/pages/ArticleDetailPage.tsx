@@ -176,7 +176,7 @@ export function ArticleDetailPage() {
               <p className="text-sm text-slate-500">文章详情</p>
               <h1 className="mt-2 text-3xl font-semibold leading-tight text-slate-950">{articleInfo.title}</h1>
               <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
-                {articleInfo.summary || classInfo?.share_summary || "当前文稿已转换为 markdown 并在 Web 端直接渲染。"}
+                {articleInfo.summary || classInfo?.share_summary }
               </p>
             </div>
 
@@ -192,19 +192,6 @@ export function ArticleDetailPage() {
                 导出 Markdown
               </Button>
             </div>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-500">
-            <span className="rounded-full bg-slate-100 px-3 py-1.5">{classInfo?.name || "文稿"}</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1.5">{classInfo?.lecturer_name || "未知作者"}</span>
-            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5">
-              <Headphones className="mr-1.5 h-4 w-4" />
-              {articleInfo.cur_learn_count || 0} 人学习
-            </span>
-            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1.5">
-              <Clock3 className="mr-1.5 h-4 w-4" />
-              {articleInfo.publish_time ? new Date(articleInfo.publish_time * 1000).toLocaleString("zh-CN") : "未知发布时间"}
-            </span>
           </div>
         </div>
 
