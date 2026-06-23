@@ -96,11 +96,6 @@ export function HomePage() {
 
   return (
     <main className="space-y-8">
-      <section className={`${semanticPageSectionClass} p-6`}>
-        <p className={semanticMetaTextClass}>首页门户</p>
-        <h2 className="mt-2 text-3xl font-semibold text-text-primary">内容发现主入口</h2>
-      </section>
-
       {portal.error ? (
         <Card className="border-danger bg-danger-soft">
           <div className="flex flex-col gap-3 p-4 text-sm text-danger md:flex-row md:items-center md:justify-between">

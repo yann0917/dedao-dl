@@ -236,3 +236,20 @@ html.dark .bg-violet-100 {
 html.dark .text-violet-700 {
   color: rgb(196 181 253) !important;
 }
+
+@keyframes nav-fab-breathe {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 0.34;
+    transform: scale(1.12);
+  }
+}
+
+.nav-fab-breathe {
+  animation: nav-fab-breathe 3.2s ease-in-out infinite;
+}

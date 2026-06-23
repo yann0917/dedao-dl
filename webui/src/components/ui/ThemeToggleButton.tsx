@@ -15,19 +15,37 @@ export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
     <button
       aria-label={label}
       className={cn(
-        "relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-surface-panel text-text-secondary transition hover:bg-surface-soft focus:outline-none focus:ring-2 focus:ring-ring/30",
+        "group relative inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface-panel text-text-primary shadow-sm transition-[background-color,border-color,box-shadow,transform,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:bg-surface-soft focus:outline-none focus:ring-2 focus:ring-ring/30",
         className,
       )}
       onClick={toggleTheme}
       title={label}
       type="button"
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <span
+        className={cn(
+          "relative flex h-9 w-9 items-center justify-center rounded-xl bg-surface-soft transition-[background-color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-100 group-hover:bg-surface-page",
+          isDark ? "scale-100" : "scale-[0.98]",
+        )}
+      >
+        <Sun
+          className={cn(
+            "absolute h-4 w-4 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isDark ? "scale-100 rotate-0 opacity-100 text-warning" : "scale-75 rotate-90 opacity-0 text-text-muted",
+          )}
+        />
+        <Moon
+          className={cn(
+            "absolute h-4 w-4 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            isDark ? "scale-75 -rotate-90 opacity-0 text-text-muted" : "scale-100 rotate-0 opacity-100 text-text-secondary",
+          )}
+        />
+      </span>
       <span
         aria-hidden="true"
         className={cn(
-          "absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-surface-panel",
-          isDark ? "bg-warning" : "bg-accent",
+          "absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-surface-panel transition-colors duration-300",
+          isDark ? "bg-warning" : "bg-accent/85",
         )}
       />
     </button>
