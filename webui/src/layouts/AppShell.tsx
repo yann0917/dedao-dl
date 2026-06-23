@@ -134,7 +134,7 @@ export function AppShell() {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{user?.nickname ?? "未登录"}</p>
-                    <p className="truncate text-xs text-slate-400">{user?.uid_hazy ?? "等待用户信息"}</p>
+                    <p className="truncate text-xs text-slate-400">{user ? "当前账号" : "等待用户信息"}</p>
                   </div>
                   <Button className="rounded-xl" onClick={() => void handleLogout()} variant="outline">
                     退出

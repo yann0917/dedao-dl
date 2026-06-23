@@ -647,11 +647,30 @@ export type EbookVIPInfo = {
 }
 
 export type OdobVIPInfo = {
+  card: Array<{
+    id: number
+    name: string
+    description: string
+    price: string
+    origin_price: string
+    price_desc: string
+    discount_tip: string
+    subscribe_desc: string
+    welfare_info: string
+    is_subscribed: number
+    selected: number
+    rights: Array<{
+      name: string
+      right: boolean
+    }>
+  }>
   user: {
     nickname: string
     slogan: string
     avatar: string
+    dd_url: string
     is_vip: boolean
+    is_expire: boolean
     err_tips: string
     expire_time: number
     surplus_time: number

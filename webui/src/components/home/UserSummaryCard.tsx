@@ -28,7 +28,7 @@ export function UserSummaryCard({ user, onLogout }: UserSummaryCardProps) {
           src={user?.avatar || "https://placehold.co/128x128/e2e8f0/334155?text=DD"}
         />
         <div>
-          <p className="text-sm text-slate-300">UID: {user?.uid_hazy ?? "-"}</p>
+          <p className="text-sm text-slate-300">{user ? "当前账号已登录" : "等待登录状态"}</p>
           <p className="mt-1 text-sm text-slate-400">查询能力来自现有 services，UI 只是新壳。</p>
         </div>
       </div>

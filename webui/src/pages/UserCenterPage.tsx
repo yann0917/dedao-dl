@@ -37,13 +37,6 @@ export function UserCenterPage() {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
-        <p className="text-sm text-slate-500">用户模块</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">用户中心</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          这一版对齐 `dedao-gui` 的用户中心主路径，先把用户信息、会员概览、账号切换和退出登录收口进来。
-        </p>
-      </section>
 
       {error ? (
         <Card className="border border-rose-200 bg-rose-50">
@@ -71,7 +64,7 @@ export function UserCenterPage() {
             <div className="flex-1 space-y-4">
               <div>
                 <h3 className="text-3xl font-semibold text-slate-950">{user?.nickname ?? "未命名用户"}</h3>
-                <p className="mt-2 text-sm text-slate-500">UID: {user?.uid_hazy ?? "未获取"}</p>
+                <p className="mt-2 text-sm text-slate-500">当前登录账号</p>
               </div>
 
               <div className="flex flex-wrap gap-3">
@@ -137,7 +130,7 @@ export function UserCenterPage() {
                   />
                   <div className="min-w-0">
                     <p className="truncate font-medium text-slate-900">{account.name}</p>
-                    <p className="truncate text-sm text-slate-500">{account.uidHazy}</p>
+                    <p className="truncate text-sm text-slate-500">{account.active ? "当前使用中" : "可切换账号"}</p>
                   </div>
                 </div>
 
@@ -172,7 +165,6 @@ export function UserCenterPage() {
             <Radio className="h-5 w-5 text-primary" />
             <div>
               <h3 className="text-xl font-semibold text-slate-950">听书会员</h3>
-              <p className="mt-1 text-sm text-slate-500">对应 `dedao-gui` 里的每天听本书会员信息。</p>
             </div>
           </div>
 
@@ -219,7 +211,6 @@ export function UserCenterPage() {
             <BookOpen className="h-5 w-5 text-primary" />
             <div>
               <h3 className="text-xl font-semibold text-slate-950">电子书会员</h3>
-              <p className="mt-1 text-sm text-slate-500">对应 `dedao-gui` 里的电子书会员概览。</p>
             </div>
           </div>
 

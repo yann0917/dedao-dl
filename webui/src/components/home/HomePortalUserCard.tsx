@@ -19,7 +19,7 @@ export function HomePortalUserCard() {
             src={user?.avatar || "https://placehold.co/120x120/e2e8f0/334155?text=DD"}
           />
           <h3 className="mt-4 text-xl font-semibold text-slate-950">{user?.nickname ?? "得到用户"}</h3>
-          <p className="mt-1 text-sm text-slate-500">{user?.uid_hazy ?? "当前账号"}</p>
+          <p className="mt-1 text-sm text-slate-500">{user ? "当前账号" : "欢迎登录"}</p>
         </div>
       </div>
 
