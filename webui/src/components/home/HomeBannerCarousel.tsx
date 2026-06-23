@@ -1,40 +1,31 @@
 import { useEffect, useState } from "react"
-import { ArrowUpRight } from "lucide-react"
 import { type HomeBanner } from "@/api"
+import type { CarouselApi } from "@/components/ui/Carousel"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPagination, CarouselPrevious } from "@/components/ui/Carousel"
 import { Card } from "@/components/ui/Card"
-import { cn } from "@/lib/cn"
-import { getSemanticStatusBadgeClass } from "@/lib/semanticStyles"
 
 type HomeBannerCarouselProps = {
   banners: HomeBanner[]
 }
 
 export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [api, setApi] = useState<CarouselApi>()
 
   useEffect(() => {
-    if (banners.length <= 1) {
+    if (!api || banners.length <= 1) {
       return
     }
 
     const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % banners.length)
+      api.scrollNext()
     }, 5000)
 
     return () => window.clearInterval(timer)
-  }, [banners.length])
-
-  useEffect(() => {
-    if (activeIndex < banners.length) {
-      return
-    }
-
-    setActiveIndex(0)
-  }, [activeIndex, banners.length])
+  }, [api, banners.length])
 
   if (banners.length === 0) {
     return (
-      <Card className="flex h-full min-h-[360px] items-center justify-center p-8">
+      <Card className="flex h-full min-h-[300px] items-center justify-center p-8">
         <div className="text-center">
           <p className="text-lg font-medium text-text-primary">首页 Banner 暂未加载</p>
         </div>
@@ -42,46 +33,51 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
     )
   }
 
-  const currentBanner = banners[activeIndex]
-
   return (
-    <Card className="relative h-full min-h-[360px] overflow-hidden">
-      <button
-        className="group relative h-full w-full text-left"
-        onClick={() => window.open(currentBanner.url, "_blank", "noopener,noreferrer")}
-        type="button"
-      >
-        <img
-          alt={currentBanner.title || "banner"}
-          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-          src={currentBanner.img}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-secondary/85 via-secondary/15 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-          <div className={cn(getSemanticStatusBadgeClass("accent"), "inline-flex items-center gap-2 bg-white/15 text-white backdrop-blur")}>
-            首页推荐
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </div>
-          <h3 className="mt-3 text-2xl font-semibold">{currentBanner.title || "得到首页推荐内容"}</h3>
-        </div>
-      </button>
-
-      {banners.length > 1 ? (
-        <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-2 backdrop-blur">
-          {banners.map((banner, index) => (
-            <button
-              aria-label={`切换到第 ${index + 1} 个 Banner`}
-              className={cn(
-                "h-2.5 w-2.5 rounded-full transition",
-                index === activeIndex ? "bg-white" : "bg-white/40 hover:bg-white/70",
-              )}
-              key={banner.id}
-              onClick={() => setActiveIndex(index)}
-              type="button"
-            />
+    <Card className="relative h-full min-h-[300px] overflow-hidden">
+      <Carousel className="h-full min-h-[300px]" opts={{ align: "start", loop: banners.length > 1 }} setApi={setApi}>
+        <CarouselContent className="h-full min-h-[300px]">
+          {banners.map((banner) => (
+            <CarouselItem className="h-full min-h-[300px]" key={banner.id}>
+              <button
+                className="group relative h-full min-h-[300px] w-full text-left"
+                onClick={() => window.open(banner.url, "_blank", "noopener,noreferrer")}
+                type="button"
+              >
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-48 blur-xl transition duration-500"
+                  src={banner.img}
+                />
+                <div className="absolute inset-0 bg-secondary/18" />
+                <div className="absolute inset-0">
+                  <img
+                    alt={banner.title || "banner"}
+                    className="h-full w-full object-cover object-center transition duration-500"
+                    src={banner.img}
+                  />
+                </div>
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full object-cover opacity-[0.06]"
+                  src={banner.img}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-secondary/34 via-secondary/14 to-secondary/8" />
+              </button>
+            </CarouselItem>
           ))}
-        </div>
-      ) : null}
+        </CarouselContent>
+
+        {banners.length > 1 ? (
+          <>
+            <CarouselPrevious />
+            <CarouselNext />
+            <CarouselPagination />
+          </>
+        ) : null}
+      </Carousel>
     </Card>
   )
 }

@@ -49,8 +49,7 @@ export function HomeCategoryMenu({
   return (
     <Card className="h-full p-4">
       <div>
-        <p className="text-sm font-medium text-text-primary">内容分类</p>
-        <p className={`mt-1 text-xs leading-5 ${semanticMetaTextClass}`}>点击一级分类可直接进入结果页，悬浮后可继续选择二级标签。</p>
+        <p className="text-sm font-medium text-text-primary">分类</p>
       </div>
 
       <div className="mt-4">
