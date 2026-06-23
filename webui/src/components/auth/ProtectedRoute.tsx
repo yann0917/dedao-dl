@@ -8,7 +8,7 @@ export function ProtectedRoute({ children }: PropsWithChildren) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-slate-500">
+      <div className="flex min-h-screen items-center justify-center text-text-muted">
         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
         正在检查登录状态...
       </div>

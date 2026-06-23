@@ -13,6 +13,13 @@ import { useNavigate } from "react-router-dom"
 import { api, type CourseListItem, type PurchasedNavbarChild } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import {
+  getSemanticChipClass,
+  getSemanticStatusBadgeClass,
+  semanticMetaTextClass,
+  semanticPageSectionClass,
+  semanticSecondaryTextClass,
+} from "@/lib/semanticStyles"
 
 type PurchasedCollectionConfig = {
   category: string
@@ -243,12 +250,12 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
-        <p className="text-sm text-slate-500">{config.title}</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">{groupMode.active ? groupMode.title : config.title}</h2>
-        {config.description ? <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{config.description}</p> : null}
-        <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-          <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
+      <section className={`${semanticPageSectionClass} p-6`}>
+        <p className={semanticMetaTextClass}>{config.title}</p>
+        <h2 className="mt-2 text-3xl font-semibold text-text-primary">{groupMode.active ? groupMode.title : config.title}</h2>
+        {config.description ? <p className={`mt-3 max-w-3xl text-sm leading-7 ${semanticSecondaryTextClass}`}>{config.description}</p> : null}
+        <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-text-muted">
+          <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
             <PageIcon className="h-4 w-4" />
             当前共 {total} 项
           </span>
@@ -268,15 +275,15 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
               const active = currentFilter === item.filter
 
               return (
-                <Button
-                  className={active ? "border-primary bg-primary text-white hover:bg-primary/90" : undefined}
+                <button
+                  className={getSemanticChipClass(active)}
                   key={item.filter}
                   onClick={() => handleFilterChange(item.filter)}
-                  variant="outline"
+                  type="button"
                 >
                   {item.name}
                   {item.show_count ? ` (${item.count})` : ""}
-                </Button>
+                </button>
               )
             })}
           </div>
@@ -284,19 +291,19 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       ) : null}
 
       {error ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="p-4 text-sm text-rose-700">{error}</div>
+        <Card className="border-danger bg-danger-soft">
+          <div className="p-4 text-sm text-danger">{error}</div>
         </Card>
       ) : null}
 
       {config.externalError ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="p-4 text-sm text-rose-700">{config.externalError}</div>
+        <Card className="border-danger bg-danger-soft">
+          <div className="p-4 text-sm text-danger">{config.externalError}</div>
         </Card>
       ) : null}
 
       {loading ? (
-        <Card className="flex items-center justify-center p-8 text-slate-500">
+        <Card className="flex items-center justify-center p-8 text-text-muted">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           {config.loadingText}
         </Card>
@@ -321,7 +328,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                 tabIndex={0}
               >
                 <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-                  <div className="relative aspect-square overflow-hidden bg-slate-100">
+                  <div className="relative aspect-square overflow-hidden bg-surface-soft">
                     {item.icon || item.cover || item.index_img ? (
                       <img
                         alt={title}
@@ -329,7 +336,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                         src={item.icon || item.cover || item.index_img}
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-slate-400">
+                      <div className="flex h-full items-center justify-center text-text-muted">
                         {item.is_group ? <FolderOpen className="h-10 w-10" /> : <FallbackIcon className="h-10 w-10" />}
                       </div>
                     )}
@@ -337,7 +344,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                       <span
                         className={[
                           "rounded-full px-3 py-1 text-xs font-medium",
-                          item.is_group ? "bg-slate-900/80 text-white" : "bg-white/90 text-slate-700",
+                          item.is_group ? "bg-secondary/85 text-secondary-foreground" : "bg-surface-panel/90 text-text-secondary",
                         ].join(" ")}
                       >
                         {item.is_group ? "内容分组" : config.itemLabel}
@@ -346,14 +353,14 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                   </div>
 
                   <div className="space-y-3 p-4">
-                    <h3 className="line-clamp-2 text-base font-semibold text-slate-950">{title}</h3>
-                    <p className="line-clamp-2 text-sm leading-6 text-slate-500">{summary}</p>
-                    <div className="flex items-center justify-between text-xs text-slate-400">
+                    <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{title}</h3>
+                    <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{summary}</p>
+                    <div className="flex items-center justify-between text-xs text-text-muted">
                       <span>{primaryMeta}</span>
                       <span>{secondaryMeta}</span>
                     </div>
                     {typeof progress === "number" ? (
-                      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-surface-soft">
                         <div
                           className="h-full rounded-full bg-primary transition-[width]"
                           style={{ width: `${Math.max(0, Math.min(progress, 100))}%` }}
@@ -362,7 +369,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                     ) : null}
                     {config.renderActions ? (
                       <div
-                        className="flex flex-wrap gap-2 border-t border-slate-100 pt-1"
+                        className="flex flex-wrap gap-2 border-t border-border pt-1"
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
                       >
@@ -378,8 +385,8 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       ) : null}
 
       {!loading && items.length === 0 ? (
-        <Card className="p-10 text-center text-slate-500">
-          <p className="text-lg font-medium text-slate-900">{config.emptyTitle}</p>
+        <Card className="p-10 text-center text-text-muted">
+          <p className="text-lg font-medium text-text-primary">{config.emptyTitle}</p>
           {config.emptyDescription ? <p className="mt-2 text-sm">{config.emptyDescription}</p> : null}
         </Card>
       ) : null}

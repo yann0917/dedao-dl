@@ -1,5 +1,6 @@
 import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react"
 import { Card } from "@/components/ui/Card"
+import { semanticMetaTextClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 function formatTime(value: number) {
@@ -22,7 +23,7 @@ export function GlobalAudioPlayer() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-[300px]">
-      <Card className="border border-slate-200/80 bg-white/95 p-4 shadow-soft backdrop-blur">
+      <Card className="border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <img
@@ -31,15 +32,15 @@ export function GlobalAudioPlayer() {
               src={currentTrack.poster || "https://placehold.co/120x120/e2e8f0/334155?text=Audio"}
             />
             <div className="min-w-0">
-              <p className="truncate text-sm text-slate-500">正在播放</p>
-              <p className="truncate text-base font-semibold text-slate-950">{currentTrack.title}</p>
-              <p className="truncate text-xs text-slate-500">{currentTrack.subtitle || `队列 ${currentIndex + 1}/${queue.length}`}</p>
+              <p className={`truncate text-sm ${semanticMetaTextClass}`}>正在播放</p>
+              <p className="truncate text-base font-semibold text-text-primary">{currentTrack.title}</p>
+              <p className={`truncate text-xs ${semanticMetaTextClass}`}>{currentTrack.subtitle || `队列 ${currentIndex + 1}/${queue.length}`}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-soft text-text-secondary transition hover:bg-accent-soft hover:text-accent"
               onClick={playPrev}
               type="button"
             >
@@ -53,7 +54,7 @@ export function GlobalAudioPlayer() {
               {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </button>
             <button
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-soft text-text-secondary transition hover:bg-accent-soft hover:text-accent"
               onClick={playNext}
               type="button"
             >
@@ -62,8 +63,8 @@ export function GlobalAudioPlayer() {
           </div>
 
           <div className="flex min-w-0 flex-1 items-center gap-3 lg:max-w-xl">
-            <Volume2 className="h-4 w-4 text-slate-400" />
-            <span className="w-11 text-xs text-slate-500">{formatTime(currentTime)}</span>
+            <Volume2 className="h-4 w-4 text-text-muted" />
+            <span className="w-11 text-xs text-text-muted">{formatTime(currentTime)}</span>
             <input
               className="h-2 flex-1 cursor-pointer accent-primary"
               max={duration || 0}
@@ -72,7 +73,7 @@ export function GlobalAudioPlayer() {
               type="range"
               value={Math.min(currentTime, duration || 0)}
             />
-            <span className="w-11 text-right text-xs text-slate-500">{formatTime(duration)}</span>
+            <span className="w-11 text-right text-xs text-text-muted">{formatTime(duration)}</span>
           </div>
         </div>
       </Card>

@@ -1,6 +1,7 @@
 import { ArrowRight, BookOpen, UserCircle2 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Card } from "@/components/ui/Card"
+import { semanticSecondaryTextClass } from "@/lib/semanticStyles"
 
 const quickLinks = [
   {
@@ -23,8 +24,8 @@ export function QuickAccessPanel() {
       {quickLinks.map((item) => (
         <Card className="p-6" key={item.to}>
           <item.icon className="h-6 w-6 text-primary" />
-          <h2 className="mt-4 text-xl font-semibold text-slate-950">{item.title}</h2>
-          <p className="mt-2 text-sm leading-7 text-slate-600">{item.description}</p>
+          <h2 className="mt-4 text-xl font-semibold text-text-primary">{item.title}</h2>
+          <p className={`mt-2 text-sm leading-7 ${semanticSecondaryTextClass}`}>{item.description}</p>
           <Link
             className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary transition hover:text-primary/80"
             to={item.to}

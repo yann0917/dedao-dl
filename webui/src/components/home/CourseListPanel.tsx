@@ -1,6 +1,7 @@
 import { BookOpen, Loader2 } from "lucide-react"
 import type { CourseListItem } from "@/api"
 import { Card } from "@/components/ui/Card"
+import { getSemanticStatusBadgeClass, semanticMetaTextClass } from "@/lib/semanticStyles"
 
 type CourseListPanelProps = {
   selectedCategory: string
@@ -20,19 +21,19 @@ export function CourseListPanel({
       <div className="space-y-4 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-xl font-semibold text-slate-950">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
               <BookOpen className="h-5 w-5 text-primary" />
               课程列表
             </h2>
-            <p className="mt-1 text-sm text-slate-500">{selectedCategory} 分类下的已购课程</p>
+            <p className={`mt-1 ${semanticMetaTextClass}`}>{selectedCategory} 分类下的已购课程</p>
           </div>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin text-text-muted" /> : null}
         </div>
 
         <div className="space-y-3">
           {courses.map((course) => (
             <button
-              className="grid w-full grid-cols-[84px_1fr] gap-4 rounded-3xl border border-slate-200 p-3 text-left transition hover:border-primary hover:bg-primary/5"
+              className="grid w-full grid-cols-[84px_1fr] gap-4 rounded-3xl border border-border p-3 text-left transition hover:border-primary hover:bg-accent-soft/40"
               key={course.enid || course.id}
               onClick={() => course.enid && onSelectCourse(course.enid)}
               type="button"
@@ -44,10 +45,10 @@ export function CourseListPanel({
               />
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-3">
-                  <p className="font-medium text-slate-900">{course.title || course.name}</p>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">{course.price_desc || "已购"}</span>
+                  <p className="font-medium text-text-primary">{course.title || course.name}</p>
+                  <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1")}>{course.price_desc || "已购"}</span>
                 </div>
-                <p className="line-clamp-2 text-sm leading-6 text-slate-500">{course.intro || course.subtitle || "暂无简介"}</p>
+                <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{course.intro || course.subtitle || "暂无简介"}</p>
               </div>
             </button>
           ))}
