@@ -6,6 +6,7 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/Menubar"
+import { semanticMetaTextClass } from "@/lib/semanticStyles"
 
 type HomeCategoryMenuProps = {
   categories: HomeCategory[]
@@ -48,8 +49,8 @@ export function HomeCategoryMenu({
   return (
     <Card className="h-full p-4">
       <div>
-        <p className="text-sm font-medium text-slate-900">内容分类</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">点击一级分类可直接进入结果页，悬浮后可继续选择二级标签。</p>
+        <p className="text-sm font-medium text-text-primary">内容分类</p>
+        <p className={`mt-1 text-xs leading-5 ${semanticMetaTextClass}`}>点击一级分类可直接进入结果页，悬浮后可继续选择二级标签。</p>
       </div>
 
       <div className="mt-4">
@@ -90,22 +91,22 @@ export function HomeCategoryMenu({
 
                   {hasLabels && isHovered ? (
                     <div className="absolute left-0 top-full z-50 min-w-[14rem] pt-2">
-                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 text-slate-950 shadow-xl">
-                      <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        选择标签
-                      </p>
-                      <div className="space-y-1">
-                        {category.labelList.map((label) => (
-                          <button
-                            key={label.enid}
-                            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-100 focus:bg-slate-100 focus:outline-none"
-                            onClick={() => onNavigateCategory(category, label.enid)}
-                            type="button"
-                          >
-                            <span className="truncate">{label.name}</span>
-                          </button>
-                        ))}
-                      </div>
+                      <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl">
+                        <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
+                          选择标签
+                        </p>
+                        <div className="space-y-1">
+                          {category.labelList.map((label) => (
+                            <button
+                              key={label.enid}
+                              className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-text-secondary transition hover:bg-surface-soft focus:bg-surface-soft focus:outline-none"
+                              onClick={() => onNavigateCategory(category, label.enid)}
+                              type="button"
+                            >
+                              <span className="truncate">{label.name}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ) : null}

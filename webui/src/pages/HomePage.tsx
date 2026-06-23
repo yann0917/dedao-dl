@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { buildCategoryQuery } from "@/hooks/useCategoryExplorer"
 import { useHomePortal } from "@/hooks/useHomePortal"
+import { semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 
 function resolveCategoryProductType(navType: number) {
   if (navType === 2) {
@@ -85,7 +86,7 @@ export function HomePage() {
   if (portal.loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载首页门户...
         </div>
@@ -95,14 +96,14 @@ export function HomePage() {
 
   return (
     <main className="space-y-8">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
-        <p className="text-sm text-slate-500">首页门户</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">内容发现主入口</h2>
+      <section className={`${semanticPageSectionClass} p-6`}>
+        <p className={semanticMetaTextClass}>首页门户</p>
+        <h2 className="mt-2 text-3xl font-semibold text-text-primary">内容发现主入口</h2>
       </section>
 
       {portal.error ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="flex flex-col gap-3 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
+        <Card className="border-danger bg-danger-soft">
+          <div className="flex flex-col gap-3 p-4 text-sm text-danger md:flex-row md:items-center md:justify-between">
             <span>{portal.error}</span>
             <Button onClick={() => void portal.reload()} variant="outline">
               重试
@@ -112,8 +113,8 @@ export function HomePage() {
       ) : null}
 
       {portal.sectionError ? (
-        <Card className="border border-amber-200 bg-amber-50">
-          <div className="p-4 text-sm text-amber-700">{portal.sectionError}</div>
+        <Card className="border-warning bg-warning-soft">
+          <div className="p-4 text-sm text-warning">{portal.sectionError}</div>
         </Card>
       ) : null}
 

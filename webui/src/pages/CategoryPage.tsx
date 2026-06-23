@@ -9,21 +9,22 @@ import {
   useCategoryExplorer,
 } from "@/hooks/useCategoryExplorer"
 import { cn } from "@/lib/cn"
+import { getSemanticChipClass, getSemanticStatusBadgeClass, semanticMetaTextClass } from "@/lib/semanticStyles"
 
 function ProductTypeBadge({ item }: { item: AlgoProductItem }) {
   if (item.item_type === 66) {
-    return <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">课程</span>
+    return <span className={getSemanticStatusBadgeClass("accent")}>课程</span>
   }
 
   if (item.item_type === 2) {
-    return <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">电子书</span>
+    return <span className={getSemanticStatusBadgeClass("warning")}>电子书</span>
   }
 
   if (item.item_type === 13) {
-    return <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">听书</span>
+    return <span className={getSemanticStatusBadgeClass("success")}>听书</span>
   }
 
-  return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">内容</span>
+  return <span className={getSemanticStatusBadgeClass("neutral")}>内容</span>
 }
 
 export function CategoryPage() {
@@ -206,30 +207,25 @@ export function CategoryPage() {
   return (
     <main className="space-y-6">
       {explorer.error ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="p-4 text-sm text-rose-700">{explorer.error}</div>
+        <Card className="border-danger bg-danger-soft">
+          <div className="p-4 text-sm text-danger">{explorer.error}</div>
         </Card>
       ) : null}
 
       {actionError ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="p-4 text-sm text-rose-700">{actionError}</div>
+        <Card className="border-danger bg-danger-soft">
+          <div className="p-4 text-sm text-danger">{actionError}</div>
         </Card>
       ) : null}
 
       <Card className="p-6">
         <div className="space-y-5">
           <div className="grid gap-3 lg:grid-cols-[120px_1fr] lg:items-start">
-            <p className="text-sm font-medium text-slate-500">内容类型</p>
+            <p className={cn("font-medium", semanticMetaTextClass)}>内容类型</p>
             <div className="flex flex-wrap gap-2">
               {explorer.productTypeOptions.map((option) => (
                 <button
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
-                    explorer.selectedProductType === option.value
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-                  )}
+                  className={getSemanticChipClass(explorer.selectedProductType === option.value)}
                   key={option.value}
                   onClick={() => handleSelectProductType(option)}
                   type="button"
@@ -241,16 +237,11 @@ export function CategoryPage() {
           </div>
 
           <div className="grid gap-3 lg:grid-cols-[120px_1fr] lg:items-start">
-            <p className="text-sm font-medium text-slate-500">内容分类</p>
+            <p className={cn("font-medium", semanticMetaTextClass)}>内容分类</p>
             <div className="flex flex-wrap gap-2">
               {explorer.navigationOptions.map((option) => (
                 <button
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-sm font-medium transition",
-                    explorer.selectedNavigationId === option.value
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-                  )}
+                  className={getSemanticChipClass(explorer.selectedNavigationId === option.value)}
                   key={option.value}
                   onClick={() => handleSelectNavigation(option)}
                   type="button"
@@ -263,16 +254,11 @@ export function CategoryPage() {
 
           {explorer.subOptions.length > 0 ? (
             <div className="grid gap-3 lg:grid-cols-[120px_1fr] lg:items-start">
-              <p className="text-sm font-medium text-slate-500">子标签</p>
+              <p className={cn("font-medium", semanticMetaTextClass)}>子标签</p>
               <div className="flex flex-wrap gap-2">
                 {explorer.subOptions.map((option) => (
                   <button
-                    className={cn(
-                      "rounded-full px-3 py-1.5 text-sm font-medium transition",
-                      explorer.selectedLabelId === option.value
-                        ? "bg-slate-950 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-                    )}
+                    className={getSemanticChipClass(explorer.selectedLabelId === option.value, "strong")}
                     key={option.value}
                     onClick={() => handleSelectSubOption(option)}
                     type="button"
@@ -289,20 +275,15 @@ export function CategoryPage() {
       <Card className="p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm text-slate-500">结果概览</p>
-            <h3 className="mt-2 text-xl font-semibold text-slate-950">已为你找到 {explorer.total} 个内容</h3>
+            <p className={semanticMetaTextClass}>结果概览</p>
+            <h3 className="mt-2 text-xl font-semibold text-text-primary">已为你找到 {explorer.total} 个内容</h3>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-slate-500">排序</span>
+            <span className={semanticMetaTextClass}>排序</span>
             {explorer.sortOptions.map((option) => (
               <button
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium transition",
-                  explorer.selectedSortStrategy === option.value
-                    ? "bg-primary text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-                )}
+                className={getSemanticChipClass(explorer.selectedSortStrategy === option.value)}
                 key={option.value}
                 onClick={() => handleSelectSort(option)}
                 type="button"
@@ -315,7 +296,7 @@ export function CategoryPage() {
       </Card>
 
       {(explorer.loadingFilter || explorer.loadingProducts) && explorer.products.length === 0 ? (
-        <Card className="flex items-center justify-center p-8 text-slate-500">
+        <Card className="flex items-center justify-center p-8 text-text-muted">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           正在加载分类内容...
         </Card>
@@ -345,7 +326,7 @@ export function CategoryPage() {
                 onClick={() => handleOpenProduct(item)}
                 type="button"
               >
-                <div className="aspect-[16/10] overflow-hidden bg-slate-100">
+                <div className="aspect-[16/10] overflow-hidden bg-surface-soft">
                   <img
                     alt={title}
                     className="h-full w-full object-cover transition duration-500 hover:scale-105"
@@ -355,15 +336,15 @@ export function CategoryPage() {
                 <div className="space-y-4 p-5">
                   <div className="flex items-center justify-between gap-3">
                     <ProductTypeBadge item={item} />
-                    {item.learn_user_count > 0 ? <span className="text-xs text-slate-400">{item.learn_user_count} 人学习</span> : null}
+                    {item.learn_user_count > 0 ? <span className="text-xs text-text-muted/80">{item.learn_user_count} 人学习</span> : null}
                   </div>
 
                   <div>
-                    <h4 className="line-clamp-2 text-lg font-semibold text-slate-950">{title}</h4>
-                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">{summary}</p>
+                    <h4 className="line-clamp-2 text-lg font-semibold text-text-primary">{title}</h4>
+                    <p className="mt-2 line-clamp-3 text-sm leading-6 text-text-secondary">{summary}</p>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm text-slate-500">
+                  <div className="flex items-center justify-between text-sm text-text-muted">
                     <span className="inline-flex items-center gap-1">
                       <BookOpen className="h-4 w-4" />
                       {item.score ? `评分 ${item.score}` : item.price_desc || "内容详情"}
@@ -377,10 +358,10 @@ export function CategoryPage() {
               </button>
 
               {(isAudioShelfItem || isEbookShelfItem) ? (
-                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 pb-5 pt-4">
+                <div className="flex flex-wrap items-center gap-2 border-t border-border px-5 pb-5 pt-4">
                   {isAudioShelfItem ? (
                     isAudioInShelf ? (
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">已加入书架</span>
+                      <span className={getSemanticStatusBadgeClass("neutral")}>已加入书架</span>
                     ) : (
                       <Button disabled={isAddingAudio} onClick={() => void handleAddAudioToShelf(item)}>
                         {isAddingAudio ? "处理中..." : "加入书架"}
@@ -391,7 +372,7 @@ export function CategoryPage() {
                   {isEbookShelfItem ? (
                     isEbookInShelf ? (
                       <Button
-                        className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                        className="border-danger text-danger hover:bg-danger-soft"
                         disabled={isRemovingEbook}
                         onClick={() => void handleRemoveEbookFromShelf(item)}
                         variant="outline"
@@ -420,8 +401,8 @@ export function CategoryPage() {
       ) : null}
 
       {!explorer.loadingProducts && explorer.products.length === 0 ? (
-        <Card className="p-10 text-center text-slate-500">
-          <p className="text-lg font-medium text-slate-900">当前筛选下没有找到内容</p>
+        <Card className="p-10 text-center text-text-muted">
+          <p className="text-lg font-medium text-text-primary">当前筛选下没有找到内容</p>
           <p className="mt-2 text-sm">可以尝试切换内容类型、分类或排序条件。</p>
         </Card>
       ) : null}

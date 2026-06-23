@@ -1,10 +1,11 @@
-import { ArrowLeft, ChevronRight, Clock3, FileText, Headphones, Loader2, Play } from "lucide-react"
+import { ArrowLeft, ChevronRight, FileText, Loader2, Play } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { renderMarkdownToHtml } from "@/lib/markdown"
+import { semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 export function ArticleDetailPage() {
@@ -136,7 +137,7 @@ export function ArticleDetailPage() {
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载文稿详情...
         </div>
@@ -147,7 +148,7 @@ export function ArticleDetailPage() {
   if (error || !articleInfo) {
     return (
       <main className="space-y-6">
-        <Card className="border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="border-danger bg-danger-soft p-6 text-sm text-danger">
           {error || "未找到文稿详情"}
         </Card>
       </main>
@@ -156,26 +157,26 @@ export function ArticleDetailPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-5">
-      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-slate-500">
+      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-text-muted">
         <button
-          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-white/70 hover:text-slate-700"
+          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-surface-panel hover:text-text-secondary"
           onClick={parentCrumb.action}
           type="button"
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           {parentCrumb.label}
         </button>
-        <ChevronRight className="h-4 w-4 text-slate-300" />
-        <span className="font-medium text-slate-700">文稿</span>
+        <ChevronRight className="h-4 w-4 text-border" />
+        <span className="font-medium text-text-secondary">文稿</span>
       </div>
 
       <Card className="mx-auto max-w-4xl overflow-hidden">
-        <div className="border-b border-slate-100 px-8 py-7">
+        <div className="border-b border-border px-8 py-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm text-slate-500">文章详情</p>
-              <h1 className="mt-2 text-3xl font-semibold leading-tight text-slate-950">{articleInfo.title}</h1>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+              <p className={semanticMetaTextClass}>文章详情</p>
+              <h1 className="mt-2 text-3xl font-semibold leading-tight text-text-primary">{articleInfo.title}</h1>
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-text-secondary">
                 {articleInfo.summary || classInfo?.share_summary }
               </p>
             </div>
@@ -195,7 +196,7 @@ export function ArticleDetailPage() {
           </div>
         </div>
 
-        <div className="bg-slate-50/40 px-8 py-10">
+        <div className={`${semanticPageSectionClass} rounded-none border-0 px-8 py-10 shadow-none`}>
           <div className="mx-auto max-w-3xl">
             {(articleInfo.logo || classInfo?.square_img) ? (
               <img
@@ -207,21 +208,21 @@ export function ArticleDetailPage() {
 
             <article
               className={[
-                "text-left text-[16px] leading-8 text-slate-700",
-                "[&_h1]:mb-6 [&_h1]:mt-10 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:text-slate-950",
-                "[&_h2]:mb-4 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-slate-950",
-                "[&_h3]:mb-4 [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-900",
-                "[&_p]:mb-5 [&_p]:leading-8 [&_p]:text-slate-700",
-                "[&_blockquote]:my-6 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:bg-white [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:text-slate-600",
+                "text-left text-[16px] leading-8 text-text-secondary",
+                "[&_h1]:mb-6 [&_h1]:mt-10 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:text-text-primary",
+                "[&_h2]:mb-4 [&_h2]:mt-10 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-text-primary",
+                "[&_h3]:mb-4 [&_h3]:mt-8 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-text-primary",
+                "[&_p]:mb-5 [&_p]:leading-8 [&_p]:text-text-secondary",
+                "[&_blockquote]:my-6 [&_blockquote]:rounded-r-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-primary [&_blockquote]:bg-surface-panel [&_blockquote]:px-5 [&_blockquote]:py-4 [&_blockquote]:text-text-secondary",
                 "[&_ul]:mb-5 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
                 "[&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",
                 "[&_li]:pl-1",
                 "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-2xl [&_img]:shadow-soft",
-                "[&_hr]:my-8 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-slate-200",
-                "[&_code]:rounded-md [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.95em]",
+                "[&_hr]:my-8 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border",
+                "[&_code]:rounded-md [&_code]:bg-surface-soft [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.95em]",
                 "[&_h2>code]:bg-primary [&_h2>code]:text-white",
                 "[&_em]:not-italic [&_em]:text-primary",
-                "[&_strong]:font-semibold [&_strong]:text-slate-900",
+                "[&_strong]:font-semibold [&_strong]:text-text-primary",
               ].join(" ")}
               dangerouslySetInnerHTML={{ __html: html }}
             />

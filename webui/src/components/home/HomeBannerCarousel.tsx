@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react"
 import { type HomeBanner } from "@/api"
 import { Card } from "@/components/ui/Card"
 import { cn } from "@/lib/cn"
+import { getSemanticStatusBadgeClass } from "@/lib/semanticStyles"
 
 type HomeBannerCarouselProps = {
   banners: HomeBanner[]
@@ -35,7 +36,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
     return (
       <Card className="flex h-full min-h-[360px] items-center justify-center p-8">
         <div className="text-center">
-          <p className="text-lg font-medium text-slate-900">首页 Banner 暂未加载</p>
+          <p className="text-lg font-medium text-text-primary">首页 Banner 暂未加载</p>
         </div>
       </Card>
     )
@@ -55,9 +56,9 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
           src={currentBanner.img}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-900/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-secondary/85 via-secondary/15 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
+          <div className={cn(getSemanticStatusBadgeClass("accent"), "inline-flex items-center gap-2 bg-white/15 text-white backdrop-blur")}>
             首页推荐
             <ArrowUpRight className="h-3.5 w-3.5" />
           </div>
@@ -66,7 +67,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
       </button>
 
       {banners.length > 1 ? (
-        <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full bg-slate-950/55 px-3 py-2 backdrop-blur">
+        <div className="absolute bottom-5 right-5 flex items-center gap-2 rounded-full bg-secondary/60 px-3 py-2 backdrop-blur">
           {banners.map((banner, index) => (
             <button
               aria-label={`切换到第 ${index + 1} 个 Banner`}

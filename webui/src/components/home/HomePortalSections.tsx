@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { cn } from "@/lib/cn"
+import { getSemanticChipClass, semanticMetaTextClass, getSemanticStatusBadgeClass } from "@/lib/semanticStyles"
 
 type SectionHeaderProps = {
   module?: HomeModule
@@ -23,8 +24,8 @@ function SectionHeader({ module, actions }: SectionHeaderProps) {
   return (
     <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <h3 className="text-2xl font-semibold text-slate-950">{module.title}</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-500">{module.description}</p>
+        <h3 className="text-2xl font-semibold text-text-primary">{module.title}</h3>
+        <p className={`mt-2 leading-6 ${semanticMetaTextClass}`}>{module.description}</p>
       </div>
       {actions}
     </div>
@@ -47,7 +48,7 @@ export function FreeResourceSection({ module, resources, error, onOpenResource }
     <section>
       <SectionHeader module={module} />
       {error ? (
-        <Card className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">{error}</Card>
+        <Card className="border-warning bg-warning-soft p-4 text-sm text-warning">{error}</Card>
       ) : null}
 
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -60,16 +61,16 @@ export function FreeResourceSection({ module, resources, error, onOpenResource }
                   className="h-full w-full object-cover transition duration-500 hover:scale-105"
                   src={resource.logo}
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/10">
+                <div className="absolute inset-0 flex items-center justify-center bg-secondary/10">
                   <div className="rounded-full bg-white/90 p-3 text-primary shadow-md">
                     <PlayCircle className="h-6 w-6" />
                   </div>
                 </div>
               </div>
               <div className="p-4">
-                <h4 className="line-clamp-2 text-base font-semibold text-slate-950">{resource.name}</h4>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">{resource.intro}</p>
-                <p className="mt-4 text-xs text-slate-400">免费专区内容入口</p>
+                <h4 className="line-clamp-2 text-base font-semibold text-text-primary">{resource.name}</h4>
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-text-secondary">{resource.intro}</p>
+                <p className="mt-4 text-xs text-text-muted/80">免费专区内容入口</p>
               </div>
             </Card>
           </button>
@@ -124,12 +125,7 @@ export function LabeledShelfSection({
             <div className="flex flex-wrap gap-2">
               {labels.map((label) => (
                 <button
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-xs font-medium transition",
-                    selectedEnid === label.enid
-                      ? "bg-primary text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200",
-                  )}
+                  className={cn(getSemanticChipClass(selectedEnid === label.enid), "text-xs")}
                   key={label.enid}
                   onClick={() => onSelectLabel(label)}
                   type="button"
@@ -144,11 +140,11 @@ export function LabeledShelfSection({
       />
 
       {error ? (
-        <Card className="mb-5 border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">{error}</Card>
+        <Card className="mb-5 border-warning bg-warning-soft p-4 text-sm text-warning">{error}</Card>
       ) : null}
 
       {loading ? (
-        <Card className="flex items-center justify-center p-8 text-slate-500">
+        <Card className="flex items-center justify-center p-8 text-text-muted">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           正在刷新{variant === "course" ? "课程" : "电子书"}内容...
         </Card>
@@ -163,7 +159,7 @@ export function LabeledShelfSection({
             type="button"
           >
             <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-              <div className={cn("overflow-hidden bg-slate-100", variant === "course" ? "aspect-video" : "aspect-[3/4] p-3")}>
+              <div className={cn("overflow-hidden bg-surface-soft", variant === "course" ? "aspect-video" : "aspect-[3/4] p-3")}>
                 <img
                   alt={product.title}
                   className={cn(
@@ -174,11 +170,11 @@ export function LabeledShelfSection({
                 />
               </div>
               <div className="p-4">
-                <h4 className="line-clamp-2 text-base font-semibold text-slate-950">{product.title}</h4>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+                <h4 className="line-clamp-2 text-base font-semibold text-text-primary">{product.title}</h4>
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-text-secondary">
                   {variant === "course" ? product.intro : product.author_list.join(" / ") || "电子书内容"}
                 </p>
-                <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                <div className="mt-4 flex items-center justify-between text-xs text-text-muted/80">
                   {variant === "course" ? (
                     <span>{product.learn_user_count} 人加入</span>
                   ) : (
@@ -187,7 +183,9 @@ export function LabeledShelfSection({
                       {product.score ? `评分 ${product.score}` : "暂无评分"}
                     </span>
                   )}
-                  <span>{variant === "course" ? "查看内容" : "查看详情"}</span>
+                  <span className={getSemanticStatusBadgeClass("accent", "px-0 py-0 bg-transparent text-primary")}>
+                    {variant === "course" ? "查看内容" : "查看详情"}
+                  </span>
                 </div>
               </div>
             </Card>

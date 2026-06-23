@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseArticleItem, type CourseArticleListResponse, type CourseInfoResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 const articlePageSize = 30
@@ -187,7 +188,7 @@ export function CourseArticleListPage() {
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载课程文章列表...
         </div>
@@ -198,7 +199,7 @@ export function CourseArticleListPage() {
   if (error || !courseInfo?.class_info) {
     return (
       <main className="space-y-6">
-        <Card className="border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="border-danger bg-danger-soft p-6 text-sm text-danger">
           {error || "未找到课程文章列表"}
         </Card>
       </main>
@@ -207,9 +208,9 @@ export function CourseArticleListPage() {
 
   return (
     <main className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-slate-500">
+      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-text-muted">
         <button
-          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-white/70 hover:text-slate-700"
+          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-surface-panel hover:text-text-secondary"
           onClick={backAction}
           type="button"
         >
@@ -218,7 +219,7 @@ export function CourseArticleListPage() {
         </button>
       </div>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
+      <section className={`${semanticPageSectionClass} p-6`}>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-5">
             <img
@@ -227,15 +228,21 @@ export function CourseArticleListPage() {
               src={courseInfo.class_info.square_img || courseInfo.class_info.index_img || "https://placehold.co/240x240/e2e8f0/334155?text=Course"}
             />
             <div className="min-w-0">
-              <p className="text-sm text-slate-500">课程文章列表</p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-950">{courseTitle}</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+              <p className={semanticMetaTextClass}>课程文章列表</p>
+              <h2 className="mt-2 text-3xl font-semibold text-text-primary">{courseTitle}</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
                 {courseInfo.class_info.intro || courseInfo.class_info.share_summary || "暂无课程介绍"}
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{courseInfo.class_info.lecturer_name || "未知讲师"}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{courseInfo.class_info.current_article_count || articleItems.length} 篇内容</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{courseInfo.class_info.learn_user_count || 0} 人学习</span>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm text-text-muted">
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {courseInfo.class_info.lecturer_name || "未知讲师"}
+                </span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {courseInfo.class_info.current_article_count || articleItems.length} 篇内容
+                </span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {courseInfo.class_info.learn_user_count || 0} 人学习
+                </span>
               </div>
             </div>
           </div>
@@ -264,19 +271,19 @@ export function CourseArticleListPage() {
               />
 
               <div className="flex flex-wrap gap-2">
-                {item.is_read ? <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">已读</span> : null}
+                {item.is_read ? <span className={getSemanticStatusBadgeClass("success")}>已读</span> : null}
                 {item.audio?.mp3_play_url ? (
-                  <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700">含音频</span>
+                  <span className={getSemanticStatusBadgeClass("accent")}>含音频</span>
                 ) : null}
-                {item.video_status === 1 ? <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">含视频</span> : null}
+                {item.video_status === 1 ? <span className={getSemanticStatusBadgeClass("warning")}>含视频</span> : null}
               </div>
 
               <div className="min-w-0 flex-1">
-                <h3 className="line-clamp-2 text-xl font-semibold text-slate-950">{item.title}</h3>
-                <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{item.summary || "暂无摘要"}</p>
+                <h3 className="line-clamp-2 text-xl font-semibold text-text-primary">{item.title}</h3>
+                <p className="mt-3 line-clamp-3 text-sm leading-7 text-text-secondary">{item.summary || "暂无摘要"}</p>
               </div>
 
-              <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+              <div className="flex flex-wrap gap-3 text-sm text-text-muted">
                 <span className="inline-flex items-center gap-1">
                   <Headphones className="h-4 w-4" />
                   {item.cur_learn_count || 0} 人学习
@@ -305,7 +312,7 @@ export function CourseArticleListPage() {
       </section>
 
       {articleItems.length === 0 ? (
-        <Card className="p-10 text-center text-slate-500">
+        <Card className="p-10 text-center text-text-muted">
           <Rows4 className="mx-auto h-8 w-8" />
           <p className="mt-3">当前课程还没有可展示的文章内容。</p>
         </Card>
