@@ -1,11 +1,10 @@
 import { BookOpen, Clock3, Loader2, LogOut, Radio, RefreshCcw, School, SwitchCamera } from "lucide-react"
+import { InfoBlock, StatCard, StatusBadge } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
-  getSemanticStatusBadgeClass,
   semanticMetaTextClass,
   semanticSecondaryTextClass,
-  semanticStatCardClass,
 } from "@/lib/semanticStyles"
 import { useUserCenter } from "@/hooks/useUserCenter"
 
@@ -95,16 +94,8 @@ export function UserCenterPage() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>今日学习</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{Math.round((user?.today_study_time ?? 0) / 60)}</p>
-                  <p className={semanticMetaTextClass}>分钟</p>
-                </div>
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>连续学习</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{user?.study_serial_days ?? 0}</p>
-                  <p className={semanticMetaTextClass}>天</p>
-                </div>
+                <StatCard hint="分钟" label="今日学习" value={Math.round((user?.today_study_time ?? 0) / 60)} />
+                <StatCard hint="天" label="连续学习" value={user?.study_serial_days ?? 0} />
               </div>
             </div>
           </div>
@@ -141,7 +132,7 @@ export function UserCenterPage() {
                 </div>
 
                 {account.active ? (
-                  <span className={getSemanticStatusBadgeClass("accent")}>当前账号</span>
+                  <StatusBadge variant="accent">当前账号</StatusBadge>
                 ) : (
                   <Button
                     disabled={switchingUID === account.uidHazy}
@@ -176,29 +167,21 @@ export function UserCenterPage() {
 
           {odobVip?.is_vip ? (
             <div className="mt-5 space-y-4">
-              <div className={semanticStatCardClass}>
+              <InfoBlock className="rounded-3xl p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 text-sm text-text-muted">
                     <Clock3 className="h-4 w-4" />
                     到期时间
                   </div>
-                  <span className={getSemanticStatusBadgeClass("danger")}>
-                    剩余 {odobVip.surplus_time} 天
-                  </span>
+                  <StatusBadge variant="danger">剩余 {odobVip.surplus_time} 天</StatusBadge>
                 </div>
                 <p className="mt-3 text-lg font-medium text-text-primary">{formatTimestamp(odobVip.expire_time)}</p>
                 {odobVip.err_tips ? <p className="mt-3 text-sm text-warning">{odobVip.err_tips}</p> : null}
-              </div>
+              </InfoBlock>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>本周听书</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{odobVip.week_count}</p>
-                </div>
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>累计听书</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{odobVip.total_count}</p>
-                </div>
+                <StatCard label="本周听书" value={odobVip.week_count} />
+                <StatCard label="累计听书" value={odobVip.total_count} />
               </div>
 
               <div className="rounded-3xl bg-warning-soft p-5 text-warning">
@@ -222,29 +205,21 @@ export function UserCenterPage() {
 
           {ebookVip?.is_vip ? (
             <div className="mt-5 space-y-4">
-              <div className={semanticStatCardClass}>
+              <InfoBlock className="rounded-3xl p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 text-sm text-text-muted">
                     <Clock3 className="h-4 w-4" />
                     到期时间
                   </div>
-                  <span className={getSemanticStatusBadgeClass("danger")}>
-                    剩余 {ebookVip.surplus_time} 天
-                  </span>
+                  <StatusBadge variant="danger">剩余 {ebookVip.surplus_time} 天</StatusBadge>
                 </div>
                 <p className="mt-3 text-lg font-medium text-text-primary">{formatTimestamp(ebookVip.expire_time)}</p>
                 {ebookVip.err_tips ? <p className="mt-3 text-sm text-warning">{ebookVip.err_tips}</p> : null}
-              </div>
+              </InfoBlock>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>本月读书</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{ebookVip.month_count}</p>
-                </div>
-                <div className={semanticStatCardClass}>
-                  <p className={semanticMetaTextClass}>累计读书</p>
-                  <p className="mt-2 text-3xl font-semibold text-text-primary">{ebookVip.total_count}</p>
-                </div>
+                <StatCard label="本月读书" value={ebookVip.month_count} />
+                <StatCard label="累计读书" value={ebookVip.total_count} />
               </div>
 
               <div className="rounded-3xl bg-accent-soft p-5 text-accent">

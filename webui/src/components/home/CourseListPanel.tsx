@@ -1,7 +1,8 @@
 import { BookOpen, Loader2 } from "lucide-react"
 import type { CourseListItem } from "@/api"
+import { StatusBadge } from "@/components/ui/Semantic"
 import { Card } from "@/components/ui/Card"
-import { getSemanticStatusBadgeClass, semanticMetaTextClass } from "@/lib/semanticStyles"
+import { semanticMetaTextClass } from "@/lib/semanticStyles"
 
 type CourseListPanelProps = {
   selectedCategory: string
@@ -46,7 +47,7 @@ export function CourseListPanel({
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <p className="font-medium text-text-primary">{course.title || course.name}</p>
-                  <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1")}>{course.price_desc || "已购"}</span>
+                  <StatusBadge className="px-3 py-1">{course.price_desc || "已购"}</StatusBadge>
                 </div>
                 <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{course.intro || course.subtitle || "暂无简介"}</p>
               </div>

@@ -1,7 +1,8 @@
 import { Loader2 } from "lucide-react"
 import type { CourseInfoResponse } from "@/api"
+import { InfoBlock, StatusBadge } from "@/components/ui/Semantic"
 import { Card } from "@/components/ui/Card"
-import { getSemanticStatusBadgeClass, semanticInfoBlockClass, semanticMetaTextClass, semanticSecondaryTextClass } from "@/lib/semanticStyles"
+import { semanticMetaTextClass, semanticSecondaryTextClass } from "@/lib/semanticStyles"
 
 type CourseDetailPanelProps = {
   detail: CourseInfoResponse | null
@@ -29,16 +30,16 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
                 src={detail.class_info.square_img || "https://placehold.co/320x320/e2e8f0/334155?text=Course"}
               />
               <div className="space-y-3">
-                <span className={getSemanticStatusBadgeClass("accent")}>
+                <StatusBadge variant="accent">
                   {detail.class_info.price_desc || "课程详情"}
-                </span>
+                </StatusBadge>
                 <h3 className="text-2xl font-semibold text-text-primary">{detail.class_info.name}</h3>
                 <p className={`text-sm leading-7 ${semanticSecondaryTextClass}`}>{detail.class_info.intro || detail.class_info.share_summary || "暂无简介"}</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={semanticInfoBlockClass}>讲师：{detail.class_info.lecturer_name || "未知"}</div>
-                  <div className={semanticInfoBlockClass}>学习人数：{detail.class_info.learn_user_count || 0}</div>
-                  <div className={semanticInfoBlockClass}>文章数：{detail.class_info.current_article_count || 0}</div>
-                  <div className={semanticInfoBlockClass}>头衔：{detail.class_info.lecturer_title || "-"}</div>
+                  <InfoBlock>讲师：{detail.class_info.lecturer_name || "未知"}</InfoBlock>
+                  <InfoBlock>学习人数：{detail.class_info.learn_user_count || 0}</InfoBlock>
+                  <InfoBlock>文章数：{detail.class_info.current_article_count || 0}</InfoBlock>
+                  <InfoBlock>头衔：{detail.class_info.lecturer_title || "-"}</InfoBlock>
                 </div>
               </div>
             </div>
@@ -46,10 +47,10 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
             <div className="space-y-3 border-t border-border pt-4">
               <h3 className="font-medium text-text-primary">课程亮点</h3>
               {detail.items.slice(0, 4).map((item, index) => (
-                <div className={semanticInfoBlockClass} key={`${item.title}-${index}`}>
+                <InfoBlock key={`${item.title}-${index}`}>
                   <p className="font-medium text-text-primary">{item.title}</p>
                   <p className="mt-2 text-sm leading-6 text-text-secondary">{item.content || "暂无内容"}</p>
-                </div>
+                </InfoBlock>
               ))}
             </div>
           </>

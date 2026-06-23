@@ -2,15 +2,13 @@ import { Clock3, Headphones, Loader2, Radio, Waves } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { api, type AudioDetailResponse } from "@/api"
+import { InfoBlock, StatCard, StatusBadge } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
-  getSemanticStatusBadgeClass,
-  semanticInfoBlockClass,
   semanticMetaTextClass,
   semanticPageSectionClass,
   semanticSecondaryTextClass,
-  semanticStatCardClass,
 } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
@@ -134,57 +132,38 @@ export function AudioDetailPage() {
             src={data.index_img || data.icon || "https://placehold.co/600x600/e2e8f0/334155?text=Audio"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className={getSemanticStatusBadgeClass("accent")}>每天听本书</span>
+            <StatusBadge variant="accent">每天听本书</StatusBadge>
             {data.is_vip ? (
-              <span className={getSemanticStatusBadgeClass("warning")}>会员内容</span>
+              <StatusBadge variant="warning">会员内容</StatusBadge>
             ) : null}
             {data.has_play_auth ? (
-              <span className={getSemanticStatusBadgeClass("success")}>可播放</span>
+              <StatusBadge variant="success">可播放</StatusBadge>
             ) : null}
             {isInBookshelf ? (
-              <span className={getSemanticStatusBadgeClass("neutral")}>已加入书架</span>
+              <StatusBadge>已加入书架</StatusBadge>
             ) : null}
           </div>
 
           <div className="mt-6 space-y-3">
-            <div className={semanticInfoBlockClass}>演播：{data.reader_name || "未知"}</div>
-            <div className={semanticInfoBlockClass}>时长：{formatDuration(data.duration)}</div>
-            <div className={semanticInfoBlockClass}>来源：{data.source_name || "得到"}</div>
-            <div className={semanticInfoBlockClass}>播放次数：{data.play_count || 0}</div>
+            <InfoBlock>演播：{data.reader_name || "未知"}</InfoBlock>
+            <InfoBlock>时长：{formatDuration(data.duration)}</InfoBlock>
+            <InfoBlock>来源：{data.source_name || "得到"}</InfoBlock>
+            <InfoBlock>播放次数：{data.play_count || 0}</InfoBlock>
           </div>
         </Card>
 
         <div className="space-y-6">
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Clock3 className="h-4 w-4" />
-                  时长
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{formatDuration(data.duration)}</p>
-              </div>
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Headphones className="h-4 w-4" />
-                  播放次数
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{data.play_count || 0}</p>
-              </div>
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Radio className="h-4 w-4" />
-                  权限状态
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{data.has_play_auth ? "可播放" : "需权限"}</p>
-              </div>
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Waves className="h-4 w-4" />
-                  音频地址
-                </div>
-                <p className="mt-3 text-lg font-semibold text-text-primary">{data.mp3_play_url ? "已获取" : "未获取"}</p>
-              </div>
+              <StatCard icon={<Clock3 className="h-4 w-4" />} label="时长" value={formatDuration(data.duration)} />
+              <StatCard icon={<Headphones className="h-4 w-4" />} label="播放次数" value={data.play_count || 0} />
+              <StatCard icon={<Radio className="h-4 w-4" />} label="权限状态" value={data.has_play_auth ? "可播放" : "需权限"} />
+              <StatCard
+                icon={<Waves className="h-4 w-4" />}
+                label="音频地址"
+                value={data.mp3_play_url ? "已获取" : "未获取"}
+                valueClassName="text-lg"
+              />
             </div>
           </Card>
 

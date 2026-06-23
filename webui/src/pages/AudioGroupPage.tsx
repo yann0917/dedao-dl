@@ -2,15 +2,13 @@ import { Library, Loader2, Radio, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { api, type AudioGroupResponse } from "@/api"
+import { InfoBlock, StatCard, StatusBadge } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
-  getSemanticStatusBadgeClass,
-  semanticInfoBlockClass,
   semanticMetaTextClass,
   semanticPageSectionClass,
   semanticSecondaryTextClass,
-  semanticStatCardClass,
 } from "@/lib/semanticStyles"
 import { type PlayerTrack, useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
@@ -109,43 +107,25 @@ export function AudioGroupPage() {
             src={spu.icon || "https://placehold.co/600x600/e2e8f0/334155?text=Group"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className={getSemanticStatusBadgeClass("accent")}>名家讲书</span>
+            <StatusBadge variant="accent">名家讲书</StatusBadge>
             {spu.extra?.teacher_name ? (
-              <span className={getSemanticStatusBadgeClass("neutral")}>{spu.extra.teacher_name}</span>
+              <StatusBadge>{spu.extra.teacher_name}</StatusBadge>
             ) : null}
           </div>
 
           <div className="mt-6 space-y-3">
-            <div className={semanticInfoBlockClass}>老师：{spu.extra?.teacher_name || "未知"}</div>
-            <div className={semanticInfoBlockClass}>学习人数：{spu.extra?.odob_consumer_num || 0}</div>
-            <div className={semanticInfoBlockClass}>学习描述：{spu.extra?.rn_learn_count_desc || "暂无"}</div>
+            <InfoBlock>老师：{spu.extra?.teacher_name || "未知"}</InfoBlock>
+            <InfoBlock>学习人数：{spu.extra?.odob_consumer_num || 0}</InfoBlock>
+            <InfoBlock>学习描述：{spu.extra?.rn_learn_count_desc || "暂无"}</InfoBlock>
           </div>
         </Card>
 
         <div className="space-y-6">
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-3">
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Library className="h-4 w-4" />
-                  合集条目
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{data.outside.count || audioList.length}</p>
-              </div>
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Users className="h-4 w-4" />
-                  学习人数
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{spu.extra?.odob_consumer_num || 0}</p>
-              </div>
-              <div className={semanticStatCardClass}>
-                <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Radio className="h-4 w-4" />
-                  音频解析
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-text-primary">{audioList.length > 0 ? "已就绪" : "待补齐"}</p>
-              </div>
+              <StatCard icon={<Library className="h-4 w-4" />} label="合集条目" value={data.outside.count || audioList.length} />
+              <StatCard icon={<Users className="h-4 w-4" />} label="学习人数" value={spu.extra?.odob_consumer_num || 0} />
+              <StatCard icon={<Radio className="h-4 w-4" />} label="音频解析" value={audioList.length > 0 ? "已就绪" : "待补齐"} />
             </div>
           </Card>
 
@@ -171,7 +151,7 @@ export function AudioGroupPage() {
             <div className="mt-4 space-y-3">
               {audioList.length > 0 ? (
                 audioList.map((item) => (
-                  <div className={semanticInfoBlockClass} key={item.alias_id || item.audio_id}>
+                  <InfoBlock key={item.alias_id || item.audio_id}>
                     <div className="flex items-start gap-4">
                       <img
                         alt={item.title}
@@ -197,7 +177,7 @@ export function AudioGroupPage() {
                         </Button>
                       ) : null}
                     </div>
-                  </div>
+                  </InfoBlock>
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">

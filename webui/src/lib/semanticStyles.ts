@@ -23,8 +23,10 @@ const semanticStatusBadgeVariantClass = {
   danger: "bg-danger-soft text-danger",
 } as const
 
+export type SemanticStatusVariant = keyof typeof semanticStatusBadgeVariantClass
+
 export function getSemanticStatusBadgeClass(
-  variant: keyof typeof semanticStatusBadgeVariantClass = "neutral",
+  variant: SemanticStatusVariant = "neutral",
   className?: string,
 ) {
   return cn(semanticStatusBadgeBaseClass, semanticStatusBadgeVariantClass[variant], className)
