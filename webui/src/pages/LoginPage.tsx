@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { QrLoginCard } from "@/components/auth/QrLoginCard"
 import { Card } from "@/components/ui/Card"
 import { ThemeToggleButton } from "@/components/ui/ThemeToggleButton"
+import { getSemanticStatusBadgeClass, semanticSecondaryTextClass } from "@/lib/semanticStyles"
 import { useAuth } from "@/providers/AuthProvider"
 
 const loginHighlights = [
@@ -26,17 +27,17 @@ export function LoginPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-7xl items-center gap-10 px-6 py-12 lg:px-10">
       <section className="grid flex-1 gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+          <span className={getSemanticStatusBadgeClass("accent", "w-fit px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]")}>
             dedao-dl Web
           </span>
           <ThemeToggleButton className="rounded-2xl" />
         </div>
 
         <div className="space-y-4">
-          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
             用浏览器打开 dedao-dl，扫码后直接进入学习工作台。
           </h1>
-          <p className="max-w-xl text-base leading-7 text-slate-600">
+          <p className={`max-w-xl text-base leading-7 ${semanticSecondaryTextClass}`}>
             登录成功后，可以继续查看课程、电子书、听书和用户中心等内容。
           </p>
         </div>
@@ -47,8 +48,8 @@ export function LoginPage() {
               <div className="space-y-3 p-5">
                 <item.icon className="h-5 w-5 text-primary" />
                 <div>
-                  <h2 className="font-medium text-slate-900">{item.title}</h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{item.text}</p>
+                  <h2 className="font-medium text-text-primary">{item.title}</h2>
+                  <p className={`mt-1 text-sm leading-6 ${semanticSecondaryTextClass}`}>{item.text}</p>
                 </div>
               </div>
             </Card>

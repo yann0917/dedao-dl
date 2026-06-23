@@ -30,42 +30,42 @@ function getCatalogIndent(level: number) {
 
 function getCatalogTextClass(level: number) {
   if (level === 0) {
-    return "text-sm font-semibold text-slate-950 dark:text-white"
+    return "text-sm font-semibold text-text-primary"
   }
 
   if (level === 1) {
-    return "text-sm font-medium text-slate-900 dark:text-slate-100"
+    return "text-sm font-medium text-text-primary"
   }
 
   if (level === 2) {
-    return "text-sm text-slate-800 dark:text-slate-200"
+    return "text-sm text-text-secondary"
   }
 
-  return "text-sm text-slate-600 dark:text-slate-300"
+  return "text-sm text-text-muted"
 }
 
 function getCatalogRowClass(level: number) {
   if (level === 0) {
-    return "bg-slate-100/90 dark:bg-slate-700"
+    return "bg-surface-soft/90"
   }
 
   if (level === 1) {
-    return "bg-white dark:bg-slate-800/70"
+    return "bg-surface-panel"
   }
 
-  return "bg-white/70 dark:bg-slate-900"
+  return "bg-surface-panel/70"
 }
 
 function getCatalogDotClass(level: number) {
   if (level === 0) {
-    return "bg-slate-500 dark:bg-white"
+    return "bg-text-muted"
   }
 
   if (level === 1) {
-    return "bg-slate-400 dark:bg-slate-300"
+    return "bg-text-muted/80"
   }
 
-  return "bg-slate-300 dark:bg-slate-500"
+  return "bg-border"
 }
 
 export function EbookDetailPage() {

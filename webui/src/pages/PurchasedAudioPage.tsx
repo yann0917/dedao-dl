@@ -3,6 +3,7 @@ import { useState } from "react"
 import { api, type CourseListItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { PurchasedCollectionPage } from "@/components/purchased/PurchasedCollectionPage"
+import { getSemanticStatusBadgeClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 function formatMinutes(duration?: number) {
@@ -68,7 +69,7 @@ export function PurchasedAudioPage() {
         ) : (
           <>
             {item.in_bookrack ? (
-              <span className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-3 text-sm font-medium text-slate-600">
+              <span className={getSemanticStatusBadgeClass("neutral", "inline-flex h-9 items-center rounded-xl px-3 text-sm")}>
                 已加入书架
               </span>
             ) : (

@@ -3,6 +3,7 @@ import { Loader2, RefreshCcw, ScanLine } from "lucide-react"
 import { api, type QRCodeSession, type UserInfo } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 
 type QrLoginCardProps = {
   onLoginSuccess: (user?: UserInfo | null) => void | Promise<void>
@@ -87,18 +88,18 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
       <div className="space-y-6 p-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-slate-950">扫码登录</h2>
-            <p className="mt-1 text-sm text-slate-500">使用得到 App 或微信扫码登录。</p>
+            <h2 className="text-xl font-semibold text-text-primary">扫码登录</h2>
+            <p className={`mt-1 ${semanticMetaTextClass}`}>使用得到 App 或微信扫码登录。</p>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">{remaining ? `剩余 ${remaining}` : "待生成"}</span>
+          <span className={getSemanticStatusBadgeClass("neutral")}>{remaining ? `剩余 ${remaining}` : "待生成"}</span>
         </div>
 
-        <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6">
-          <div className="mx-auto flex h-64 w-64 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-sm">
+        <div className="rounded-3xl border border-dashed border-border bg-surface-soft p-6">
+          <div className="mx-auto flex h-64 w-64 items-center justify-center overflow-hidden rounded-3xl bg-surface-panel shadow-sm">
             {session?.qrCode ? (
               <img alt="二维码" className="h-full w-full object-cover" src={session.qrCode} />
             ) : (
-              <div className="flex flex-col items-center gap-3 text-sm text-slate-500">
+              <div className="flex flex-col items-center gap-3 text-sm text-text-muted">
                 <Loader2 className="h-6 w-6 animate-spin" />
                 正在准备二维码
               </div>
@@ -106,13 +107,13 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-slate-950 p-4 text-slate-100">
+        <div className={`${semanticPageSectionClass} bg-surface-inverse p-4 text-text-inverse`}>
           <div className="flex items-center gap-2 text-sm font-medium">
             <ScanLine className="h-4 w-4" />
             得到 App / 微信扫码
           </div>
-          <p className="mt-2 text-sm text-slate-300">{statusText}</p>
-          {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
+          <p className="mt-2 text-sm text-text-inverse/78">{statusText}</p>
+          {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
         </div>
 
         <div className="flex gap-3">

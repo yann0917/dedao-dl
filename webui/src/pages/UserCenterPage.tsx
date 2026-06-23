@@ -1,6 +1,12 @@
 import { BookOpen, Clock3, Loader2, LogOut, Radio, RefreshCcw, School, SwitchCamera } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import {
+  getSemanticStatusBadgeClass,
+  semanticMetaTextClass,
+  semanticSecondaryTextClass,
+  semanticStatCardClass,
+} from "@/lib/semanticStyles"
 import { useUserCenter } from "@/hooks/useUserCenter"
 
 function formatTimestamp(timestamp?: number) {
@@ -23,7 +29,7 @@ export function UserCenterPage() {
   if (loading) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载用户中心...
         </div>
@@ -39,8 +45,8 @@ export function UserCenterPage() {
     <main className="space-y-6">
 
       {error ? (
-        <Card className="border border-rose-200 bg-rose-50">
-          <div className="p-4 text-sm text-rose-700">{error}</div>
+        <Card className="border-danger bg-danger-soft">
+          <div className="p-4 text-sm text-danger">{error}</div>
         </Card>
       ) : null}
 
@@ -63,41 +69,41 @@ export function UserCenterPage() {
 
             <div className="flex-1 space-y-4">
               <div>
-                <h3 className="text-3xl font-semibold text-slate-950">{user?.nickname ?? "未命名用户"}</h3>
-                <p className="mt-2 text-sm text-slate-500">当前登录账号</p>
+                <h3 className="text-3xl font-semibold text-text-primary">{user?.nickname ?? "未命名用户"}</h3>
+                <p className={`mt-2 ${semanticMetaTextClass}`}>当前登录账号</p>
               </div>
 
               <div className="flex flex-wrap gap-3">
                 {odobVip?.is_vip ? (
-                  <div className="inline-flex items-center gap-3 rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                  <div className="inline-flex items-center gap-3 rounded-2xl bg-warning-soft px-4 py-3 text-sm text-warning">
                     <Radio className="h-4 w-4" />
                     <div>
                       <div className="font-medium">听书会员</div>
-                      <div className="text-xs text-orange-600">剩余 {odobVip.surplus_time ?? 0} 天</div>
+                      <div className="text-xs text-warning/80">剩余 {odobVip.surplus_time ?? 0} 天</div>
                     </div>
                   </div>
                 ) : null}
                 {ebookVip?.is_vip ? (
-                  <div className="inline-flex items-center gap-3 rounded-2xl bg-sky-50 px-4 py-3 text-sm text-sky-700">
+                  <div className="inline-flex items-center gap-3 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent">
                     <BookOpen className="h-4 w-4" />
                     <div>
                       <div className="font-medium">电子书会员</div>
-                      <div className="text-xs text-sky-600">剩余 {ebookVip.surplus_time ?? 0} 天</div>
+                      <div className="text-xs text-accent/80">剩余 {ebookVip.surplus_time ?? 0} 天</div>
                     </div>
                   </div>
                 ) : null}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">今日学习</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{Math.round((user?.today_study_time ?? 0) / 60)}</p>
-                  <p className="text-sm text-slate-500">分钟</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>今日学习</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{Math.round((user?.today_study_time ?? 0) / 60)}</p>
+                  <p className={semanticMetaTextClass}>分钟</p>
                 </div>
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">连续学习</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{user?.study_serial_days ?? 0}</p>
-                  <p className="text-sm text-slate-500">天</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>连续学习</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{user?.study_serial_days ?? 0}</p>
+                  <p className={semanticMetaTextClass}>天</p>
                 </div>
               </div>
             </div>
@@ -107,8 +113,8 @@ export function UserCenterPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xl font-semibold text-slate-950">账号管理</h3>
-              <p className="mt-1 text-sm text-slate-500">支持查看当前登录账号并切换活跃用户。</p>
+              <h3 className="text-xl font-semibold text-text-primary">账号管理</h3>
+              <p className={`mt-1 text-sm ${semanticSecondaryTextClass}`}>支持查看当前登录账号并切换活跃用户。</p>
             </div>
             <Button onClick={() => void reload()} variant="outline">
               <RefreshCcw className="mr-2 h-4 w-4" />
@@ -119,7 +125,7 @@ export function UserCenterPage() {
           <div className="mt-5 space-y-3">
             {data?.accounts.map((account) => (
               <div
-                className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3"
+                className="flex items-center justify-between rounded-2xl border border-border px-4 py-3"
                 key={account.uidHazy}
               >
                 <div className="flex min-w-0 items-center gap-3">
@@ -129,13 +135,13 @@ export function UserCenterPage() {
                     src={account.avatar || "https://placehold.co/80x80/e2e8f0/334155?text=DD"}
                   />
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900">{account.name}</p>
-                    <p className="truncate text-sm text-slate-500">{account.active ? "当前使用中" : "可切换账号"}</p>
+                    <p className="truncate font-medium text-text-primary">{account.name}</p>
+                    <p className={`truncate text-sm ${semanticMetaTextClass}`}>{account.active ? "当前使用中" : "可切换账号"}</p>
                   </div>
                 </div>
 
                 {account.active ? (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">当前账号</span>
+                  <span className={getSemanticStatusBadgeClass("accent")}>当前账号</span>
                 ) : (
                   <Button
                     disabled={switchingUID === account.uidHazy}
@@ -164,43 +170,43 @@ export function UserCenterPage() {
           <div className="flex items-center gap-3">
             <Radio className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="text-xl font-semibold text-slate-950">听书会员</h3>
+              <h3 className="text-xl font-semibold text-text-primary">听书会员</h3>
             </div>
           </div>
 
           {odobVip?.is_vip ? (
             <div className="mt-5 space-y-4">
-              <div className="rounded-3xl bg-slate-50 p-5">
+              <div className={semanticStatCardClass}>
                 <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+                  <div className="inline-flex items-center gap-2 text-sm text-text-muted">
                     <Clock3 className="h-4 w-4" />
                     到期时间
                   </div>
-                  <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
+                  <span className={getSemanticStatusBadgeClass("danger")}>
                     剩余 {odobVip.surplus_time} 天
                   </span>
                 </div>
-                <p className="mt-3 text-lg font-medium text-slate-950">{formatTimestamp(odobVip.expire_time)}</p>
-                {odobVip.err_tips ? <p className="mt-3 text-sm text-amber-600">{odobVip.err_tips}</p> : null}
+                <p className="mt-3 text-lg font-medium text-text-primary">{formatTimestamp(odobVip.expire_time)}</p>
+                {odobVip.err_tips ? <p className="mt-3 text-sm text-warning">{odobVip.err_tips}</p> : null}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">本周听书</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{odobVip.week_count}</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>本周听书</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{odobVip.week_count}</p>
                 </div>
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">累计听书</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{odobVip.total_count}</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>累计听书</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{odobVip.total_count}</p>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-orange-50 p-5 text-orange-700">
+              <div className="rounded-3xl bg-warning-soft p-5 text-warning">
                 累计为你节省了 <span className="font-semibold">{odobVip.save_price}{odobVip.price_desc}</span>
               </div>
             </div>
           ) : (
-            <div className="mt-5 rounded-3xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
+            <div className="mt-5 rounded-3xl border border-dashed border-border p-8 text-sm text-text-muted">
               {data?.odobVipError || "当前账号未开通听书会员。"}
             </div>
           )}
@@ -210,43 +216,43 @@ export function UserCenterPage() {
           <div className="flex items-center gap-3">
             <BookOpen className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="text-xl font-semibold text-slate-950">电子书会员</h3>
+              <h3 className="text-xl font-semibold text-text-primary">电子书会员</h3>
             </div>
           </div>
 
           {ebookVip?.is_vip ? (
             <div className="mt-5 space-y-4">
-              <div className="rounded-3xl bg-slate-50 p-5">
+              <div className={semanticStatCardClass}>
                 <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+                  <div className="inline-flex items-center gap-2 text-sm text-text-muted">
                     <Clock3 className="h-4 w-4" />
                     到期时间
                   </div>
-                  <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
+                  <span className={getSemanticStatusBadgeClass("danger")}>
                     剩余 {ebookVip.surplus_time} 天
                   </span>
                 </div>
-                <p className="mt-3 text-lg font-medium text-slate-950">{formatTimestamp(ebookVip.expire_time)}</p>
-                {ebookVip.err_tips ? <p className="mt-3 text-sm text-amber-600">{ebookVip.err_tips}</p> : null}
+                <p className="mt-3 text-lg font-medium text-text-primary">{formatTimestamp(ebookVip.expire_time)}</p>
+                {ebookVip.err_tips ? <p className="mt-3 text-sm text-warning">{ebookVip.err_tips}</p> : null}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">本月读书</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{ebookVip.month_count}</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>本月读书</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{ebookVip.month_count}</p>
                 </div>
-                <div className="rounded-3xl bg-slate-50 p-5">
-                  <p className="text-sm text-slate-500">累计读书</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-950">{ebookVip.total_count}</p>
+                <div className={semanticStatCardClass}>
+                  <p className={semanticMetaTextClass}>累计读书</p>
+                  <p className="mt-2 text-3xl font-semibold text-text-primary">{ebookVip.total_count}</p>
                 </div>
               </div>
 
-              <div className="rounded-3xl bg-sky-50 p-5 text-sky-700">
+              <div className="rounded-3xl bg-accent-soft p-5 text-accent">
                 累计为你节省了 <span className="font-semibold">{ebookVip.save_price}{ebookVip.price_desc}</span>
               </div>
             </div>
           ) : (
-            <div className="mt-5 rounded-3xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
+            <div className="mt-5 rounded-3xl border border-dashed border-border p-8 text-sm text-text-muted">
               {data?.ebookVipError || "当前账号未开通电子书会员。"}
             </div>
           )}

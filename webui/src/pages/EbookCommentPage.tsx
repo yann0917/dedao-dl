@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type EbookCommentItem, type EbookCommentResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 
 function formatTime(value?: number) {
   if (!value) {
@@ -85,8 +86,8 @@ function CommentCard({ item }: { item: EbookCommentItem }) {
 
   return (
     <div className="break-inside-avoid pb-5">
-      <Card className="overflow-hidden border-slate-200 bg-white/95 p-0 shadow-soft">
-        <div className="border-b border-slate-100 p-4">
+      <Card className="overflow-hidden bg-surface-panel/95 p-0 shadow-soft">
+        <div className="border-b border-border p-4">
           <div className="flex items-start gap-3">
             <img
               alt={item.notes_owner?.name || "得到用户"}
@@ -95,28 +96,28 @@ function CommentCard({ item }: { item: EbookCommentItem }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-medium text-slate-900">{item.notes_owner?.name || "得到用户"}</p>
+                <p className="truncate text-sm font-medium text-text-primary">{item.notes_owner?.name || "得到用户"}</p>
                 {item.notes_owner?.slogan ? (
-                  <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700">{item.notes_owner.slogan}</span>
+                  <span className={getSemanticStatusBadgeClass("accent", "px-2 py-0.5 text-[11px]")}>{item.notes_owner.slogan}</span>
                 ) : null}
               </div>
-              <p className="mt-1 text-xs text-slate-500">{formatTime(item.create_time)}</p>
+              <p className="mt-1 text-xs text-text-muted">{formatTime(item.create_time)}</p>
             </div>
           </div>
-          {item.note_title ? <h3 className="mt-3 line-clamp-2 text-base font-semibold text-slate-950">{item.note_title}</h3> : null}
+          {item.note_title ? <h3 className="mt-3 line-clamp-2 text-base font-semibold text-text-primary">{item.note_title}</h3> : null}
         </div>
 
         <div className="space-y-3 p-4">
           {content ? (
             <div
-              className="prose prose-sm max-w-none text-slate-700 prose-p:my-2 prose-li:my-1 prose-ol:pl-5 prose-ul:pl-5"
+              className="prose prose-sm max-w-none text-text-secondary prose-p:my-2 prose-li:my-1 prose-ol:pl-5 prose-ul:pl-5 [&_strong]:text-text-primary"
               dangerouslySetInnerHTML={{ __html: content }}
             />
           ) : (
-            <p className="text-sm leading-7 text-slate-600">{item.note_line || "暂无内容"}</p>
+            <p className="text-sm leading-7 text-text-secondary">{item.note_line || "暂无内容"}</p>
           )}
 
-          <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center justify-between text-xs text-text-muted">
             <span>点赞 {item.notes_count?.like_count || 0}</span>
             <span>评论 {item.notes_count?.comment_count || 0}</span>
           </div>
@@ -199,7 +200,7 @@ export function EbookCommentPage() {
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载电子书书评...
         </div>
@@ -210,30 +211,30 @@ export function EbookCommentPage() {
   if (error) {
     return (
       <main className="space-y-6">
-        <Card className="border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">{error}</Card>
+        <Card className="border-danger bg-danger-soft p-6 text-sm text-danger">{error}</Card>
       </main>
     )
   }
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
+      <section className={`${semanticPageSectionClass} p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-slate-500">电子书书评</p>
-            <h2 className="mt-2 text-3xl font-semibold text-slate-950">{title}</h2>
+            <p className={semanticMetaTextClass}>电子书书评</p>
+            <h2 className="mt-2 text-3xl font-semibold text-text-primary">{title}</h2>
           </div>
           <Button onClick={() => navigate("/purchased/ebooks")} variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
             返回已购电子书
           </Button>
         </div>
-        <div className="mt-5 flex flex-wrap gap-3 text-sm text-slate-500">
-          <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
+        <div className="mt-5 flex flex-wrap gap-3 text-sm text-text-muted">
+          <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
             <MessageSquare className="h-4 w-4" />
             总评论 {data?.total || 0}
           </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-amber-700">
+          <span className={getSemanticStatusBadgeClass("warning", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
             <Star className="h-4 w-4" />
             平均评分 {Number(data?.ebook_score.average_score || 0).toFixed(1)}
           </span>
@@ -247,8 +248,8 @@ export function EbookCommentPage() {
           ))}
         </section>
       ) : (
-        <Card className="p-10 text-center text-slate-500">
-          <p className="text-lg font-medium text-slate-900">当前还没有可展示的电子书书评</p>
+        <Card className="p-10 text-center text-text-muted">
+          <p className="text-lg font-medium text-text-primary">当前还没有可展示的电子书书评</p>
         </Card>
       )}
 
