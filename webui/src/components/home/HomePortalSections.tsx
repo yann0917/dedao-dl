@@ -187,7 +187,7 @@ export function LabeledShelfSection({
                       {product.score ? `评分 ${product.score}` : "暂无评分"}
                     </span>
                   )}
-                  <span>{variant === "course" ? "查看内容" : "详情后续接入"}</span>
+                  <span>{variant === "course" ? "查看内容" : "查看详情"}</span>
                 </div>
               </div>
             </Card>

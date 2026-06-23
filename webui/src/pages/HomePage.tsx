@@ -30,6 +30,10 @@ export function HomePage() {
     navigate(`/courses/${encodeURIComponent(enid)}?from=home`)
   }
 
+  const handleSelectEbook = (enid: string) => {
+    navigate(`/ebooks/${encodeURIComponent(enid)}?from=home`)
+  }
+
   const handleNavigateCategory = (category: HomeCategory, labelEnid: string) => {
     navigate(
       `/category?${buildCategoryQuery({
@@ -154,7 +158,7 @@ export function HomePage() {
         module={portal.moduleMap.get("ebook")}
         moreButtonText="查看更多电子书"
         onClickMore={() => handleOpenCategoryFromShelf("ebook")}
-        onOpenProduct={() => {}}
+        onOpenProduct={handleSelectEbook}
         onSelectLabel={(label) => handleSelectShelfLabel("ebook", label)}
         selectedEnid={portal.selectedEbookEnid}
         variant="ebook"

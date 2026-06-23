@@ -469,6 +469,16 @@ export type EbookDetailResponse = {
     douban_score: string
     classify_name: string
     add_studylist_dd_url: string
+    catalog_list: Array<{
+      level: number
+      text: string
+      href: string
+      playOrder: number
+    }>
+    press: {
+      name: string
+      brief: string
+    }
   }
   notes?: {
     list: Array<{
