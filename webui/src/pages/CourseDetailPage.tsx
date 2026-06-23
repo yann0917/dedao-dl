@@ -4,6 +4,13 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseInfoResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import {
+  getSemanticStatusBadgeClass,
+  semanticInfoBlockClass,
+  semanticMetaTextClass,
+  semanticPageSectionClass,
+  semanticSecondaryTextClass,
+} from "@/lib/semanticStyles"
 
 function buildCourseArticlesPath(enid: string, parentTitle: string, from: string) {
   return `/courses/${encodeURIComponent(enid)}/articles?from=${encodeURIComponent(from)}&parentTitle=${encodeURIComponent(parentTitle)}`
@@ -15,7 +22,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       canOpenArticles: false,
       actionLabel: "查看课程详情",
       badgeLabel: "未购",
-      badgeClassName: "bg-slate-100 text-slate-600",
+      badgeVariant: "neutral" as const,
       statusText: "未购，先查看详情与介绍",
     }
   }
@@ -25,7 +32,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       canOpenArticles: true,
       actionLabel: "查看课程内容",
       badgeLabel: "已购",
-      badgeClassName: "bg-emerald-100 text-emerald-700",
+      badgeVariant: "success" as const,
       statusText: "已购，可继续进入内容页",
     }
   }
@@ -35,7 +42,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       canOpenArticles: true,
       actionLabel: "以会员身份查看内容",
       badgeLabel: "会员可看",
-      badgeClassName: "bg-amber-100 text-amber-700",
+      badgeVariant: "warning" as const,
       statusText: "会员可看，可直接进入内容页",
     }
   }
@@ -44,7 +51,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
     canOpenArticles: false,
     actionLabel: "查看课程详情",
     badgeLabel: "未购",
-    badgeClassName: "bg-slate-100 text-slate-600",
+    badgeVariant: "neutral" as const,
     statusText: "未购，先查看详情与介绍",
   }
 }
@@ -136,7 +143,7 @@ export function CourseDetailPage() {
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载课程详情...
         </div>
@@ -147,7 +154,7 @@ export function CourseDetailPage() {
   if (error || !detail?.class_info) {
     return (
       <main className="space-y-6">
-        <Card className="border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="border-danger bg-danger-soft p-6 text-sm text-danger">
           {error || "未找到课程详情"}
         </Card>
       </main>
@@ -156,9 +163,9 @@ export function CourseDetailPage() {
 
   return (
     <main className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-slate-500">
+      <div className="flex flex-wrap items-center gap-2 px-1 text-sm text-text-muted">
         <button
-          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-white/70 hover:text-slate-700"
+          className="inline-flex items-center rounded-lg px-2 py-1 transition hover:bg-surface-panel hover:text-text-secondary"
           onClick={backAction}
           type="button"
         >
@@ -167,7 +174,7 @@ export function CourseDetailPage() {
         </button>
       </div>
 
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
+      <section className={`${semanticPageSectionClass} p-6`}>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex gap-5">
             <img
@@ -176,17 +183,25 @@ export function CourseDetailPage() {
               src={detail.class_info.square_img || detail.class_info.index_img || "https://placehold.co/240x240/e2e8f0/334155?text=Course"}
             />
             <div className="min-w-0">
-              <p className="text-sm text-slate-500">课程详情</p>
-              <h2 className="mt-2 text-3xl font-semibold text-slate-950">{title}</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+              <p className={semanticMetaTextClass}>课程详情</p>
+              <h2 className="mt-2 text-3xl font-semibold text-text-primary">{title}</h2>
+              <p className={`mt-3 max-w-3xl text-sm leading-7 ${semanticSecondaryTextClass}`}>
                 {detail.class_info.intro || detail.class_info.share_summary || "暂无课程介绍"}
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
-                <span className={`rounded-full px-3 py-1.5 font-medium ${access.badgeClassName}`}>{access.badgeLabel}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{detail.class_info.lecturer_name_and_title || detail.class_info.lecturer_name || "未知讲师"}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{detail.class_info.current_article_count || 0} 篇内容</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{detail.class_info.learn_user_count || 0} 人学习</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1.5">{detail.class_info.price_desc || "课程详情"}</span>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm text-text-muted">
+                <span className={getSemanticStatusBadgeClass(access.badgeVariant, "px-3 py-1.5 text-sm")}>{access.badgeLabel}</span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {detail.class_info.lecturer_name_and_title || detail.class_info.lecturer_name || "未知讲师"}
+                </span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {detail.class_info.current_article_count || 0} 篇内容
+                </span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {detail.class_info.learn_user_count || 0} 人学习
+                </span>
+                <span className={getSemanticStatusBadgeClass("neutral", "px-3 py-1.5 text-sm")}>
+                  {detail.class_info.price_desc || "课程详情"}
+                </span>
               </div>
             </div>
           </div>
@@ -206,7 +221,7 @@ export function CourseDetailPage() {
         <Card className="p-6">
           <div className="space-y-5">
             <div>
-              <p className="text-sm text-slate-500">讲师信息</p>
+              <p className={semanticMetaTextClass}>讲师信息</p>
               <div className="mt-4 flex items-center gap-4">
                 <img
                   alt={detail.class_info.lecturer_name || "讲师"}
@@ -214,24 +229,24 @@ export function CourseDetailPage() {
                   src={detail.class_info.lecturer_avatar || detail.class_info.square_img || "https://placehold.co/128x128/e2e8f0/334155?text=Tutor"}
                 />
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-950">{detail.class_info.lecturer_name || "未知讲师"}</h3>
-                  <p className="text-sm text-slate-500">{detail.class_info.lecturer_title || "暂无头衔信息"}</p>
+                  <h3 className="text-lg font-semibold text-text-primary">{detail.class_info.lecturer_name || "未知讲师"}</h3>
+                  <p className={semanticMetaTextClass}>{detail.class_info.lecturer_title || "暂无头衔信息"}</p>
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-7 text-slate-600">
+              <p className={`mt-4 text-sm leading-7 ${semanticSecondaryTextClass}`}>
                 {detail.class_info.lecturer_intro || detail.class_info.share_summary || "暂无讲师介绍"}
               </p>
             </div>
 
-            <div className="grid gap-3 text-sm text-slate-600">
-              <div className="rounded-2xl bg-slate-50 p-4">课程状态：{access.statusText}</div>
-              <div className="rounded-2xl bg-slate-50 p-4">{updateStatusText || `课程内容：${detail.class_info.current_article_count || 0} 篇`}</div>
-              <div className="rounded-2xl bg-slate-50 p-4">学习人数：{detail.class_info.learn_user_count || 0}</div>
-              <div className="rounded-2xl bg-slate-50 p-4">
+            <div className="grid gap-3">
+              <div className={semanticInfoBlockClass}>课程状态：{access.statusText}</div>
+              <div className={semanticInfoBlockClass}>{updateStatusText || `课程内容：${detail.class_info.current_article_count || 0} 篇`}</div>
+              <div className={semanticInfoBlockClass}>学习人数：{detail.class_info.learn_user_count || 0}</div>
+              <div className={semanticInfoBlockClass}>
                 收藏状态：{detail.class_info.collection?.is_collected ? "已收藏" : "未收藏"}
                 {detail.class_info.collection?.collection_count ? ` · ${detail.class_info.collection.collection_count} 人收藏` : ""}
               </div>
-              {detail.user_type ? <div className="rounded-2xl bg-slate-50 p-4">用户类型：{detail.user_type}</div> : null}
+              {detail.user_type ? <div className={semanticInfoBlockClass}>用户类型：{detail.user_type}</div> : null}
             </div>
           </div>
         </Card>
@@ -239,15 +254,15 @@ export function CourseDetailPage() {
         <div className="space-y-6">
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-sm text-amber-700">
+              <span className={getSemanticStatusBadgeClass("warning", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
                 <Star className="h-4 w-4" />
                 {averageScore > 0 ? `${averageScore.toFixed(1)} 分` : "暂无评分"}
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+              <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
                 <MessageSquareText className="h-4 w-4" />
                 {detail.class_comment_info?.count || detail.class_reviews_count || 0} 条评价
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-sm text-slate-600">
+              <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
                 <UserRound className="h-4 w-4" />
                 {detail.class_info.learn_user_count || 0} 人加入学习
               </span>
@@ -256,7 +271,7 @@ export function CourseDetailPage() {
             {commentItems.length > 0 ? (
               <div className="mt-4 grid gap-4 md:grid-cols-3">
                 {commentItems.map((item) => (
-                  <div className="rounded-2xl bg-slate-50 p-4" key={item.id}>
+                  <div className={semanticInfoBlockClass} key={item.id}>
                     <div className="flex items-center gap-3">
                       <img
                         alt={item.nickname || "学员"}
@@ -264,45 +279,45 @@ export function CourseDetailPage() {
                         src={item.avatar_s || "https://placehold.co/72x72/e2e8f0/334155?text=U"}
                       />
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{item.nickname || "匿名学员"}</p>
-                        <p className="text-xs text-slate-500">{item.score ? `${item.score} 分评价` : "学员评价"}</p>
+                        <p className="text-sm font-medium text-text-primary">{item.nickname || "匿名学员"}</p>
+                        <p className="text-xs text-text-muted">{item.score ? `${item.score} 分评价` : "学员评价"}</p>
                       </div>
                     </div>
-                    {item.title ? <p className="mt-3 text-sm font-medium text-slate-900">{item.title}</p> : null}
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.no_style_content || "暂无评价内容"}</p>
+                    {item.title ? <p className="mt-3 text-sm font-medium text-text-primary">{item.title}</p> : null}
+                    <p className="mt-2 text-sm leading-6 text-text-secondary">{item.no_style_content || "暂无评价内容"}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="mt-4 text-sm text-slate-500">当前暂无更多学员评价。</p>
+              <p className="mt-4 text-sm text-text-muted">当前暂无更多学员评价。</p>
             )}
           </Card>
 
           <Card className="p-6">
-            <h3 className="text-xl font-semibold text-slate-950">课程亮点</h3>
+            <h3 className="text-xl font-semibold text-text-primary">课程亮点</h3>
             {detail.class_info.highlight ? (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-600 whitespace-pre-wrap">
+              <div className={`${semanticInfoBlockClass} mt-4 whitespace-pre-wrap leading-7`}>
                 {detail.class_info.highlight}
               </div>
             ) : null}
             {highlights.length > 0 ? (
               <div className="mt-4 space-y-4">
                 {highlights.map((item, index) => (
-                  <div className="rounded-2xl bg-slate-50 p-4" key={`${item.title}-${index}`}>
-                    <p className="font-medium text-slate-900">{item.title || `亮点 ${index + 1}`}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.content || "暂无内容"}</p>
+                  <div className={semanticInfoBlockClass} key={`${item.title}-${index}`}>
+                    <p className="font-medium text-text-primary">{item.title || `亮点 ${index + 1}`}</p>
+                    <p className="mt-2 text-sm leading-6 text-text-secondary">{item.content || "暂无内容"}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="mt-4 text-sm text-slate-500">当前暂无更多课程亮点。</p>
+              <p className="mt-4 text-sm text-text-muted">当前暂无更多课程亮点。</p>
             )}
           </Card>
 
           {detail.class_info.outline_img ? (
             <Card className="p-6">
-              <h3 className="text-xl font-semibold text-slate-950">课程大纲</h3>
-              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <h3 className="text-xl font-semibold text-text-primary">课程大纲</h3>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface-soft">
                 <img
                   alt={`${title} 课程大纲`}
                   className="w-full object-contain"

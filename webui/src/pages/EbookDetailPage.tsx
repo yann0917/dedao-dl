@@ -5,6 +5,10 @@ import { api, type EbookDetailResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { cn } from "@/lib/cn"
+import {
+  semanticSecondaryTextClass,
+  semanticSubtlePanelClass,
+} from "@/lib/semanticStyles"
 
 const CATALOG_PREVIEW_COUNT = 12
 
@@ -307,7 +311,7 @@ export function EbookDetailPage() {
 
           <Card className="p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-slate-950">目录</h3>
+              <h3 className="text-xl font-semibold text-text-primary">目录</h3>
               {shouldShowCatalogToggle ? (
                 <Button onClick={() => setCatalogExpanded((value) => !value)} variant="outline">
                   {catalogExpanded ? "收起目录" : `展开全部目录 (${catalogList.length})`}
@@ -316,14 +320,14 @@ export function EbookDetailPage() {
             </div>
             <div className="mt-4">
               {catalogList.length > 0 ? (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-950">
+                <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft/60">
                   {visibleCatalogList.map((item, index) => {
                     const level = normalizeCatalogLevel(item.level)
 
                     return (
                       <div
                         className={cn(
-                          "border-b border-slate-200/80 px-3 py-2.5 last:border-b-0 dark:border-slate-700/80",
+                          "border-b border-border/80 px-3 py-2.5 last:border-b-0",
                           getCatalogRowClass(level),
                         )}
                         key={`${item.playOrder}-${item.href || index}`}
@@ -347,12 +351,12 @@ export function EbookDetailPage() {
                   })}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">
                   当前电子书暂无目录信息。
                 </div>
               )}
               {shouldShowCatalogToggle && !catalogExpanded ? (
-                <p className="mt-3 text-xs text-slate-500">
+                <p className="mt-3 text-xs text-text-muted">
                   当前仅展示前 {CATALOG_PREVIEW_COUNT} 条目录，共 {catalogList.length} 条。
                 </p>
               ) : null}
@@ -361,14 +365,14 @@ export function EbookDetailPage() {
 
           <Card className="p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-slate-950">笔记预览</h3>
+              <h3 className="text-xl font-semibold text-text-primary">笔记预览</h3>
               <Button onClick={() => navigate("/category")} variant="ghost">
                 返回分类页
               </Button>
             </div>
 
             {data.notesError ? (
-              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/35 dark:text-amber-300">
+              <div className="mt-4 rounded-2xl border border-warning bg-warning-soft p-4 text-sm text-warning">
                 {data.notesError}
               </div>
             ) : null}
@@ -376,7 +380,7 @@ export function EbookDetailPage() {
             <div className="mt-4 space-y-3">
               {notes.length > 0 ? (
                 notes.map((note) => (
-                  <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/85" key={note.note_id}>
+                  <div className={`${semanticSubtlePanelClass} p-4`} key={note.note_id}>
                     <div className="flex items-center gap-3">
                       <img
                         alt={note.notes_owner?.nickname || "avatar"}
@@ -384,17 +388,17 @@ export function EbookDetailPage() {
                         src={note.notes_owner?.avatar || "https://placehold.co/80x80/e2e8f0/334155?text=DD"}
                       />
                       <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{note.notes_owner?.nickname || "得到用户"}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{formatTime(note.create_time)}</p>
+                        <p className="text-sm font-medium text-text-primary">{note.notes_owner?.nickname || "得到用户"}</p>
+                        <p className="text-xs text-text-muted">{formatTime(note.create_time)}</p>
                       </div>
                     </div>
-                    <p className="mt-3 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                    <p className={`mt-3 text-sm leading-7 ${semanticSecondaryTextClass}`}>
                       {note.note || note.content || note.note_line || "暂无笔记内容"}
                     </p>
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">
                   当前电子书还没有可展示的笔记。
                 </div>
               )}

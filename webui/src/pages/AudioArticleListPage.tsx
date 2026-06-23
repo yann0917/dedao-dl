@@ -4,6 +4,12 @@ import { useNavigate, useParams } from "react-router-dom"
 import { api, type AudioGroupResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import {
+  getSemanticStatusBadgeClass,
+  semanticMetaTextClass,
+  semanticPageSectionClass,
+  semanticSecondaryTextClass,
+} from "@/lib/semanticStyles"
 import { type PlayerTrack, useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 function formatMinutes(value?: number) {
@@ -80,7 +86,7 @@ export function AudioArticleListPage() {
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-slate-500">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="h-5 w-5 animate-spin" />
           正在加载文稿列表...
         </div>
@@ -91,7 +97,7 @@ export function AudioArticleListPage() {
   if (error || !data?.outside?.spu) {
     return (
       <main className="space-y-6">
-        <Card className="border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700">
+        <Card className="border-danger bg-danger-soft p-6 text-sm text-danger">
           {error || "未找到听书文稿列表"}
         </Card>
       </main>
@@ -100,9 +106,9 @@ export function AudioArticleListPage() {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
-        <p className="text-sm text-slate-500">听书文稿</p>
-        <h2 className="mt-2 text-3xl font-semibold text-slate-950">{data.outside.spu.title}</h2>
+      <section className={`${semanticPageSectionClass} p-6`}>
+        <p className={semanticMetaTextClass}>听书文稿</p>
+        <h2 className="mt-2 text-3xl font-semibold text-text-primary">{data.outside.spu.title}</h2>
       </section>
 
       <div className="flex flex-wrap gap-3">
@@ -128,13 +134,13 @@ export function AudioArticleListPage() {
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">文稿条目</span>
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                    <span className={getSemanticStatusBadgeClass("accent")}>文稿条目</span>
+                    <span className={getSemanticStatusBadgeClass("neutral")}>
                       {formatMinutes(item.extra.duration)}
                     </span>
                   </div>
-                  <h3 className="mt-3 text-xl font-semibold text-slate-950">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">{item.summary || item.intro || "暂无摘要"}</p>
+                  <h3 className="mt-3 text-xl font-semibold text-text-primary">{item.title}</h3>
+                  <p className={`mt-2 text-sm leading-7 ${semanticSecondaryTextClass}`}>{item.summary || item.intro || "暂无摘要"}</p>
                 </div>
                 <div className="flex gap-3">
                   <Button onClick={() => handlePlay(articleEnid)} variant="outline">
@@ -161,7 +167,7 @@ export function AudioArticleListPage() {
       </section>
 
       {items.length === 0 ? (
-        <Card className="p-10 text-center text-slate-500">
+        <Card className="p-10 text-center text-text-muted">
           <Rows4 className="mx-auto h-8 w-8" />
           <p className="mt-3">当前合集还没有可展示的文稿条目。</p>
         </Card>

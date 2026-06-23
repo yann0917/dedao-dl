@@ -9,6 +9,10 @@ export const semanticMetaTextClass = "text-sm text-text-muted"
 
 export const semanticSecondaryTextClass = "text-text-secondary"
 
+export const semanticInfoBlockClass = `${semanticSubtlePanelClass} p-4 text-sm text-text-secondary`
+
+export const semanticStatCardClass = `${semanticSubtlePanelClass} p-4`
+
 export const semanticStatusBadgeBaseClass = "rounded-full px-3 py-1 text-xs font-medium"
 
 const semanticStatusBadgeVariantClass = {
