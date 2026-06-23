@@ -36,7 +36,6 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
       <Card className="flex h-full min-h-[360px] items-center justify-center p-8">
         <div className="text-center">
           <p className="text-lg font-medium text-slate-900">首页 Banner 暂未加载</p>
-          <p className="mt-2 text-sm text-slate-500">后端已预留门户接口，后续可以继续补广告位与活动位。</p>
         </div>
       </Card>
     )
@@ -63,7 +62,6 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
             <ArrowUpRight className="h-3.5 w-3.5" />
           </div>
           <h3 className="mt-3 text-2xl font-semibold">{currentBanner.title || "得到首页推荐内容"}</h3>
-          <p className="mt-2 text-sm text-slate-200">点击跳转活动页面或专题内容，保持和原首页 Banner 相同的门户角色。</p>
         </div>
       </button>
 

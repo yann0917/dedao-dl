@@ -91,9 +91,6 @@ export function AudioGroupPage() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">听书合集</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{spu.title}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          分类结果页里的名家讲书合集现在会先落到一个站内合集页，展示合集介绍和可用音频列表。
-        </p>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -154,11 +151,6 @@ export function AudioGroupPage() {
               <Button onClick={() => navigate(`/audio-groups/${encodeURIComponent(enid)}/articles`)} variant="outline">
                 查看文稿列表
               </Button>
-              {spu.ddurl ? (
-                <Button onClick={() => window.open(spu.ddurl, "_blank", "noopener,noreferrer")} variant="outline">
-                  去得到打开
-                </Button>
-              ) : null}
             </div>
           </Card>
 
@@ -201,7 +193,7 @@ export function AudioGroupPage() {
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
-                  当前还没有拿到可展示的音频列表，后续可以继续接播放器或文章页。
+                  当前还没有可展示的音频列表。
                 </div>
               )}
             </div>

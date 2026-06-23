@@ -222,9 +222,6 @@ export function EbookCommentPage() {
           <div>
             <p className="text-sm text-slate-500">电子书书评</p>
             <h2 className="mt-2 text-3xl font-semibold text-slate-950">{title}</h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-              这里承接已购电子书的评分和书评内容，先对齐 `dedao-gui` 的核心消费链路：看整体评分、浏览读者书评，再决定是否回到详情页继续阅读。
-            </p>
           </div>
           <Button onClick={() => navigate("/purchased/ebooks")} variant="outline">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -252,7 +249,6 @@ export function EbookCommentPage() {
       ) : (
         <Card className="p-10 text-center text-slate-500">
           <p className="text-lg font-medium text-slate-900">当前还没有可展示的电子书书评</p>
-          <p className="mt-2 text-sm">后续如果需要，还可以继续补我的评分和更多排序能力。</p>
         </Card>
       )}
 

@@ -1,5 +1,6 @@
-import { ExternalLink, FileText, PanelRightOpen, Play, Rows3 } from "lucide-react"
-import { type CourseListItem } from "@/api"
+import { FileText, PanelRightOpen, Play, Rows3 } from "lucide-react"
+import { useState } from "react"
+import { api, type CourseListItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { PurchasedCollectionPage } from "@/components/purchased/PurchasedCollectionPage"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
@@ -14,6 +15,7 @@ function formatMinutes(duration?: number) {
 
 export function PurchasedAudioPage() {
   const { setQueue } = useAudioPlayer()
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const playAudio = (item: CourseListItem) => {
     const src = item.audio_detail?.mp3_play_url || item.odob_group_ext_info?.audio_detail?.mp3_play_url || ""
@@ -38,9 +40,8 @@ export function PurchasedAudioPage() {
   return (
     <PurchasedCollectionPage
       category="odob"
-      description="这里承接我已购的听书与讲书内容，单本与合集统一从这里进入，再落到共用的详情页、文稿页和播放器链路。"
-      emptyDescription="后续可以继续补播放器上下文、高级筛选和下载动作。"
       emptyTitle="当前没有可展示的已购听书"
+      externalError={actionError}
       getPrimaryMeta={(item: CourseListItem) => formatMinutes(item.duration)}
       getSecondaryMeta={(item: CourseListItem) => (item.type === 1013 ? "打开合集" : "打开详情")}
       icon="audio"
@@ -66,6 +67,30 @@ export function PurchasedAudioPage() {
           </>
         ) : (
           <>
+            {item.in_bookrack ? (
+              <span className="inline-flex h-9 items-center rounded-xl bg-slate-100 px-3 text-sm font-medium text-slate-600">
+                已加入书架
+              </span>
+            ) : (
+              <Button
+                className="h-9 px-3"
+                onClick={async () => {
+                  if (!item.enid) {
+                    return
+                  }
+
+                  setActionError(null)
+                  try {
+                    await api.audio.addToShelf([item.enid])
+                    helpers.updateItem(item, { in_bookrack: true })
+                  } catch (err) {
+                    setActionError(err instanceof Error ? err.message : "听书加入书架失败")
+                  }
+                }}
+              >
+                加入书架
+              </Button>
+            )}
             <Button
               className="h-9 px-3"
               disabled={!item.audio_detail?.mp3_play_url && !item.odob_group_ext_info?.audio_detail?.mp3_play_url}
@@ -92,12 +117,6 @@ export function PurchasedAudioPage() {
               <PanelRightOpen className="mr-2 h-4 w-4" />
               详情
             </Button>
-            {item.dd_url ? (
-              <Button className="h-9 px-3" onClick={() => window.open(item.dd_url, "_blank", "noopener,noreferrer")} variant="ghost">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                去得到打开
-              </Button>
-            ) : null}
           </>
         )
       }

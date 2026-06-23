@@ -17,10 +17,11 @@ import { Card } from "@/components/ui/Card"
 type PurchasedCollectionConfig = {
   category: string
   title: string
-  description: string
+  description?: string
   loadingText: string
   emptyTitle: string
-  emptyDescription: string
+  emptyDescription?: string
+  externalError?: string | null
   itemLabel: string
   icon: "course" | "ebook" | "audio" | "compass"
   onOpenItem: (item: CourseListItem, navigate: ReturnType<typeof useNavigate>) => void
@@ -28,7 +29,14 @@ type PurchasedCollectionConfig = {
   getPrimaryMeta?: (item: CourseListItem) => string
   getSecondaryMeta?: (item: CourseListItem) => string
   getProgress?: (item: CourseListItem) => number | null
-  renderActions?: (item: CourseListItem, helpers: { navigate: ReturnType<typeof useNavigate>; openItem: (item: CourseListItem) => void }) => ReactNode
+  renderActions?: (
+    item: CourseListItem,
+    helpers: {
+      navigate: ReturnType<typeof useNavigate>
+      openItem: (item: CourseListItem) => void
+      updateItem: (item: CourseListItem, patch: Partial<CourseListItem>) => void
+    },
+  ) => ReactNode
 }
 
 function resolvePageIcon(icon: PurchasedCollectionConfig["icon"]) {
@@ -202,9 +210,26 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
     config.onOpenItem(item, navigate)
   }
 
+  const updateItem = (target: CourseListItem, patch: Partial<CourseListItem>) => {
+    setItems((current) =>
+      current.map((item) => {
+        const sameById = item.id > 0 && target.id > 0 && item.id === target.id
+        const sameByEnid = item.enid && target.enid && item.enid === target.enid
+        if (!sameById && !sameByEnid) {
+          return item
+        }
+        return {
+          ...item,
+          ...patch,
+        }
+      }),
+    )
+  }
+
   const actionHelpers = {
     navigate,
     openItem,
+    updateItem,
   }
 
   const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>, item: CourseListItem) => {
@@ -221,7 +246,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">{config.title}</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{groupMode.active ? groupMode.title : config.title}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{config.description}</p>
+        {config.description ? <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{config.description}</p> : null}
         <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
           <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
             <PageIcon className="h-4 w-4" />
@@ -261,6 +286,12 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       {error ? (
         <Card className="border border-rose-200 bg-rose-50">
           <div className="p-4 text-sm text-rose-700">{error}</div>
+        </Card>
+      ) : null}
+
+      {config.externalError ? (
+        <Card className="border border-rose-200 bg-rose-50">
+          <div className="p-4 text-sm text-rose-700">{config.externalError}</div>
         </Card>
       ) : null}
 
@@ -349,7 +380,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       {!loading && items.length === 0 ? (
         <Card className="p-10 text-center text-slate-500">
           <p className="text-lg font-medium text-slate-900">{config.emptyTitle}</p>
-          <p className="mt-2 text-sm">{config.emptyDescription}</p>
+          {config.emptyDescription ? <p className="mt-2 text-sm">{config.emptyDescription}</p> : null}
         </Card>
       ) : null}
 

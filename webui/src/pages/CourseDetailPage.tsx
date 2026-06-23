@@ -1,4 +1,4 @@
-import { ArrowLeft, ExternalLink, Loader2, LibraryBig, MessageSquareText, Star, UserRound } from "lucide-react"
+import { ArrowLeft, Loader2, LibraryBig, MessageSquareText, Star, UserRound } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseInfoResponse } from "@/api"
@@ -13,7 +13,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
   if (!detail) {
     return {
       canOpenArticles: false,
-      actionLabel: "在得到查看/购买",
+      actionLabel: "查看课程详情",
       badgeLabel: "未购",
       badgeClassName: "bg-slate-100 text-slate-600",
       statusText: "未购，先查看详情与介绍",
@@ -42,7 +42,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
 
   return {
     canOpenArticles: false,
-    actionLabel: "在得到查看/购买",
+    actionLabel: "查看课程详情",
     badgeLabel: "未购",
     badgeClassName: "bg-slate-100 text-slate-600",
     statusText: "未购，先查看详情与介绍",
@@ -129,14 +129,6 @@ export function CourseDetailPage() {
   const backLabel =
     from === "algo" ? "返回分类结果" : from === "home" ? "返回首页" : "返回已购课程"
 
-  const openDedao = () => {
-    const target = detail?.class_info.dd_url || detail?.class_info.share_url
-    if (!target) {
-      return
-    }
-    window.open(target, "_blank", "noopener,noreferrer")
-  }
-
   const openArticles = () => {
     navigate(buildCourseArticlesPath(enid, title, from))
   }
@@ -187,7 +179,7 @@ export function CourseDetailPage() {
               <p className="text-sm text-slate-500">课程详情</p>
               <h2 className="mt-2 text-3xl font-semibold text-slate-950">{title}</h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-                {detail.class_info.intro || detail.class_info.share_summary || "这里先承接课程介绍，已购后再进入课程内容页。"}
+                {detail.class_info.intro || detail.class_info.share_summary || "暂无课程介绍"}
               </p>
               <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
                 <span className={`rounded-full px-3 py-1.5 font-medium ${access.badgeClassName}`}>{access.badgeLabel}</span>
@@ -206,10 +198,6 @@ export function CourseDetailPage() {
                 {access.actionLabel}
               </Button>
             ) : null}
-            <Button onClick={openDedao} variant={access.canOpenArticles ? "outline" : "default"}>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              {access.canOpenArticles ? "在得到打开" : "在得到查看/购买"}
-            </Button>
           </div>
         </div>
       </section>

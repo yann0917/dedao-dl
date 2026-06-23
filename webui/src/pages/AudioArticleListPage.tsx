@@ -103,9 +103,6 @@ export function AudioArticleListPage() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">听书文稿</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{data.outside.spu.title}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          这里承接听书合集里的文稿列表。每一项都可以直接播放对应音频，也可以进入单篇文稿详情。
-        </p>
       </section>
 
       <div className="flex flex-wrap gap-3">

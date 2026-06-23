@@ -98,9 +98,6 @@ export function HomePage() {
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">首页门户</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">内容发现主入口</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          首页回到 `Home.vue` 的主路径：上面承接分类、Banner 和用户状态，下面承接免费专区、精选课程、电子书三个核心模块。
-        </p>
       </section>
 
       {portal.error ? (

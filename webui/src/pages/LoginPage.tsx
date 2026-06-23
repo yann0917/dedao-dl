@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/Card"
 import { useAuth } from "@/providers/AuthProvider"
 
 const loginHighlights = [
-  { icon: BadgeCheck, title: "登录主路径", text: "扫码登录不再是兜底，而是首屏入口。" },
+  { icon: BadgeCheck, title: "扫码登录", text: "打开页面后即可使用二维码登录当前账号。" },
   { icon: Search, title: "统一协议", text: "所有接口统一返回 code、msg、data。" },
-  { icon: BookOpen, title: "后续可扩", text: "后面可以把现有 CLI 能力逐步映射成 API。" },
+  { icon: BookOpen, title: "学习工作台", text: "登录后可继续查看课程、电子书、听书和用户信息。" },
 ]
 
 export function LoginPage() {
@@ -30,10 +30,10 @@ export function LoginPage() {
 
         <div className="space-y-4">
           <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-            用浏览器打开 dedao-dl，把扫码登录和查询工作台合成一条顺滑链路。
+            用浏览器打开 dedao-dl，扫码后直接进入学习工作台。
           </h1>
           <p className="max-w-xl text-base leading-7 text-slate-600">
-            CLI 负责稳定能力边界，Web 负责交互壳。登录成功后，课程列表、搜索建议和课程详情都继续复用现有 services。
+            登录成功后，可以继续查看课程、电子书、听书和用户中心等内容。
           </p>
         </div>
 

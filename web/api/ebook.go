@@ -14,10 +14,16 @@ type ebookDetailData struct {
 	NotesError string                          `json:"notesError,omitempty"`
 }
 
+type shelfActionRequest struct {
+	Enids []string `json:"enids"`
+}
+
 func registerEbookRoutes(group *gin.RouterGroup) {
 	ebook := group.Group("/ebook")
 	ebook.GET("/detail", getEbookDetail)
 	ebook.GET("/comments", listEbookComments)
+	ebook.POST("/bookshelf/add", addEbookToShelf)
+	ebook.POST("/bookshelf/remove", removeEbookFromShelf)
 }
 
 func getEbookDetail(c *gin.Context) {
@@ -61,6 +67,38 @@ func listEbookComments(c *gin.Context) {
 	sort := c.DefaultQuery("sort", "like_count")
 
 	data, err := config.Instance.ActiveUserService().EbookCommentList(enid, sort, page, limit)
+	if err != nil {
+		fail(c, http.StatusBadGateway, err.Error())
+		return
+	}
+
+	ok(c, data)
+}
+
+func addEbookToShelf(c *gin.Context) {
+	var req shelfActionRequest
+	if err := c.ShouldBindJSON(&req); err != nil || len(req.Enids) == 0 {
+		fail(c, http.StatusBadRequest, "缺少 enids 参数")
+		return
+	}
+
+	data, err := config.Instance.ActiveUserService().EbookShelfAdd(req.Enids)
+	if err != nil {
+		fail(c, http.StatusBadGateway, err.Error())
+		return
+	}
+
+	ok(c, data)
+}
+
+func removeEbookFromShelf(c *gin.Context) {
+	var req shelfActionRequest
+	if err := c.ShouldBindJSON(&req); err != nil || len(req.Enids) == 0 {
+		fail(c, http.StatusBadRequest, "缺少 enids 参数")
+		return
+	}
+
+	data, err := config.Instance.ActiveUserService().EbookShelfRemove(req.Enids)
 	if err != nil {
 		fail(c, http.StatusBadGateway, err.Error())
 		return

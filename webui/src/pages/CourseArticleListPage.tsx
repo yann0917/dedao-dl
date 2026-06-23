@@ -230,7 +230,7 @@ export function CourseArticleListPage() {
               <p className="text-sm text-slate-500">课程文章列表</p>
               <h2 className="mt-2 text-3xl font-semibold text-slate-950">{courseTitle}</h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-                {courseInfo.class_info.intro || courseInfo.class_info.share_summary || "这里承接课程内容消费链路，可继续进入单篇文章详情。"}
+                {courseInfo.class_info.intro || courseInfo.class_info.share_summary || "暂无课程介绍"}
               </p>
               <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
                 <span className="rounded-full bg-slate-100 px-3 py-1.5">{courseInfo.class_info.lecturer_name || "未知讲师"}</span>

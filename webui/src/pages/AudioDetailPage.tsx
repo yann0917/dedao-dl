@@ -22,6 +22,8 @@ export function AudioDetailPage() {
   const [data, setData] = useState<AudioDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [shelfLoading, setShelfLoading] = useState(false)
+  const [shelfError, setShelfError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -94,14 +96,26 @@ export function AudioDetailPage() {
     )
   }
 
+  const handleAddToShelf = async () => {
+    setShelfLoading(true)
+    setShelfError(null)
+    try {
+      await api.audio.addToShelf([enid])
+      setData((current) => (current ? { ...current, book_shelf_status: 1 } : current))
+    } catch (err) {
+      setShelfError(err instanceof Error ? err.message : "加入书架失败")
+    } finally {
+      setShelfLoading(false)
+    }
+  }
+
+  const isInBookshelf = (data.book_shelf_status ?? 0) > 0
+
   return (
     <main className="space-y-6">
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">听书详情</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{data.title || data.package_title || "每天听本书"}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          分类结果页里的听书条目现在会优先落到站内详情页，先展示基础介绍、时长、播放来源和跳转入口。
-        </p>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -118,6 +132,9 @@ export function AudioDetailPage() {
             ) : null}
             {data.has_play_auth ? (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">可播放</span>
+            ) : null}
+            {isInBookshelf ? (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">已加入书架</span>
             ) : null}
           </div>
 
@@ -168,7 +185,15 @@ export function AudioDetailPage() {
             <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-600">
               {data.summary || data.slogan || data.update_tips || "暂无简介"}
             </p>
+            {shelfError ? (
+              <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{shelfError}</div>
+            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
+              {!isInBookshelf ? (
+                <Button disabled={shelfLoading} onClick={handleAddToShelf}>
+                  {shelfLoading ? "处理中..." : "加入书架"}
+                </Button>
+              ) : null}
               {data.mp3_play_url ? <Button onClick={handlePlay}>开始播放</Button> : null}
               {data.alias_id ? (
                 <Button
@@ -182,11 +207,6 @@ export function AudioDetailPage() {
                   variant="outline"
                 >
                   查看文稿
-                </Button>
-              ) : null}
-              {data.play_dd_url ? (
-                <Button onClick={() => window.open(data.play_dd_url, "_blank", "noopener,noreferrer")} variant="outline">
-                  去得到打开
                 </Button>
               ) : null}
               {data.share_url ? (

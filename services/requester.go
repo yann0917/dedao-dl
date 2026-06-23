@@ -228,6 +228,17 @@ func (s *Service) reqEbookCommentList(enid, sort string, page, limit int) (io.Re
 	return handleHTTPResponse(resp, err)
 }
 
+// reqEbookShelfAdd 请求加入电子书书架
+func (s *Service) reqEbookShelfAdd(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"book_enids": ids,
+		}).
+		Post("/api/pc/ebook2/v1/bookshelf/add")
+
+	return handleHTTPResponse(resp, err)
+}
+
 // reqEbookShelfRemove 请求移出电子书书架
 func (s *Service) reqEbookShelfRemove(ids []string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
@@ -358,6 +369,17 @@ func (s *Service) reqEbookVIPInfo() (io.ReadCloser, error) {
 func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 	resp, err := s.client.R().
 		Post("pc/odob/v2/vipuser/vip_card_info")
+
+	return handleHTTPResponse(resp, err)
+}
+
+// reqOdobShelfAdd 请求听书加入书架
+func (s *Service) reqOdobShelfAdd(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"book_enids": ids,
+		}).
+		Post("pc/odob/v2/bookrack/pc/add")
 
 	return handleHTTPResponse(resp, err)
 }

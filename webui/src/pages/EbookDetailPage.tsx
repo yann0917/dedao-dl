@@ -59,6 +59,8 @@ export function EbookDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [catalogExpanded, setCatalogExpanded] = useState(false)
+  const [shelfLoading, setShelfLoading] = useState(false)
+  const [shelfError, setShelfError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -122,15 +124,67 @@ export function EbookDetailPage() {
   const pressBrief = detail.press?.brief || ""
   const shouldShowCatalogToggle = catalogList.length > CATALOG_PREVIEW_COUNT
   const visibleCatalogList = catalogExpanded ? catalogList : catalogList.slice(0, CATALOG_PREVIEW_COUNT)
+  const isOnBookshelf = Boolean(detail.is_on_bookshelf)
+
+  const handleAddToShelf = async () => {
+    setShelfLoading(true)
+    setShelfError(null)
+    try {
+      await api.ebook.addToShelf([enid])
+      setData((current) => {
+        if (!current?.detail) {
+          return current
+        }
+
+        return {
+          ...current,
+          detail: {
+            ...current.detail,
+            is_on_bookshelf: true,
+          },
+        }
+      })
+    } catch (err) {
+      setShelfError(err instanceof Error ? err.message : "加入书架失败")
+    } finally {
+      setShelfLoading(false)
+    }
+  }
+
+  const handleRemoveFromShelf = async () => {
+    if (!window.confirm("确定要将这本电子书移出书架吗？")) {
+      return
+    }
+
+    setShelfLoading(true)
+    setShelfError(null)
+    try {
+      await api.ebook.removeFromShelf([enid])
+      setData((current) => {
+        if (!current?.detail) {
+          return current
+        }
+
+        return {
+          ...current,
+          detail: {
+            ...current.detail,
+            is_on_bookshelf: false,
+          },
+        }
+      })
+    } catch (err) {
+      setShelfError(err instanceof Error ? err.message : "移出书架失败")
+    } finally {
+      setShelfLoading(false)
+    }
+  }
 
   return (
     <main className="space-y-6">
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">电子书详情</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{detail.title}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          首页和分类结果页里的电子书现在都会落到站内详情页，先承接基础介绍、阅读信息和笔记预览。
-        </p>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
@@ -205,7 +259,19 @@ export function EbookDetailPage() {
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-600">{pressBrief}</p>
               </div>
             ) : null}
+            {shelfError ? (
+              <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{shelfError}</div>
+            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
+              {isOnBookshelf ? (
+                <Button className="border-rose-200 text-rose-700 hover:bg-rose-50" disabled={shelfLoading} onClick={handleRemoveFromShelf} variant="outline">
+                  {shelfLoading ? "处理中..." : "移出书架"}
+                </Button>
+              ) : (
+                <Button disabled={shelfLoading} onClick={handleAddToShelf}>
+                  {shelfLoading ? "处理中..." : "加入书架"}
+                </Button>
+              )}
               <Button
                 onClick={() => navigate(`/ebooks/${encodeURIComponent(enid)}/comments?title=${encodeURIComponent(detail.title || "电子书书评")}`)}
                 variant="outline"

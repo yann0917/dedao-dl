@@ -201,7 +201,7 @@ export function UserCenterPage() {
             </div>
           ) : (
             <div className="mt-5 rounded-3xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
-              {data?.odobVipError || "当前账号未开通听书会员，后续可在这里继续展示权益说明。"}
+              {data?.odobVipError || "当前账号未开通听书会员。"}
             </div>
           )}
         </Card>
@@ -247,7 +247,7 @@ export function UserCenterPage() {
             </div>
           ) : (
             <div className="mt-5 rounded-3xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
-              {data?.ebookVipError || "当前账号未开通电子书会员，后续可在这里继续展示权益说明。"}
+              {data?.ebookVipError || "当前账号未开通电子书会员。"}
             </div>
           )}
         </Card>

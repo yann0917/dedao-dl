@@ -6,13 +6,13 @@ const quickLinks = [
   {
     to: "/purchased/courses",
     title: "已购课程",
-    description: "进入已购资产域，继续查看课程列表、分组和文章消费链路。",
+    description: "查看已购课程列表，并继续学习课程内容。",
     icon: BookOpen,
   },
   {
     to: "/user",
     title: "用户中心",
-    description: "后续把账号管理、设置和用户概览继续沉淀到独立页面。",
+    description: "查看当前账号、会员状态和常用账户操作。",
     icon: UserCircle2,
   },
 ]

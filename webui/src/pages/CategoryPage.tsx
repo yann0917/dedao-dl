@@ -1,7 +1,7 @@
 import { BookOpen, ChevronRight, Loader2 } from "lucide-react"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { type AlgoOption, type AlgoProductItem } from "@/api"
+import { api, type AlgoOption, type AlgoProductItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
@@ -29,6 +29,8 @@ function ProductTypeBadge({ item }: { item: AlgoProductItem }) {
 export function CategoryPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [actionLoadingKey, setActionLoadingKey] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const init = useMemo(
     () => ({
@@ -143,19 +145,80 @@ export function CategoryPage() {
     }
   }
 
+  const handleAddAudioToShelf = async (item: AlgoProductItem) => {
+    if (!item.id_out) {
+      return
+    }
+
+    const actionKey = `audio-add-${item.id_out}`
+    setActionLoadingKey(actionKey)
+    setActionError(null)
+    try {
+      await api.audio.addToShelf([item.id_out])
+      await explorer.applyParams({})
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "听书加入书架失败")
+    } finally {
+      setActionLoadingKey(null)
+    }
+  }
+
+  const handleAddEbookToShelf = async (item: AlgoProductItem) => {
+    if (!item.id_out) {
+      return
+    }
+
+    const actionKey = `ebook-add-${item.id_out}`
+    setActionLoadingKey(actionKey)
+    setActionError(null)
+    try {
+      await api.ebook.addToShelf([item.id_out])
+      await explorer.applyParams({})
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "电子书加入书架失败")
+    } finally {
+      setActionLoadingKey(null)
+    }
+  }
+
+  const handleRemoveEbookFromShelf = async (item: AlgoProductItem) => {
+    if (!item.id_out) {
+      return
+    }
+
+    if (!window.confirm("确定要将这本电子书移出书架吗？")) {
+      return
+    }
+
+    const actionKey = `ebook-remove-${item.id_out}`
+    setActionLoadingKey(actionKey)
+    setActionError(null)
+    try {
+      await api.ebook.removeFromShelf([item.id_out])
+      await explorer.applyParams({})
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "电子书移出书架失败")
+    } finally {
+      setActionLoadingKey(null)
+    }
+  }
+
   return (
     <main className="space-y-6">
       <section className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-slate-500">分类结果页</p>
         <h2 className="mt-2 text-3xl font-semibold text-slate-950">{init.classfcName}</h2>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          这里承接首页分类点击后的筛选与结果流。当前优先对齐 `Algo.vue` 的主链路，先覆盖筛选、排序、分页和内容跳转。
-        </p>
       </section>
 
       {explorer.error ? (
         <Card className="border border-rose-200 bg-rose-50">
           <div className="p-4 text-sm text-rose-700">{explorer.error}</div>
+        </Card>
+      ) : null}
+
+      {actionError ? (
+        <Card className="border border-rose-200 bg-rose-50">
+          <div className="p-4 text-sm text-rose-700">{actionError}</div>
         </Card>
       ) : null}
 
@@ -272,15 +335,21 @@ export function CategoryPage() {
             (item.item_type === 2 && !!item.id_out) ||
             (item.item_type === 13 && !!item.id_out) ||
             !!item.dd_url
+          const isAudioShelfItem = item.item_type === 13 && item.product_type === 13 && !!item.id_out
+          const isEbookShelfItem = item.item_type === 2 && !!item.id_out
+          const isAudioInShelf = Boolean(item.in_bookrack)
+          const isEbookInShelf = Boolean(item.is_on_bookshelf)
+          const isAddingAudio = actionLoadingKey === `audio-add-${item.id_out}`
+          const isAddingEbook = actionLoadingKey === `ebook-add-${item.id_out}`
+          const isRemovingEbook = actionLoadingKey === `ebook-remove-${item.id_out}`
 
           return (
-            <button
-              className="text-left"
-              key={`${item.id}-${item.id_out}`}
-              onClick={() => handleOpenProduct(item)}
-              type="button"
-            >
-              <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
+            <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg" key={`${item.id}-${item.id_out}`}>
+              <button
+                className="w-full text-left"
+                onClick={() => handleOpenProduct(item)}
+                type="button"
+              >
                 <div className="aspect-[16/10] overflow-hidden bg-slate-100">
                   <img
                     alt={title}
@@ -310,8 +379,39 @@ export function CategoryPage() {
                     </span>
                   </div>
                 </div>
-              </Card>
-            </button>
+              </button>
+
+              {(isAudioShelfItem || isEbookShelfItem) ? (
+                <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-5 pb-5 pt-4">
+                  {isAudioShelfItem ? (
+                    isAudioInShelf ? (
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">已加入书架</span>
+                    ) : (
+                      <Button disabled={isAddingAudio} onClick={() => void handleAddAudioToShelf(item)}>
+                        {isAddingAudio ? "处理中..." : "加入书架"}
+                      </Button>
+                    )
+                  ) : null}
+
+                  {isEbookShelfItem ? (
+                    isEbookInShelf ? (
+                      <Button
+                        className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                        disabled={isRemovingEbook}
+                        onClick={() => void handleRemoveEbookFromShelf(item)}
+                        variant="outline"
+                      >
+                        {isRemovingEbook ? "处理中..." : "移出书架"}
+                      </Button>
+                    ) : (
+                      <Button disabled={isAddingEbook} onClick={() => void handleAddEbookToShelf(item)}>
+                        {isAddingEbook ? "处理中..." : "加入书架"}
+                      </Button>
+                    )
+                  ) : null}
+                </div>
+              ) : null}
+            </Card>
           )
         })}
       </section>

@@ -104,7 +104,6 @@ export function AppShell() {
           <div className="mt-8 rounded-3xl bg-slate-900 p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">当前页面</p>
             <p className="mt-2 text-sm text-slate-200">{location.pathname}</p>
-            <p className="mt-3 text-sm leading-6 text-slate-400">这一层只承载登录后页面的共用导航、顶部栏和内容容器。</p>
           </div>
         </aside>
 
@@ -112,14 +111,14 @@ export function AppShell() {
           <header className="rounded-3xl border border-white/70 bg-white/90 px-5 py-4 shadow-soft backdrop-blur">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <p className="text-sm text-slate-500">应用壳层</p>
+                <p className="text-sm text-slate-500">工作台</p>
                 <h1 className="text-2xl font-semibold text-slate-950">登录后工作台</h1>
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                   <Search className="h-4 w-4" />
-                  <span>全局搜索入口预留，后续可接课程/电子书/文章统一检索</span>
+                  <span>全局搜索建设中</span>
                 </div>
 
                 <div className="flex items-center gap-3 rounded-2xl bg-slate-950 px-4 py-3 text-slate-50">

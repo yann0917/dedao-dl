@@ -88,7 +88,7 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-slate-950">扫码登录</h2>
-            <p className="mt-1 text-sm text-slate-500">复用 `dedao-gui` 的扫码时序，让登录成为 Web 主入口。</p>
+            <p className="mt-1 text-sm text-slate-500">使用得到 App 或微信扫码登录。</p>
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">{remaining ? `剩余 ${remaining}` : "待生成"}</span>
         </div>

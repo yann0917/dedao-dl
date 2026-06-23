@@ -173,3 +173,16 @@ func (s *Service) AudioDetailAlias(topicIDStr string) (detail *Audio, err error)
 	detail = &adetail.Detail
 	return
 }
+
+// OdobShelfAdd 加入听书书架
+func (s *Service) OdobShelfAdd(ids []string) (resp *EbookShelfAddResp, err error) {
+	body, err := s.reqOdobShelfAdd(ids)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &resp); err != nil {
+		return
+	}
+	return
+}

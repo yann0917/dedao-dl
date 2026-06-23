@@ -94,6 +94,8 @@ export type CourseListItem = {
   is_group: boolean
   group_id: number
   has_play_auth: boolean
+  is_on_bookshelf?: boolean
+  in_bookrack?: boolean
   audio_detail?: {
     alias_id: string
     mp3_play_url: string
@@ -524,6 +526,13 @@ export type EbookCommentResponse = {
   }
 }
 
+export type ShelfActionResponse = {
+  data: {
+    n: number
+    count: number
+  }
+}
+
 export type AudioDetailResponse = {
   topic_encode_id: string
   audio_id: string
@@ -546,6 +555,7 @@ export type AudioDetailResponse = {
   source_name: string
   update_tips: string
   trial_listen_tips: string
+  book_shelf_status: number
 }
 
 export type AudioGroupResponse = {
@@ -787,10 +797,25 @@ export const api = {
       request<EbookCommentResponse>(
         `/api/ebook/comments?enid=${encodeURIComponent(enid)}&page=${page}&limit=${limit}&sort=${encodeURIComponent(sort)}`,
       ),
+    addToShelf: (enids: string[]) =>
+      request<ShelfActionResponse>("/api/ebook/bookshelf/add", {
+        method: "POST",
+        body: JSON.stringify({ enids }),
+      }),
+    removeFromShelf: (enids: string[]) =>
+      request<ShelfActionResponse>("/api/ebook/bookshelf/remove", {
+        method: "POST",
+        body: JSON.stringify({ enids }),
+      }),
   },
   audio: {
     detail: (enid: string) => request<AudioDetailResponse>(`/api/audio/detail?enid=${encodeURIComponent(enid)}`),
     group: (enid: string) => request<AudioGroupResponse>(`/api/audio/group?enid=${encodeURIComponent(enid)}`),
+    addToShelf: (enids: string[]) =>
+      request<ShelfActionResponse>("/api/audio/bookshelf/add", {
+        method: "POST",
+        body: JSON.stringify({ enids }),
+      }),
   },
   article: {
     detail: (aType: 1 | 2, enid: string) =>
