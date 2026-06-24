@@ -8,6 +8,7 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/Menubar"
+import { cn } from "@/lib/cn"
 import { useDownloadProgress } from "@/providers/DownloadProgressProvider"
 
 export type QuickDownloadOption = {
@@ -19,9 +20,10 @@ type QuickDownloadButtonsProps = {
   options: QuickDownloadOption[]
   onDownload: (downloadType: number) => Promise<DownloadSessionResponse>
   disabled?: boolean
+  triggerClassName?: string
 }
 
-export function QuickDownloadButtons({ options, onDownload, disabled = false }: QuickDownloadButtonsProps) {
+export function QuickDownloadButtons({ options, onDownload, disabled = false, triggerClassName }: QuickDownloadButtonsProps) {
   const { beginSession } = useDownloadProgress()
   const [pendingType, setPendingType] = useState<number | null>(null)
 
@@ -38,7 +40,10 @@ export function QuickDownloadButtons({ options, onDownload, disabled = false }: 
   return (
     <Menubar className="border-0 bg-transparent p-0">
       <MenubarMenu>
-        <MenubarTrigger className="h-9 gap-2 px-3" disabled={disabled || pendingType !== null}>
+        <MenubarTrigger
+          className={cn("h-9 justify-center gap-2 px-3", triggerClassName)}
+          disabled={disabled || pendingType !== null}
+        >
           {pendingType !== null ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           <span>{pendingType !== null ? "下载中..." : "下载"}</span>
           <ChevronDown className="h-4 w-4" />

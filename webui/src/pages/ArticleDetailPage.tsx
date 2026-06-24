@@ -1,10 +1,13 @@
 import { ArrowLeft, ChevronRight, FileText, Loader2, Play } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import ReactMarkdown from "react-markdown"
+import rehypeRaw from "rehype-raw"
+import remarkBreaks from "remark-breaks"
+import remarkGfm from "remark-gfm"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
-import { renderMarkdownToHtml } from "@/lib/markdown"
 import { semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
@@ -16,7 +19,6 @@ export function ArticleDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [markdown, setMarkdown] = useState("")
-  const [html, setHtml] = useState("")
   const [data, setData] = useState<Awaited<ReturnType<typeof api.article.detail>> | null>(null)
 
   useEffect(() => {
@@ -30,7 +32,6 @@ export function ArticleDetailPage() {
         if (!cancelled) {
           setData(result)
           setMarkdown(result.markdown)
-          setHtml(renderMarkdownToHtml(result.markdown))
         }
       } catch (err) {
         if (!cancelled) {
@@ -220,12 +221,34 @@ export function ArticleDetailPage() {
                 "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-2xl [&_img]:shadow-soft",
                 "[&_hr]:my-8 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border",
                 "[&_code]:rounded-md [&_code]:bg-surface-soft [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.95em]",
+                "[&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:rounded-2xl [&_pre]:bg-surface-soft [&_pre]:p-4",
+                "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
+                "[&_table]:mb-5 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden",
+                "[&_thead]:bg-surface-soft",
+                "[&_th]:border [&_th]:border-border [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-sm [&_th]:font-semibold [&_th]:text-text-primary",
+                "[&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:align-top",
                 "[&_h2>code]:bg-primary [&_h2>code]:text-white",
                 "[&_em]:not-italic [&_em]:text-primary",
                 "[&_strong]:font-semibold [&_strong]:text-text-primary",
+                "[&_a]:text-primary [&_a]:underline-offset-4 hover:[&_a]:underline",
               ].join(" ")}
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
+            >
+              <ReactMarkdown
+                rehypePlugins={[rehypeRaw]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={{
+                  img: ({ node: _node, ...props }) => (
+                    <img
+                      {...props}
+                      alt={props.alt || articleInfo.title}
+                      className="my-6 w-full rounded-2xl shadow-soft"
+                    />
+                  ),
+                }}
+              >
+                {markdown}
+              </ReactMarkdown>
+            </article>
           </div>
         </div>
       </Card>

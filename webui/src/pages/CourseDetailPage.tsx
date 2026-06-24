@@ -24,7 +24,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       actionLabel: "查看课程详情",
       badgeLabel: "未购",
       badgeVariant: "neutral" as const,
-      statusText: "未购，先查看详情与介绍",
+      statusText: "未购",
     }
   }
 
@@ -34,7 +34,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       actionLabel: "查看课程内容",
       badgeLabel: "已购",
       badgeVariant: "success" as const,
-      statusText: "已购，可继续进入内容页",
+      statusText: "已购",
     }
   }
 
@@ -44,7 +44,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
       actionLabel: "以会员身份查看内容",
       badgeLabel: "会员可看",
       badgeVariant: "warning" as const,
-      statusText: "会员可看，可直接进入内容页",
+      statusText: "会员可看",
     }
   }
 
@@ -53,7 +53,7 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
     actionLabel: "查看课程详情",
     badgeLabel: "未购",
     badgeVariant: "neutral" as const,
-    statusText: "未购，先查看详情与介绍",
+    statusText: "未购",
   }
 }
 

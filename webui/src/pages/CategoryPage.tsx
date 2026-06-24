@@ -378,10 +378,9 @@ export function CategoryPage() {
                   {isEbookShelfItem ? (
                     isEbookInShelf ? (
                       <Button
-                        className="border-danger text-danger hover:bg-danger-soft"
                         disabled={isRemovingEbook}
                         onClick={() => void handleRemoveEbookFromShelf(item)}
-                        variant="outline"
+                        variant="danger"
                       >
                         {isRemovingEbook ? "处理中..." : "移出书架"}
                       </Button>

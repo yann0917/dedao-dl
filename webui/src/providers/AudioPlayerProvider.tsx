@@ -9,12 +9,76 @@ import {
   type PropsWithChildren,
 } from "react"
 
+const AUDIO_PLAYER_STORAGE_KEY = "dedao:audio-player"
+
 export type PlayerTrack = {
   id: string
   title: string
   src: string
   poster?: string
   subtitle?: string
+}
+
+type PersistedAudioPlayerState = {
+  queue: PlayerTrack[]
+  currentIndex: number
+  currentTime: number
+}
+
+function readPersistedAudioPlayerState(): PersistedAudioPlayerState {
+  if (typeof window === "undefined") {
+    return {
+      queue: [],
+      currentIndex: -1,
+      currentTime: 0,
+    }
+  }
+
+  try {
+    const raw = window.localStorage.getItem(AUDIO_PLAYER_STORAGE_KEY)
+    if (!raw) {
+      return {
+        queue: [],
+        currentIndex: -1,
+        currentTime: 0,
+      }
+    }
+
+    const parsed = JSON.parse(raw) as Partial<PersistedAudioPlayerState>
+    const queue = Array.isArray(parsed.queue)
+      ? parsed.queue.filter(
+          (track): track is PlayerTrack =>
+            !!track &&
+            typeof track.id === "string" &&
+            typeof track.title === "string" &&
+            typeof track.src === "string" &&
+            track.src.length > 0,
+        )
+      : []
+    const currentIndex =
+      typeof parsed.currentIndex === "number" && Number.isInteger(parsed.currentIndex) ? parsed.currentIndex : -1
+    const currentTime = typeof parsed.currentTime === "number" && Number.isFinite(parsed.currentTime) ? parsed.currentTime : 0
+
+    return {
+      queue,
+      currentIndex: queue.length > 0 ? Math.min(Math.max(currentIndex, 0), queue.length - 1) : -1,
+      currentTime: Math.max(currentTime, 0),
+    }
+  } catch {
+    return {
+      queue: [],
+      currentIndex: -1,
+      currentTime: 0,
+    }
+  }
+}
+
+function clearPersistedAudioPlayerState() {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  window.localStorage.removeItem(AUDIO_PLAYER_STORAGE_KEY)
 }
 
 type AudioPlayerContextValue = {
@@ -26,20 +90,23 @@ type AudioPlayerContextValue = {
   duration: number
   setQueue: (tracks: PlayerTrack[], startIndex?: number) => void
   playTrack: (track: PlayerTrack) => void
+  playQueueIndex: (index: number) => void
   togglePlay: () => void
   playNext: () => void
   playPrev: () => void
   seek: (time: number) => void
+  clearQueue: () => void
 }
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | null>(null)
 
 export function AudioPlayerProvider({ children }: PropsWithChildren) {
+  const persistedState = useMemo(readPersistedAudioPlayerState, [])
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const [queue, setQueueState] = useState<PlayerTrack[]>([])
-  const [currentIndex, setCurrentIndex] = useState(-1)
+  const [queue, setQueueState] = useState<PlayerTrack[]>(persistedState.queue)
+  const [currentIndex, setCurrentIndex] = useState(persistedState.currentIndex)
   const [playing, setPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
+  const [currentTime, setCurrentTime] = useState(persistedState.currentTime)
   const [duration, setDuration] = useState(0)
 
   const currentTrack = currentIndex >= 0 ? queue[currentIndex] ?? null : null
@@ -89,10 +156,32 @@ export function AudioPlayerProvider({ children }: PropsWithChildren) {
       audio.src = currentTrack.src
     }
 
+    if (currentTime > 0) {
+      audio.currentTime = currentTime
+    }
+
     void audio.play().catch(() => {
       setPlaying(false)
     })
-  }, [currentTrack])
+  }, [currentTime, currentTrack])
+
+  useEffect(() => {
+    if (queue.length === 0 || currentIndex < 0) {
+      clearPersistedAudioPlayerState()
+      return
+    }
+
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const payload: PersistedAudioPlayerState = {
+      queue,
+      currentIndex: Math.min(Math.max(currentIndex, 0), queue.length - 1),
+      currentTime,
+    }
+    window.localStorage.setItem(AUDIO_PLAYER_STORAGE_KEY, JSON.stringify(payload))
+  }, [currentIndex, currentTime, queue])
 
   const setQueue = useCallback((tracks: PlayerTrack[], startIndex = 0) => {
     const validTracks = tracks.filter((track) => !!track.src)
@@ -110,6 +199,17 @@ export function AudioPlayerProvider({ children }: PropsWithChildren) {
     setCurrentIndex(0)
     setCurrentTime(0)
   }, [])
+
+  const playQueueIndex = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= queue.length) {
+        return
+      }
+      setCurrentIndex(index)
+      setCurrentTime(0)
+    },
+    [queue.length],
+  )
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
@@ -147,6 +247,22 @@ export function AudioPlayerProvider({ children }: PropsWithChildren) {
     setCurrentTime(time)
   }, [])
 
+  const clearQueue = useCallback(() => {
+    const audio = audioRef.current
+    if (audio) {
+      audio.pause()
+      audio.removeAttribute("src")
+      audio.load()
+    }
+
+    setQueueState([])
+    setCurrentIndex(-1)
+    setCurrentTime(0)
+    setDuration(0)
+    setPlaying(false)
+    clearPersistedAudioPlayerState()
+  }, [])
+
   const value = useMemo<AudioPlayerContextValue>(
     () => ({
       queue,
@@ -157,12 +273,14 @@ export function AudioPlayerProvider({ children }: PropsWithChildren) {
       duration,
       setQueue,
       playTrack,
+      playQueueIndex,
       togglePlay,
       playNext,
       playPrev,
       seek,
+      clearQueue,
     }),
-    [currentIndex, currentTime, currentTrack, duration, playNext, playPrev, playTrack, playing, queue, seek, setQueue, togglePlay],
+    [clearQueue, currentIndex, currentTime, currentTrack, duration, playNext, playPrev, playQueueIndex, playTrack, playing, queue, seek, setQueue, togglePlay],
   )
 
   return (

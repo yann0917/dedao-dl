@@ -310,7 +310,7 @@ export function CourseArticleListPage() {
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {item.audio?.mp3_play_url ? (
                   <Button onClick={() => playArticle(item)} variant="outline">
                     <Play className="mr-2 h-4 w-4" />
@@ -332,6 +332,7 @@ export function CourseArticleListPage() {
                     })
                   }
                   options={chapterQuickDownloadOptions}
+                  triggerClassName="h-10"
                 />
               </div>
             </div>

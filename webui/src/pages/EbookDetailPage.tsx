@@ -307,10 +307,9 @@ export function EbookDetailPage() {
             <div className="mt-5 flex flex-wrap gap-3">
               {isOnBookshelf ? (
                 <Button
-                  className="border-danger text-danger hover:bg-danger-soft"
                   disabled={shelfLoading}
                   onClick={handleRemoveFromShelf}
-                  variant="outline"
+                  variant="danger"
                 >
                   {shelfLoading ? "处理中..." : "移出书架"}
                 </Button>

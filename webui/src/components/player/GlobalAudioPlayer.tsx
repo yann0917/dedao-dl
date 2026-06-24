@@ -1,4 +1,6 @@
-import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react"
+import { ListMusic, Pause, Play, SkipBack, SkipForward, Volume2, X } from "lucide-react"
+import { useState } from "react"
+import { cn } from "@/lib/cn"
 import { Card } from "@/components/ui/Card"
 import { semanticMetaTextClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
@@ -14,7 +16,8 @@ function formatTime(value: number) {
 }
 
 export function GlobalAudioPlayer() {
-  const { currentTrack, currentIndex, queue, playing, currentTime, duration, togglePlay, playNext, playPrev, seek } =
+  const [showQueue, setShowQueue] = useState(false)
+  const { currentTrack, currentIndex, queue, playing, currentTime, duration, togglePlay, playNext, playPrev, playQueueIndex, seek, clearQueue } =
     useAudioPlayer()
 
   if (!currentTrack) {
@@ -23,8 +26,16 @@ export function GlobalAudioPlayer() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-[300px]">
-      <Card className="border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <Card className="relative border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur">
+        <button
+          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-text-muted transition hover:bg-danger-soft hover:text-danger"
+          onClick={clearQueue}
+          type="button"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex flex-col gap-4 pr-10">
           <div className="flex min-w-0 items-center gap-4">
             <img
               alt={currentTrack.title}
@@ -38,7 +49,7 @@ export function GlobalAudioPlayer() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-soft text-text-secondary transition hover:bg-accent-soft hover:text-accent"
               onClick={playPrev}
@@ -60,9 +71,22 @@ export function GlobalAudioPlayer() {
             >
               <SkipForward className="h-4 w-4" />
             </button>
+            <button
+              aria-label={showQueue ? "折叠播放列表" : "展开播放列表"}
+              className={cn(
+                "inline-flex h-10 w-10 items-center justify-center rounded-full transition",
+                showQueue
+                  ? "bg-primary/10 text-primary"
+                  : "bg-surface-soft text-text-secondary hover:bg-surface-panel hover:text-text-primary",
+              )}
+              onClick={() => setShowQueue((value) => !value)}
+              type="button"
+            >
+              <ListMusic className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center gap-3 lg:max-w-xl">
+          <div className="flex min-w-0 items-center gap-3">
             <Volume2 className="h-4 w-4 text-text-muted" />
             <span className="w-11 text-xs text-text-muted">{formatTime(currentTime)}</span>
             <input
@@ -76,6 +100,34 @@ export function GlobalAudioPlayer() {
             <span className="w-11 text-right text-xs text-text-muted">{formatTime(duration)}</span>
           </div>
         </div>
+
+        {showQueue ? (
+          <div className="mt-4 max-h-72 space-y-2 overflow-y-auto border-t border-border/70 pt-4">
+            {queue.map((track, index) => {
+              const active = index === currentIndex
+
+              return (
+                <button
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left transition",
+                    active ? "bg-primary/10 text-primary" : "bg-surface-soft/80 text-text-secondary hover:bg-surface-soft",
+                  )}
+                  key={`${track.id}-${index}`}
+                  onClick={() => playQueueIndex(index)}
+                  type="button"
+                >
+                  <div className="min-w-0">
+                    <p className={cn("truncate text-sm font-medium", active ? "text-primary" : "text-text-primary")}>{track.title}</p>
+                    <p className={cn("truncate text-xs", active ? "text-primary/80" : semanticMetaTextClass)}>
+                      {track.subtitle || `第 ${index + 1} 首`}
+                    </p>
+                  </div>
+                  <span className={cn("shrink-0 text-xs", active ? "text-primary" : "text-text-muted")}>{active ? "播放中" : `${index + 1}/${queue.length}`}</span>
+                </button>
+              )
+            })}
+          </div>
+        ) : null}
       </Card>
     </div>
   )

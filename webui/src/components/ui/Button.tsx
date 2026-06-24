@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn"
 
 type ButtonProps = PropsWithChildren<{
   className?: string
-  variant?: "default" | "outline" | "ghost"
+  variant?: "default" | "outline" | "ghost" | "danger"
   onClick?: () => void
   disabled?: boolean
   type?: "button" | "submit"
@@ -20,6 +20,8 @@ export function Button({
   const variantClass =
     variant === "outline"
       ? "border border-border bg-surface-panel text-text-secondary hover:bg-surface-soft"
+      : variant === "danger"
+        ? "bg-danger text-danger-foreground hover:bg-danger/90"
       : variant === "ghost"
         ? "bg-transparent text-text-secondary hover:bg-surface-soft"
         : "bg-accent text-accent-foreground hover:bg-accent/90"

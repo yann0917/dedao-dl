@@ -34,7 +34,7 @@ type PurchasedCollectionConfig = {
   onOpenItem: (item: CourseListItem, navigate: ReturnType<typeof useNavigate>) => void
   getSummary?: (item: CourseListItem) => string
   getPrimaryMeta?: (item: CourseListItem) => string
-  getSecondaryMeta?: (item: CourseListItem) => string
+  getSecondaryMeta?: (item: CourseListItem) => string | null | undefined
   getProgress?: (item: CourseListItem) => number | null
   renderActions?: (
     item: CourseListItem,
@@ -315,7 +315,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
             const title = item.title || item.name || `${config.itemLabel}内容`
             const summary = config.getSummary?.(item) || item.intro || item.subtitle || "暂无简介"
             const primaryMeta = item.is_group ? `${item.course_num || 0} 项内容` : (config.getPrimaryMeta?.(item) || "查看内容")
-            const secondaryMeta = item.is_group ? "进入分组" : (config.getSecondaryMeta?.(item) || "打开详情")
+            const secondaryMeta = item.is_group ? "进入分组" : (config.getSecondaryMeta?.(item) ?? "打开详情")
             const progress = item.is_group ? null : config.getProgress?.(item)
 
             return (
@@ -355,9 +355,9 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                   <div className="space-y-3 p-4">
                     <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{title}</h3>
                     <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{summary}</p>
-                    <div className="flex items-center justify-between text-xs text-text-muted">
+                    <div className="flex items-center justify-between gap-3 text-xs text-text-muted">
                       <span>{primaryMeta}</span>
-                      <span>{secondaryMeta}</span>
+                      {secondaryMeta ? <span>{secondaryMeta}</span> : null}
                     </div>
                     {typeof progress === "number" ? (
                       <div className="h-1.5 overflow-hidden rounded-full bg-surface-soft">
@@ -369,7 +369,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                     ) : null}
                     {config.renderActions ? (
                       <div
-                        className="flex flex-wrap gap-2 border-t border-border pt-1"
+                        className="flex flex-wrap items-center gap-2 border-t border-border pt-1"
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
                       >

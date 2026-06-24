@@ -23,7 +23,7 @@ export function CoursePage() {
       loadingText="正在加载已购课程..."
       renderActions={(item, helpers) => (
         <>
-          <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="ghost">
+          <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
             <PanelRightOpen className="mr-2 h-4 w-4" />
             详情
           </Button>
