@@ -113,9 +113,9 @@ function CommentCard({ item }: { item: EbookCommentItem }) {
               className="prose prose-sm max-w-none text-text-secondary prose-p:my-2 prose-li:my-1 prose-ol:pl-5 prose-ul:pl-5 [&_strong]:text-text-primary"
               dangerouslySetInnerHTML={{ __html: content }}
             />
-          ) : (
-            <p className="text-sm leading-7 text-text-secondary">{item.note_line || "暂无内容"}</p>
-          )}
+          ) : item.note_line?.trim() ? (
+            <p className="whitespace-pre-wrap text-sm leading-7 text-text-secondary">{item.note_line}</p>
+          ) : null}
 
           <div className="flex items-center justify-between text-xs text-text-muted">
             <span>点赞 {item.notes_count?.like_count || 0}</span>

@@ -10,6 +10,8 @@ type CourseDetailPanelProps = {
 }
 
 export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
+  const highlightItems = detail?.items.filter((item) => item.content?.trim()).slice(0, 4) ?? []
+
   return (
     <Card>
       <div className="space-y-4 p-6">
@@ -46,10 +48,10 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
 
             <div className="space-y-3 border-t border-border pt-4">
               <h3 className="font-medium text-text-primary">课程亮点</h3>
-              {detail.items.slice(0, 4).map((item, index) => (
+              {highlightItems.map((item, index) => (
                 <InfoBlock key={`${item.title}-${index}`}>
                   <p className="font-medium text-text-primary">{item.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-text-secondary">{item.content || "暂无内容"}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary">{item.content}</p>
                 </InfoBlock>
               ))}
             </div>

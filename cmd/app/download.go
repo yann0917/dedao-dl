@@ -23,27 +23,40 @@ type DeDaoDownloader interface {
 	Download() error
 }
 
+type DownloadProgressFunc func(total, current, pct int, currentName string)
+
+type DownloadLogFunc func(level, message string)
+
 type CourseDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
 	EnID         string
 	AID          int
+	Title        string
 	IsMerge      bool
 	IsComment    bool
 	IsOrder      bool
 	ClassName    string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type OdobDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
 	EnID         string
+	Title        string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type EBookDownload struct {
 	DownloadType int // 1:html, 2:PDF文档, 3:epub
 	ID           int
 	EnID         string
+	Title        string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type EBookNotesDownload struct {
@@ -52,9 +65,73 @@ type EBookNotesDownload struct {
 	EnID         string
 }
 
+func calculateProgress(total, current int) int {
+	if total <= 0 {
+		if current > 0 {
+			return 100
+		}
+		return 0
+	}
+	if current <= 0 {
+		return 0
+	}
+	if current >= total {
+		return 100
+	}
+	return int(float64(current) / float64(total) * 100)
+}
+
+func countDownloadableData(data []downloader.Datum) int {
+	total := 0
+	for _, item := range data {
+		if item.IsCanDL {
+			total++
+		}
+	}
+	return total
+}
+
+func (d *CourseDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *CourseDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
+func (d *OdobDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *OdobDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
+func (d *EBookDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *EBookDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
 func (d *CourseDownload) Download() error {
 	var course *services.CourseInfo
 	var err error
+
+	d.log("info", "开始准备课程下载")
 
 	if d.EnID != "" {
 		course, err = getService().CourseInfo(d.EnID)
@@ -68,8 +145,15 @@ func (d *CourseDownload) Download() error {
 		return err
 	}
 
+	if d.Title == "" && course != nil {
+		d.Title = course.ClassInfo.Name
+	}
+	d.report(1, 0, d.Title)
+	d.log("info", "课程信息获取完成")
+
 	switch d.DownloadType {
 	case 1: // mp3
+		d.log("info", "开始准备课程音频下载")
 		enid := course.ClassInfo.Enid
 		count := course.ClassInfo.CurrentArticleCount
 		if count == 0 {
@@ -81,40 +165,45 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		downloadData := extractDownloadData(course, articles, d.AID, 1, d.IsOrder)
+		total := countDownloadableData(downloadData.Data)
 		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
 		if err != nil {
 			return err
 		}
+		d.log("info", "课程音频输出目录已创建："+path)
 
+		current := 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
+				d.log("warning", "跳过不可下载内容："+datum.Title)
 				continue
 			}
+			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
+				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
+				continue
 			}
-
+			current++
+			d.report(total, current, datum.Title)
+			d.log("info", "下载完成："+datum.Title)
 		}
 		if len(errs) > 0 {
 			return errs[0]
 		}
 	case 2:
 		// 下载 PDF
-		errs := make([]error, 0)
-
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
+		d.log("info", "开始生成课程 PDF，输出目录："+path)
 		if err := DownloadPdfCourse(d, course, path); err != nil {
 			return err
-		}
-		if len(errs) > 0 {
-			return errs[0]
 		}
 	case 3:
 		// 下载 Markdown
@@ -123,45 +212,66 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
+		d.log("info", "开始生成课程 Markdown，输出目录："+path)
 		if err := DownloadMarkdownCourse(d, course, path); err != nil {
 			return err
 		}
 	}
+	d.report(1, 1, d.Title)
 	return nil
 
 }
 
 func (d *OdobDownload) Download() error {
 	fileName := "每天听本书"
+	d.log("info", "开始准备听书下载")
 	article, aliasID, err := d.resolveTarget()
 	if err != nil {
 		return err
+	}
+	if article != nil && article.Title != "" {
+		fileName = article.Title
+	}
+	if d.Title == "" {
+		d.Title = fileName
 	}
 	audioID := article.ID
 	if audioID <= 0 {
 		audioID = d.ID
 	}
+	d.report(1, 0, d.Title)
 
 	switch d.DownloadType {
 	case 1:
+		d.log("info", "开始准备听书音频下载")
 		downloadData := downloader.Data{
 			Title: fileName,
 		}
 		downloadData.Type = "audio"
 		downloadData.Data = extractOdobDownloadData(audioID, article)
+		total := countDownloadableData(downloadData.Data)
 		errs := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		if err != nil {
 			return err
 		}
+		d.log("info", "听书音频输出目录已创建："+path)
+		current := 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
+				d.log("warning", "跳过不可下载内容："+datum.Title)
 				continue
 			}
+			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
+				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
+				continue
 			}
+			current++
+			d.report(total, current, datum.Title)
+			d.log("info", "下载完成："+datum.Title)
 		}
 		if len(errs) > 0 {
 			return errs[0]
@@ -171,12 +281,18 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
+		d.log("info", "开始生成听书文稿 PDF："+fileName)
 		content, err2 := getArticleDetail(aliasID)
 		if err2 != nil {
 			return err2
 		}
 		res := ContentsToMarkdown(content)
-		return utils.Md2Pdf(path, article.Title, []byte(res))
+		if err := utils.Md2Pdf(path, article.Title, []byte(res)); err != nil {
+			return err
+		}
+		d.report(1, 1, article.Title)
+		d.log("info", "听书文稿 PDF 生成完成："+article.Title)
+		return nil
 
 	case 3:
 		// 下载 Markdown
@@ -184,10 +300,12 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
+		d.log("info", "开始生成听书文稿 Markdown："+fileName)
 		if err := DownloadMarkdownAudioBook(aliasID, path, article); err != nil {
 			return err
 		}
 	}
+	d.report(1, 1, d.Title)
 	return nil
 }
 
@@ -339,6 +457,8 @@ func (d *EBookDownload) Download() error {
 	var detail *services.EbookDetail
 	var err error
 
+	d.log("info", "开始准备电子书下载")
+
 	if d.EnID != "" {
 		detail, err = EbookDetailByEnID(d.EnID)
 	} else if d.ID > 0 {
@@ -350,10 +470,17 @@ func (d *EBookDownload) Download() error {
 	if err != nil {
 		return err
 	}
-	return downloadEBook(detail, d.DownloadType)
+	if d.Title == "" {
+		if detail.Title != "" {
+			d.Title = detail.Title
+		} else {
+			d.Title = detail.OperatingTitle
+		}
+	}
+	return downloadEBook(detail, d)
 }
 
-func downloadEBook(detail *services.EbookDetail, downloadType int) error {
+func downloadEBook(detail *services.EbookDetail, d *EBookDownload) error {
 	title := strconv.Itoa(detail.ID) + "_"
 	if detail.Title != "" {
 		title += detail.Title
@@ -362,22 +489,30 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 	}
 
 	title += "_" + detail.BookAuthor
+	d.report(4, 1, "获取电子书详情")
+	d.log("info", "电子书详情获取完成："+title)
 	info, svgContent, err := EbookPage(detail.Enid)
 	if err != nil {
 		return err
 	}
+	d.report(4, 2, "拉取电子书页面")
+	d.log("info", "电子书页面抓取完成")
 	sort.Sort(svgContent)
 
-	switch downloadType {
+	switch d.DownloadType {
 	case 1:
+		d.log("info", "开始生成 HTML 文件")
 		if err = utils.Svg2Html(title, svgContent, info.BookInfo.Toc); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 	case 2:
+		d.log("info", "开始生成 PDF 文件")
 		if err = utils.Svg2Pdf(title, svgContent, info.BookInfo.Toc); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 	case 3:
 		var opts utils.EpubOptions
@@ -386,9 +521,12 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 		opts.Description = detail.BookIntro
 		opts.Toc = info.BookInfo.Toc
 
+		d.report(4, 3, "生成 EPUB")
+		d.log("info", "开始生成 EPUB 文件")
 		if err = utils.Svg2Epub(title, svgContent, opts); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 		// Only clear cache for this specific book on successful completion
 		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
@@ -396,6 +534,7 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 		}
 	}
 
+	d.log("info", "电子书下载完成："+title)
 	return err
 }
 
@@ -809,17 +948,26 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 	if err != nil {
 		return err
 	}
+	total := 0
+	for _, item := range list.List {
+		if d.AID == 0 || item.ID == d.AID {
+			total++
+		}
+	}
 	name, fileName := "", ""
 	mName, mFileName := "", ""
 	if d.IsMerge {
 		mName = utils.FileName(d.ClassName+"-合集", "md")
 		mFileName = filepath.Join(path, mName)
 		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
+		d.log("info", "将额外生成课程 Markdown 合集："+mName)
 	}
+	current := 0
 	for _, v := range list.List {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
+		d.log("info", "开始处理文章："+v.Title)
 		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -873,6 +1021,9 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 			return err
 		}
 		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+		current++
+		d.report(total, current, v.Title)
+		d.log("info", "文章处理完成："+v.Title)
 		if d.IsMerge {
 			f, err := os.OpenFile(mFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 			if err != nil {
@@ -891,6 +1042,7 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 	}
 	if d.IsMerge {
 		fmt.Printf("\033[32;1m%s\033[0m\n", "合集完成")
+		d.log("info", "课程 Markdown 合集生成完成")
 	}
 	return nil
 }
@@ -905,6 +1057,12 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 	if err != nil {
 		return err
 	}
+	total := 0
+	for _, item := range list.List {
+		if d.AID == 0 || item.ID == d.AID {
+			total++
+		}
+	}
 	name, fileName := "", ""
 	// mName, mFileName := "", ""
 	// if d.IsMerge {
@@ -912,10 +1070,12 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 	// 	mFileName = filepath.Join(path, mName)
 	// 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
 	// }
+	current := 0
 	for _, v := range list.List {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
+		d.log("info", "开始生成 PDF："+v.Title)
 		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -958,6 +1118,9 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 		if err != nil {
 			return err
 		}
+		current++
+		d.report(total, current, v.Title)
+		d.log("info", "PDF 生成完成："+v.Title)
 		// 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		// 	if err != nil {
 		// 		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
@@ -995,6 +1158,9 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 }
 
 func DownloadMarkdownAudioBook(aliasID, path string, article *services.Course) error {
+	if article != nil {
+		fmt.Printf("开始生成听书 Markdown：%s\n", article.Title)
+	}
 	content, err2 := getArticleDetail(aliasID)
 	if err2 != nil {
 		return err2

@@ -2,6 +2,7 @@ import { ArrowLeft, Loader2, LibraryBig, MessageSquareText, Star, UserRound } fr
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseInfoResponse } from "@/api"
+import { DownloadActionsPanel, type DownloadOption } from "@/components/download/DownloadActionsPanel"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
@@ -56,6 +57,12 @@ function resolveCourseAccess(detail: CourseInfoResponse | null) {
   }
 }
 
+const courseDownloadOptions: DownloadOption[] = [
+  { value: 1, label: "下载音频 MP3" },
+  { value: 2, label: "下载课程 PDF" },
+  { value: 3, label: "下载课程 Markdown" },
+]
+
 export function CourseDetailPage() {
   const navigate = useNavigate()
   const { enid = "" } = useParams()
@@ -102,7 +109,10 @@ export function CourseDetailPage() {
   const title = detail?.class_info.name || searchParams.get("parentTitle") || "课程详情"
   const from = searchParams.get("from") || "course-detail"
   const highlights = useMemo(
-    () => detail?.items.filter((item) => item.title || item.content).slice(0, 6) ?? [],
+    () =>
+      detail?.items
+        .filter((item) => item.content?.trim())
+        .slice(0, 6) ?? [],
     [detail],
   )
   const commentItems = detail?.class_comment_info?.comment_list?.slice(0, 3) ?? []
@@ -139,6 +149,14 @@ export function CourseDetailPage() {
   const openArticles = () => {
     navigate(buildCourseArticlesPath(enid, title, from))
   }
+
+  const handleCourseDownload = (downloadType: number) =>
+    api.download.course({
+      enid,
+      title,
+      downloadType,
+      isOrder: true,
+    })
 
   if (loading) {
     return (
@@ -252,6 +270,15 @@ export function CourseDetailPage() {
         </Card>
 
         <div className="space-y-6">
+          <DownloadActionsPanel
+            description="将当前课程内容直接下载到服务端本地 output 目录，并按章节自动整理文件。"
+            disabled={!access.canOpenArticles}
+            disabledReason="当前账号暂无课程访问权限，暂不支持直接下载。"
+            onDownload={handleCourseDownload}
+            options={courseDownloadOptions}
+            title="课程下载"
+          />
+
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-3">
               <span className={getSemanticStatusBadgeClass("warning", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
@@ -305,7 +332,7 @@ export function CourseDetailPage() {
                 {highlights.map((item, index) => (
                   <div className={semanticInfoBlockClass} key={`${item.title}-${index}`}>
                     <p className="font-medium text-text-primary">{item.title || `亮点 ${index + 1}`}</p>
-                    <p className="mt-2 text-sm leading-6 text-text-secondary">{item.content || "暂无内容"}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-text-secondary">{item.content}</p>
                   </div>
                 ))}
               </div>

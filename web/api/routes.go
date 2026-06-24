@@ -9,6 +9,7 @@ func RegisterRoutes(group *gin.RouterGroup) {
 	authed.Use(requireAuth())
 	registerHomeRoutes(authed)
 	registerAlgoRoutes(authed)
+	registerDownloadRoutes(authed)
 	registerEbookRoutes(authed)
 	registerAudioRoutes(authed)
 	registerArticleRoutes(authed)

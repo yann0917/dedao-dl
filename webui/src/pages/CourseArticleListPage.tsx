@@ -2,12 +2,18 @@ import { ArrowLeft, Clock3, FileText, Headphones, Loader2, Play, Rows4, SortAsc,
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseArticleItem, type CourseArticleListResponse, type CourseInfoResponse } from "@/api"
+import { QuickDownloadButtons, type QuickDownloadOption } from "@/components/download/QuickDownloadButtons"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 const articlePageSize = 30
+const chapterQuickDownloadOptions: QuickDownloadOption[] = [
+  { value: 1, label: "音频" },
+  { value: 2, label: "PDF" },
+  { value: 3, label: "MD" },
+]
 
 function formatPublishTime(value?: number) {
   if (!value) {
@@ -130,11 +136,11 @@ export function CourseArticleListPage() {
       return
     }
 
-    navigate("/purchased/courses")
+    openCourseDetail()
   }
 
   const backLabel =
-    searchParams.get("from") === "algo" ? "返回分类结果" : searchParams.get("from") === "home" ? "返回首页" : "返回已购课程"
+    searchParams.get("from") === "algo" ? "返回分类结果" : searchParams.get("from") === "home" ? "返回首页" : "返回课程详情"
 
   const openArticleDetail = (item: CourseArticleItem) => {
     const listFrom = searchParams.get("from") || "course"
@@ -151,6 +157,12 @@ export function CourseArticleListPage() {
 
     const startIndex = playerTracks.findIndex((track) => track.id === target.id)
     setQueue(playerTracks, startIndex >= 0 ? startIndex : 0)
+  }
+
+  const openCourseDetail = () => {
+    navigate(
+      `/courses/${encodeURIComponent(enid)}?from=${encodeURIComponent(searchParams.get("from") || "purchased-course")}&parentTitle=${encodeURIComponent(courseTitle)}`,
+    )
   }
 
   const loadMore = async () => {
@@ -252,6 +264,10 @@ export function CourseArticleListPage() {
               <Play className="mr-2 h-4 w-4" />
               播放全部
             </Button>
+            <Button onClick={openCourseDetail} variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              课程详情
+            </Button>
             <Button onClick={() => setReverse((current) => !current)} variant="outline">
               {reverse ? <SortAsc className="mr-2 h-4 w-4" /> : <SortDesc className="mr-2 h-4 w-4" />}
               {reverse ? "切回正序" : "切换倒序"}
@@ -294,7 +310,7 @@ export function CourseArticleListPage() {
                 </span>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {item.audio?.mp3_play_url ? (
                   <Button onClick={() => playArticle(item)} variant="outline">
                     <Play className="mr-2 h-4 w-4" />
@@ -305,6 +321,18 @@ export function CourseArticleListPage() {
                   <FileText className="mr-2 h-4 w-4" />
                   查看文章
                 </Button>
+                <QuickDownloadButtons
+                  onDownload={(downloadType) =>
+                    api.download.course({
+                      enid,
+                      title: `${courseTitle} - ${item.title}`,
+                      articleId: item.id,
+                      downloadType,
+                      isOrder: true,
+                    })
+                  }
+                  options={chapterQuickDownloadOptions}
+                />
               </div>
             </div>
           </Card>

@@ -1,6 +1,7 @@
 import { BookOpen, ChevronRight, Loader2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
+import { toast } from "sonner"
 import { api, type AlgoOption, type AlgoProductItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
@@ -31,7 +32,6 @@ export function CategoryPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [actionLoadingKey, setActionLoadingKey] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
 
   const init = useMemo(
     () => ({
@@ -153,12 +153,16 @@ export function CategoryPage() {
 
     const actionKey = `audio-add-${item.id_out}`
     setActionLoadingKey(actionKey)
-    setActionError(null)
     try {
       await api.audio.addToShelf([item.id_out])
       await explorer.applyParams({})
+      toast.success("已加入书架", {
+        description: item.name || "当前听书已加入书架",
+      })
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "听书加入书架失败")
+      toast.error("加入书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setActionLoadingKey(null)
     }
@@ -171,12 +175,16 @@ export function CategoryPage() {
 
     const actionKey = `ebook-add-${item.id_out}`
     setActionLoadingKey(actionKey)
-    setActionError(null)
     try {
       await api.ebook.addToShelf([item.id_out])
       await explorer.applyParams({})
+      toast.success("已加入书架", {
+        description: item.name || "当前电子书已加入书架",
+      })
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "电子书加入书架失败")
+      toast.error("加入书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setActionLoadingKey(null)
     }
@@ -193,12 +201,16 @@ export function CategoryPage() {
 
     const actionKey = `ebook-remove-${item.id_out}`
     setActionLoadingKey(actionKey)
-    setActionError(null)
     try {
       await api.ebook.removeFromShelf([item.id_out])
       await explorer.applyParams({})
+      toast.success("已移出书架", {
+        description: item.name || "当前电子书已从书架移除",
+      })
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : "电子书移出书架失败")
+      toast.error("移出书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setActionLoadingKey(null)
     }
@@ -209,12 +221,6 @@ export function CategoryPage() {
       {explorer.error ? (
         <Card className="border-danger bg-danger-soft">
           <div className="p-4 text-sm text-danger">{explorer.error}</div>
-        </Card>
-      ) : null}
-
-      {actionError ? (
-        <Card className="border-danger bg-danger-soft">
-          <div className="p-4 text-sm text-danger">{actionError}</div>
         </Card>
       ) : null}
 

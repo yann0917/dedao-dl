@@ -1,7 +1,9 @@
 import { Clock3, Headphones, Loader2, Radio, Waves } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 import { api, type AudioDetailResponse } from "@/api"
+import { DownloadActionsPanel, type DownloadOption } from "@/components/download/DownloadActionsPanel"
 import { InfoBlock, StatCard, StatusBadge } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
@@ -11,6 +13,12 @@ import {
   semanticSecondaryTextClass,
 } from "@/lib/semanticStyles"
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
+
+const audioDownloadOptions: DownloadOption[] = [
+  { value: 1, label: "下载音频 MP3" },
+  { value: 2, label: "下载文稿 PDF" },
+  { value: 3, label: "下载文稿 Markdown" },
+]
 
 function formatDuration(value?: number) {
   if (!value) {
@@ -29,7 +37,6 @@ export function AudioDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shelfLoading, setShelfLoading] = useState(false)
-  const [shelfError, setShelfError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -104,16 +111,27 @@ export function AudioDetailPage() {
 
   const handleAddToShelf = async () => {
     setShelfLoading(true)
-    setShelfError(null)
     try {
       await api.audio.addToShelf([enid])
       setData((current) => (current ? { ...current, book_shelf_status: 1 } : current))
+      toast.success("已加入书架", {
+        description: data.title || data.package_title || "当前听书已加入书架",
+      })
     } catch (err) {
-      setShelfError(err instanceof Error ? err.message : "加入书架失败")
+      toast.error("加入书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setShelfLoading(false)
     }
   }
+
+  const handleAudioDownload = (downloadType: number) =>
+    api.download.audio({
+      enid,
+      title: data.title || data.package_title || "听书下载",
+      downloadType,
+    })
 
   const isInBookshelf = (data.book_shelf_status ?? 0) > 0
 
@@ -153,6 +171,15 @@ export function AudioDetailPage() {
         </Card>
 
         <div className="space-y-6">
+          <DownloadActionsPanel
+            description="将当前听书内容直接下载到服务端本地 output 目录，支持音频与文稿两类导出。"
+            disabled={!data.has_play_auth}
+            disabledReason="当前账号暂无播放权限，暂不支持直接下载。"
+            onDownload={handleAudioDownload}
+            options={audioDownloadOptions}
+            title="听书下载"
+          />
+
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <StatCard icon={<Clock3 className="h-4 w-4" />} label="时长" value={formatDuration(data.duration)} />
@@ -172,9 +199,6 @@ export function AudioDetailPage() {
             <p className={`mt-4 whitespace-pre-wrap text-sm leading-7 ${semanticSecondaryTextClass}`}>
               {data.summary || data.slogan || data.update_tips || "暂无简介"}
             </p>
-            {shelfError ? (
-              <div className="mt-5 rounded-2xl border border-danger bg-danger-soft p-4 text-sm text-danger">{shelfError}</div>
-            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
               {!isInBookshelf ? (
                 <Button disabled={shelfLoading} onClick={handleAddToShelf}>

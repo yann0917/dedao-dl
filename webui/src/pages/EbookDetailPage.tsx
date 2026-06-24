@@ -1,7 +1,9 @@
 import { BookOpen, Clock3, Loader2, NotebookPen, Star } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { toast } from "sonner"
 import { api, type EbookDetailResponse } from "@/api"
+import { DownloadActionsPanel, type DownloadOption } from "@/components/download/DownloadActionsPanel"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import { cn } from "@/lib/cn"
@@ -11,6 +13,12 @@ import {
 } from "@/lib/semanticStyles"
 
 const CATALOG_PREVIEW_COUNT = 12
+
+const ebookDownloadOptions: DownloadOption[] = [
+  { value: 1, label: "下载 HTML" },
+  { value: 2, label: "下载 PDF" },
+  { value: 3, label: "下载 EPUB" },
+]
 
 function formatTime(value?: number) {
   if (!value) {
@@ -76,7 +84,6 @@ export function EbookDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [catalogExpanded, setCatalogExpanded] = useState(false)
   const [shelfLoading, setShelfLoading] = useState(false)
-  const [shelfError, setShelfError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -144,7 +151,6 @@ export function EbookDetailPage() {
 
   const handleAddToShelf = async () => {
     setShelfLoading(true)
-    setShelfError(null)
     try {
       await api.ebook.addToShelf([enid])
       setData((current) => {
@@ -160,8 +166,13 @@ export function EbookDetailPage() {
           },
         }
       })
+      toast.success("已加入书架", {
+        description: detail.title || "当前电子书已加入书架",
+      })
     } catch (err) {
-      setShelfError(err instanceof Error ? err.message : "加入书架失败")
+      toast.error("加入书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setShelfLoading(false)
     }
@@ -173,7 +184,6 @@ export function EbookDetailPage() {
     }
 
     setShelfLoading(true)
-    setShelfError(null)
     try {
       await api.ebook.removeFromShelf([enid])
       setData((current) => {
@@ -189,12 +199,24 @@ export function EbookDetailPage() {
           },
         }
       })
+      toast.success("已移出书架", {
+        description: detail.title || "当前电子书已从书架移除",
+      })
     } catch (err) {
-      setShelfError(err instanceof Error ? err.message : "移出书架失败")
+      toast.error("移出书架失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setShelfLoading(false)
     }
   }
+
+  const handleEbookDownload = (downloadType: number) =>
+    api.download.ebook({
+      enid,
+      title: detail.title || "电子书下载",
+      downloadType,
+    })
 
   return (
     <main className="space-y-6">
@@ -229,6 +251,13 @@ export function EbookDetailPage() {
         </Card>
 
         <div className="space-y-6">
+          <DownloadActionsPanel
+            description="将当前电子书直接下载到服务端本地 output 目录，支持 HTML、PDF 与 EPUB 三种格式。"
+            onDownload={handleEbookDownload}
+            options={ebookDownloadOptions}
+            title="电子书下载"
+          />
+
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl bg-surface-soft p-4">
@@ -273,11 +302,6 @@ export function EbookDetailPage() {
               <div className="mt-5 rounded-2xl bg-surface-soft p-4">
                 <h4 className="text-sm font-medium text-text-primary">出版社简介</h4>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-text-secondary">{pressBrief}</p>
-              </div>
-            ) : null}
-            {shelfError ? (
-              <div className="mt-5 rounded-2xl border border-danger bg-danger-soft p-4 text-sm text-danger">
-                {shelfError}
               </div>
             ) : null}
             <div className="mt-5 flex flex-wrap gap-3">

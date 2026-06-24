@@ -533,6 +533,32 @@ export type ShelfActionResponse = {
   }
 }
 
+export type DownloadSessionResponse = {
+  sessionId: string
+  target: string
+  title: string
+  status: string
+  downloadType: number
+  outputDir: string
+  streamUrl: string
+}
+
+export type DownloadStreamEvent = {
+  type: string
+  sessionId: string
+  target?: string
+  title?: string
+  status?: string
+  progress?: number
+  current?: number
+  total?: number
+  currentName?: string
+  level?: string
+  message?: string
+  outputDir?: string
+  timestamp: number
+}
+
 export type AudioDetailResponse = {
   topic_encode_id: string
   audio_id: string
@@ -820,5 +846,41 @@ export const api = {
   article: {
     detail: (aType: 1 | 2, enid: string) =>
       request<ArticleDetailResponse>(`/api/article/detail?aType=${aType}&enid=${encodeURIComponent(enid)}`),
+  },
+  download: {
+    course: (payload: {
+      id?: number
+      enid?: string
+      title?: string
+      articleId?: number
+      downloadType: number
+      isMerge?: boolean
+      isComment?: boolean
+      isOrder?: boolean
+    }) =>
+      request<DownloadSessionResponse>("/api/download/course", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    audio: (payload: {
+      id?: number
+      enid?: string
+      title?: string
+      downloadType: number
+    }) =>
+      request<DownloadSessionResponse>("/api/download/audio", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    ebook: (payload: {
+      id?: number
+      enid?: string
+      title?: string
+      downloadType: number
+    }) =>
+      request<DownloadSessionResponse>("/api/download/ebook", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
   },
 }

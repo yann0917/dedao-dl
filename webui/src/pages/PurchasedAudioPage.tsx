@@ -1,5 +1,5 @@
 import { FileText, PanelRightOpen, Play, Rows3 } from "lucide-react"
-import { useState } from "react"
+import { toast } from "sonner"
 import { api, type CourseListItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { PurchasedCollectionPage } from "@/components/purchased/PurchasedCollectionPage"
@@ -16,7 +16,6 @@ function formatMinutes(duration?: number) {
 
 export function PurchasedAudioPage() {
   const { setQueue } = useAudioPlayer()
-  const [actionError, setActionError] = useState<string | null>(null)
 
   const playAudio = (item: CourseListItem) => {
     const src = item.audio_detail?.mp3_play_url || item.odob_group_ext_info?.audio_detail?.mp3_play_url || ""
@@ -42,7 +41,6 @@ export function PurchasedAudioPage() {
     <PurchasedCollectionPage
       category="odob"
       emptyTitle="当前没有可展示的已购听书"
-      externalError={actionError}
       getPrimaryMeta={(item: CourseListItem) => formatMinutes(item.duration)}
       getSecondaryMeta={(item: CourseListItem) => (item.type === 1013 ? "打开合集" : "打开详情")}
       icon="audio"
@@ -80,12 +78,16 @@ export function PurchasedAudioPage() {
                     return
                   }
 
-                  setActionError(null)
                   try {
                     await api.audio.addToShelf([item.enid])
                     helpers.updateItem(item, { in_bookrack: true })
+                    toast.success("已加入书架", {
+                      description: item.title || item.name || "听书已加入书架",
+                    })
                   } catch (err) {
-                    setActionError(err instanceof Error ? err.message : "听书加入书架失败")
+                    toast.error("加入书架失败", {
+                      description: err instanceof Error ? err.message : "请稍后重试",
+                    })
                   }
                 }}
               >
