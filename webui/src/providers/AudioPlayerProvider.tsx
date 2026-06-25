@@ -152,18 +152,41 @@ export function AudioPlayerProvider({ children }: PropsWithChildren) {
       return
     }
 
-    if (audio.src !== currentTrack.src) {
+    const resolvedSrc =
+      typeof window === "undefined" ? currentTrack.src : new URL(currentTrack.src, window.location.href).href
+    const resumeTime = Math.max(currentTime, 0)
+
+    const resumePlayback = () => {
+      if (resumeTime > 0) {
+        const safeTime =
+          Number.isFinite(audio.duration) && audio.duration > 0 ? Math.min(resumeTime, audio.duration) : resumeTime
+
+        if (Math.abs(audio.currentTime - safeTime) > 0.5) {
+          audio.currentTime = safeTime
+        }
+      }
+
+      void audio.play().catch(() => {
+        setPlaying(false)
+      })
+    }
+
+    if (audio.src !== resolvedSrc) {
       audio.src = currentTrack.src
+      audio.load()
+
+      const handleLoadedMetadata = () => {
+        resumePlayback()
+      }
+
+      audio.addEventListener("loadedmetadata", handleLoadedMetadata, { once: true })
+      return () => {
+        audio.removeEventListener("loadedmetadata", handleLoadedMetadata)
+      }
     }
 
-    if (currentTime > 0) {
-      audio.currentTime = currentTime
-    }
-
-    void audio.play().catch(() => {
-      setPlaying(false)
-    })
-  }, [currentTime, currentTrack])
+    resumePlayback()
+  }, [currentTrack])
 
   useEffect(() => {
     if (queue.length === 0 || currentIndex < 0) {
