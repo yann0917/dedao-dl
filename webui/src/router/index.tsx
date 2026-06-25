@@ -16,6 +16,7 @@ import { LoginPage } from "@/pages/LoginPage"
 import { PurchasedAudioPage } from "@/pages/PurchasedAudioPage"
 import { PurchasedCompassPage } from "@/pages/PurchasedCompassPage"
 import { PurchasedEbookPage } from "@/pages/PurchasedEbookPage"
+import { PurchasedManagePage } from "@/pages/PurchasedManagePage"
 import { UserCenterPage } from "@/pages/UserCenterPage"
 
 export const router = createBrowserRouter([
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: "purchased/courses",
         element: <CoursePage />,
+      },
+      {
+        path: "purchased/manage",
+        element: <PurchasedManagePage />,
       },
       {
         path: "purchased/ebooks",

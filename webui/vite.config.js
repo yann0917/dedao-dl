@@ -22,5 +22,34 @@ export default defineConfig({
     build: {
         outDir: "dist",
         emptyOutDir: true,
+        rollupOptions: {
+            output: {
+                manualChunks: function (id) {
+                    // Keep chunking coarse-grained: isolate the heaviest markdown stack,
+                    // then split framework/runtime and UI libraries into stable vendor bundles.
+                    if (id.includes("react-markdown") ||
+                        id.includes("remark-gfm") ||
+                        id.includes("remark-breaks") ||
+                        id.includes("rehype-raw")) {
+                        return "markdown";
+                    }
+                    if (id.includes("/node_modules/react/") ||
+                        id.includes("/node_modules/react-dom/") ||
+                        id.includes("/node_modules/react-router-dom/") ||
+                        id.includes("/node_modules/react-router/")) {
+                        return "react-vendor";
+                    }
+                    if (id.includes("/node_modules/lucide-react/") ||
+                        id.includes("/node_modules/@radix-ui/") ||
+                        id.includes("/node_modules/embla-carousel-react/") ||
+                        id.includes("/node_modules/sonner/") ||
+                        id.includes("/node_modules/class-variance-authority/") ||
+                        id.includes("/node_modules/clsx/") ||
+                        id.includes("/node_modules/tailwind-merge/")) {
+                        return "ui-vendor";
+                    }
+                },
+            },
+        },
     },
 });

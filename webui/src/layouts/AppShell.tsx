@@ -1,4 +1,4 @@
-import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Menu, Search, UserCircle2, X } from "lucide-react"
+import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Menu, Rows3, Search, UserCircle2, X } from "lucide-react"
 import type { ComponentType } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
@@ -12,6 +12,7 @@ const primaryNavItems = [
 ]
 
 const purchasedNavItems = [
+  { to: "/purchased/manage", label: "已购管理", icon: Rows3 },
   { to: "/purchased/courses", label: "课程", icon: GraduationCap },
   { to: "/purchased/ebooks", label: "电子书", icon: BookMarked },
   { to: "/purchased/audios", label: "听书", icon: Headphones },

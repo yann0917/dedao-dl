@@ -1,6 +1,5 @@
 import {
   ArrowLeft,
-  BookMarked,
   Compass,
   FolderOpen,
   GraduationCap,
@@ -15,10 +14,7 @@ import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import {
   getSemanticChipClass,
-  getSemanticStatusBadgeClass,
-  semanticMetaTextClass,
   semanticPageSectionClass,
-  semanticSecondaryTextClass,
 } from "@/lib/semanticStyles"
 
 type PurchasedCollectionConfig = {
@@ -38,6 +34,7 @@ type PurchasedCollectionConfig = {
   getProgress?: (item: CourseListItem) => number | null
   coverContainerClassName?: string
   coverImageClassName?: string
+  isItemInteractive?: (item: CourseListItem) => boolean
   renderActions?: (
     item: CourseListItem,
     helpers: {
@@ -46,22 +43,6 @@ type PurchasedCollectionConfig = {
       updateItem: (item: CourseListItem, patch: Partial<CourseListItem>) => void
     },
   ) => ReactNode
-}
-
-function resolvePageIcon(icon: PurchasedCollectionConfig["icon"]) {
-  if (icon === "course") {
-    return GraduationCap
-  }
-
-  if (icon === "ebook") {
-    return BookMarked
-  }
-
-  if (icon === "audio") {
-    return Headphones
-  }
-
-  return Compass
 }
 
 function resolveFallbackIcon(icon: PurchasedCollectionConfig["icon"]) {
@@ -141,7 +122,6 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
   }, [config.category])
 
   const hasMore = useMemo(() => items.length < total, [items.length, total])
-  const PageIcon = resolvePageIcon(config.icon)
   const FallbackIcon = resolveFallbackIcon(config.icon)
   const coverContainerClassName = config.coverContainerClassName || "aspect-square"
   const coverImageClassName = config.coverImageClassName || "object-cover"
@@ -254,23 +234,16 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
 
   return (
     <main className="space-y-6">
-      <section className={`${semanticPageSectionClass} p-6`}>
-        <p className={semanticMetaTextClass}>{config.title}</p>
-        <h2 className="mt-2 text-3xl font-semibold text-text-primary">{groupMode.active ? groupMode.title : config.title}</h2>
-        {config.description ? <p className={`mt-3 max-w-3xl text-sm leading-7 ${semanticSecondaryTextClass}`}>{config.description}</p> : null}
-        <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-text-muted">
-          <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-            <PageIcon className="h-4 w-4" />
-            当前共 {total} 项
-          </span>
-          {groupMode.active ? (
+      {groupMode.active ? (
+        <section className={`${semanticPageSectionClass} p-6`}>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-text-muted">
             <Button onClick={exitGroup} variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               返回{config.title}
             </Button>
-          ) : null}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
 
       {!groupMode.active && filterOptions.length > 0 ? (
         <Card className="p-4">
@@ -321,17 +294,18 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
             const primaryMeta = item.is_group ? `${item.course_num || 0} 项内容` : (config.getPrimaryMeta?.(item) || "查看内容")
             const secondaryMeta = item.is_group ? "进入分组" : (config.getSecondaryMeta?.(item) ?? "打开详情")
             const progress = item.is_group ? null : config.getProgress?.(item)
+            const isInteractive = config.isItemInteractive ? config.isItemInteractive(item) : true
 
             return (
               <div
                 className="text-left"
                 key={`${item.group_id || item.id}-${item.enid || title}`}
-                onClick={() => openItem(item)}
-                onKeyDown={(event) => handleCardKeyDown(event, item)}
-                role="button"
-                tabIndex={0}
+                onClick={isInteractive ? () => openItem(item) : undefined}
+                onKeyDown={isInteractive ? (event) => handleCardKeyDown(event, item) : undefined}
+                role={isInteractive ? "button" : undefined}
+                tabIndex={isInteractive ? 0 : undefined}
               >
-                <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
+                <Card className={`h-full overflow-hidden transition ${isInteractive ? "hover:-translate-y-1 hover:shadow-lg" : ""}`}>
                   <div className={`relative overflow-hidden bg-surface-soft ${coverContainerClassName}`}>
                     {item.icon || item.cover || item.index_img ? (
                       <img

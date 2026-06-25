@@ -235,7 +235,7 @@ export function EbookDetailPage() {
           <div className="mt-6 flex flex-wrap gap-2">
             <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">电子书</span>
             {detail.is_vip_book ? (
-              <span className="rounded-full bg-warning-soft px-3 py-1 text-xs font-medium text-warning">会员书</span>
+              <span className="rounded-full bg-warning-soft px-3 py-1 text-xs font-medium text-warning">会员可读</span>
             ) : null}
             {detail.is_on_bookshelf ? (
               <span className="rounded-full bg-success-soft px-3 py-1 text-xs font-medium text-success">已在书架</span>
