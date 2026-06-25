@@ -60,6 +60,8 @@ export function PurchasedAudioPage() {
   return (
     <PurchasedCollectionPage
       category="odob"
+      coverContainerClassName="aspect-square p-3"
+      coverImageClassName="object-contain"
       emptyTitle="当前没有可展示的已购听书"
       getPrimaryMeta={(item: CourseListItem) => formatMinutes(item.duration)}
       getSecondaryMeta={() => undefined}

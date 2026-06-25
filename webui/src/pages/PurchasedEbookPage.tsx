@@ -7,6 +7,8 @@ export function PurchasedEbookPage() {
   return (
     <PurchasedCollectionPage
       category="ebook"
+      coverContainerClassName="aspect-[3/4] p-3"
+      coverImageClassName="object-contain"
       emptyTitle="当前没有可展示的已购电子书"
       getPrimaryMeta={(item: CourseListItem) => item.author || item.lecturer_name || "电子书内容"}
       getSecondaryMeta={(item: CourseListItem) => (item.price ? `¥${item.price}` : "查看详情")}

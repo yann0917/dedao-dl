@@ -439,18 +439,15 @@ export function AppShell() {
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col gap-6 px-4 py-4 lg:px-6">
         <div className="flex min-h-0 flex-1 flex-col gap-6 pb-28">
           <header className="rounded-3xl border border-border bg-surface-panel px-5 py-4 shadow-soft backdrop-blur">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div>
-                <p className="text-sm text-text-muted">工作台</p>
-                <h1 className="text-2xl font-semibold text-text-primary">登录后工作台</h1>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm text-text-muted">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-soft px-4 py-3 text-sm text-text-muted xl:max-w-3xl">
                   <Search className="h-4 w-4" />
                   <span>全局搜索建设中</span>
                 </div>
+              </div>
 
+              <div className="flex items-center justify-end gap-3">
                 <ThemeToggleButton className="rounded-2xl" />
 
                 <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface-panel px-4 py-3 text-text-primary shadow-sm">

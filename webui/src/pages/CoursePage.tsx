@@ -14,6 +14,8 @@ export function CoursePage() {
   return (
     <PurchasedCollectionPage
       category="bauhinia"
+      coverContainerClassName="aspect-square p-3"
+      coverImageClassName="object-contain"
       emptyTitle="当前没有可展示的已购课程"
       getPrimaryMeta={(item: CourseListItem) => `已更 ${item.publish_num || 0}/${item.course_num || 0}`}
       getProgress={(item: CourseListItem) => item.progress || 0}

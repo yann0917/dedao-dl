@@ -70,7 +70,6 @@ export function FreeResourceSection({ module, resources, error, onOpenResource }
               <div className="p-4">
                 <h4 className="line-clamp-2 text-base font-semibold text-text-primary">{resource.name}</h4>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-text-secondary">{resource.intro}</p>
-                <p className="mt-4 text-xs text-text-muted/80">免费专区内容入口</p>
               </div>
             </Card>
           </button>

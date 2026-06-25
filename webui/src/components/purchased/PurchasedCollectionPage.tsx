@@ -36,6 +36,8 @@ type PurchasedCollectionConfig = {
   getPrimaryMeta?: (item: CourseListItem) => string
   getSecondaryMeta?: (item: CourseListItem) => string | null | undefined
   getProgress?: (item: CourseListItem) => number | null
+  coverContainerClassName?: string
+  coverImageClassName?: string
   renderActions?: (
     item: CourseListItem,
     helpers: {
@@ -141,6 +143,8 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
   const hasMore = useMemo(() => items.length < total, [items.length, total])
   const PageIcon = resolvePageIcon(config.icon)
   const FallbackIcon = resolveFallbackIcon(config.icon)
+  const coverContainerClassName = config.coverContainerClassName || "aspect-square"
+  const coverImageClassName = config.coverImageClassName || "object-cover"
 
   async function loadItems(append: boolean, targetPage: number) {
     if (append) {
@@ -328,11 +332,11 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                 tabIndex={0}
               >
                 <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-                  <div className="relative aspect-square overflow-hidden bg-surface-soft">
+                  <div className={`relative overflow-hidden bg-surface-soft ${coverContainerClassName}`}>
                     {item.icon || item.cover || item.index_img ? (
                       <img
                         alt={title}
-                        className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                        className={`h-full w-full transition duration-500 hover:scale-105 ${coverImageClassName}`}
                         src={item.icon || item.cover || item.index_img}
                       />
                     ) : (

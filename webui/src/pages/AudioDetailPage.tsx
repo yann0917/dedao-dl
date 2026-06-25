@@ -146,7 +146,7 @@ export function AudioDetailPage() {
         <Card className="p-6">
           <img
             alt={data.title}
-            className="mx-auto aspect-square w-full max-w-[260px] rounded-3xl object-cover shadow-lg"
+            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-3xl bg-surface-soft p-3 object-contain shadow-lg"
             src={data.index_img || data.icon || "https://placehold.co/600x600/e2e8f0/334155?text=Audio"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
