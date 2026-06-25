@@ -44,8 +44,10 @@ export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
       <span
         aria-hidden="true"
         className={cn(
-          "absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-surface-panel transition-colors duration-300",
-          isDark ? "bg-warning" : "bg-accent/85",
+          "absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-surface-panel transition-[background-color,box-shadow] duration-300",
+          isDark
+            ? "bg-sky-400 shadow-[0_0_0_2px_rgba(56,189,248,0.18)]"
+            : "bg-amber-500 shadow-[0_0_0_2px_rgba(245,158,11,0.18)]",
         )}
       />
     </button>

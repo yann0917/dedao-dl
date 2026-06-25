@@ -53,6 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/shadcn/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/shadcn/tabs"
 import {
   Tooltip,
   TooltipContent,
@@ -828,20 +829,21 @@ export function PurchasedManagePage() {
           </section>
         ) : null}
 
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-2">
-            {MANAGE_TABS.map((tab) => (
-              <Button
-                className="h-10 px-4"
-                key={tab.key}
-                onClick={() => setActiveTabKey(tab.key)}
-                variant={tab.key === activeTab.key ? "default" : "outline"}
-              >
-                <tab.icon className="mr-2 h-4 w-4" />
-                {tab.label}
-              </Button>
-            ))}
-          </div>
+        <Card className="p-3">
+          <Tabs onValueChange={(value) => setActiveTabKey(value as ManageTabKey)} value={activeTab.key}>
+            <TabsList variant="line" className="w-full flex-wrap">
+              {MANAGE_TABS.map((tab) => (
+                <TabsTrigger
+                  className="h-10 rounded-t-xl rounded-b-none border border-transparent border-b-2 border-b-transparent px-4 text-text-secondary data-[state=active]:border-border data-[state=active]:border-b-accent data-[state=active]:bg-surface-panel data-[state=active]:text-text-primary data-[state=active]:shadow-none"
+                  key={tab.key}
+                  value={tab.key}
+                >
+                  <tab.icon className="mr-2 h-4 w-4" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </Card>
 
         <Card className="p-4">
