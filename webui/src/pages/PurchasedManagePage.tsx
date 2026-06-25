@@ -14,7 +14,13 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { api, type CourseListItem, type PurchasedNavbarChild, type PurchasedNavbarItem } from "@/api"
+import {
+  api,
+  type AudioDetailResponse,
+  type CourseListItem,
+  type PurchasedNavbarChild,
+  type PurchasedNavbarItem,
+} from "@/api"
 import {
   Dialog,
   DialogContent,
@@ -287,6 +293,22 @@ function buildPageItems(currentPage: number, totalPages: number) {
   return pages
 }
 
+function parsePositiveId(value?: number | string) {
+  const parsed = typeof value === "number" ? value : Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
+function buildAudioTaskTitle(detail: AudioDetailResponse, fallbackTitle: string) {
+  const packageTitle = detail.package_title?.trim()
+  const itemTitle = detail.title?.trim()
+
+  if (packageTitle && itemTitle) {
+    return `${packageTitle} - ${itemTitle}`
+  }
+
+  return itemTitle || packageTitle || fallbackTitle
+}
+
 function createDownloadRequest(item: CourseListItem, key: Exclude<ManageTabKey, "compass">, downloadType: number) {
   if (key === "course") {
     return api.download.course({
@@ -535,6 +557,56 @@ export function PurchasedManagePage() {
     setPendingDownloadType(downloadType)
 
     try {
+      if (downloadTarget.tab.key === "audio" && downloadTarget.item.type === 1013) {
+        // 合集本身不是可下载音频，先解析合集详情，再按子条目逐个创建下载任务。
+        const groupResult = await api.audio.group(downloadTarget.item.enid)
+        const detailList = groupResult.group?.odob_audio_detail_list ?? []
+        const validItems = detailList.filter((detail) => detail.topic_encode_id && detail.has_play_auth)
+
+        if (validItems.length === 0) {
+          throw new Error("当前合集没有可下载的听书条目，请先确认播放权限是否齐全")
+        }
+
+        let successCount = 0
+        let failureCount = 0
+        const skippedCount = detailList.length - validItems.length
+        let lastErrorMessage = ""
+
+        for (const detail of validItems) {
+          try {
+            const result = await api.download.audio({
+              id: parsePositiveId(detail.audio_id),
+              enid: detail.topic_encode_id,
+              title: buildAudioTaskTitle(detail, resolveItemTitle(downloadTarget.item)),
+              downloadType,
+            })
+            beginSession(result)
+            successCount += 1
+          } catch (err) {
+            failureCount += 1
+            lastErrorMessage = err instanceof Error ? err.message : "请稍后重试"
+          }
+        }
+
+        if (successCount === 0) {
+          throw new Error(lastErrorMessage || "合集下载任务创建失败")
+        }
+
+        const summaryParts = [`已加入 ${successCount} 个任务`]
+        if (skippedCount > 0) {
+          summaryParts.push(`跳过 ${skippedCount} 个无权限或缺少 enid 的条目`)
+        }
+        if (failureCount > 0) {
+          summaryParts.push(`失败 ${failureCount} 个`)
+        }
+
+        toast.success("合集下载任务已加入队列", {
+          description: `${summaryParts.join("，")}。`,
+        })
+        setDownloadTarget(null)
+        return
+      }
+
       const result = await createDownloadRequest(downloadTarget.item, downloadTarget.tab.key, downloadType)
       beginSession(result)
       toast.success("下载已开始", {
@@ -731,14 +803,6 @@ export function PurchasedManagePage() {
   return (
     <TooltipProvider delayDuration={150}>
       <main className="space-y-6">
-        <section className="rounded-3xl border border-border bg-surface-panel p-6 shadow-soft backdrop-blur">
-          <p className="text-sm text-text-muted">已购管理</p>
-          <h2 className="mt-2 text-3xl font-semibold text-text-primary">统一查看与下载</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-text-secondary">
-            这里集中展示课程、听书、电子书与锦囊。课程、听书和电子书保留查看与下载能力；锦囊遵循现有约束，仅作为只读列表展示。
-          </p>
-        </section>
-
         {groupMode.active ? (
           <section className="rounded-3xl border border-border bg-surface-panel p-4 shadow-soft backdrop-blur">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -958,7 +1022,9 @@ export function PurchasedManagePage() {
             <DialogHeader>
               <DialogTitle>下载 {downloadTarget ? resolveItemTitle(downloadTarget.item) : ""}</DialogTitle>
               <DialogDescription className="text-text-muted">
-                根据当前内容类型选择导出格式。下载任务会在服务端执行，并同步显示进度。
+                {downloadTarget?.tab.key === "audio" && downloadTarget.item.type === 1013
+                  ? "将先解析合集中的每本听书，再按所选格式批量创建下载任务。"
+                  : "根据当前内容类型选择导出格式。下载任务会在服务端执行，并同步显示进度。"}
               </DialogDescription>
             </DialogHeader>
 
