@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { type HomeCategory } from "@/api"
-import { Card } from "@/components/ui/Card"
 import {
   Menubar,
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/Menubar"
-import { semanticMetaTextClass } from "@/lib/semanticStyles"
+import { semanticPageSectionClass } from "@/lib/semanticStyles"
 
 type HomeCategoryMenuProps = {
   categories: HomeCategory[]
@@ -47,74 +46,65 @@ export function HomeCategoryMenu({
   }, [])
 
   return (
-    <Card className="h-full p-4">
-      <div>
-        <p className="text-sm font-medium text-text-primary">分类</p>
-      </div>
+    <div className={`${semanticPageSectionClass} h-full p-4`}>
+      <Menubar className="w-full justify-start border-0 bg-transparent p-0">
+        {categories.map((category) => {
+          const hasLabels = category.labelList.length > 0
+          const isHovered = hoveredCategoryEnid === category.enid
 
-      <div className="mt-4">
-        <Menubar className="w-full justify-start bg-transparent p-0">
-          {categories.map((category) => {
-            const hasLabels = category.labelList.length > 0
-            const isHovered = hoveredCategoryEnid === category.enid
+          return (
+            <MenubarMenu key={category.enid}>
+              {/* Radix menubar 的顶层菜单不提供这里需要的受控开合，悬浮层改用局部状态管理。 */}
+              <div
+                className="relative"
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    scheduleCloseCategoryMenu(category.enid)
+                  }
+                }}
+                onFocusCapture={() => {
+                  if (hasLabels) {
+                    openCategoryMenu(category.enid)
+                  }
+                }}
+                onPointerEnter={() => {
+                  if (hasLabels) {
+                    openCategoryMenu(category.enid)
+                  }
+                }}
+                onPointerLeave={() => {
+                  if (hasLabels) {
+                    scheduleCloseCategoryMenu(category.enid)
+                  }
+                }}
+              >
+                <MenubarTrigger onClick={() => onNavigateCategory(category, "")}>
+                  {category.name}
+                </MenubarTrigger>
 
-            return (
-              <MenubarMenu key={category.enid}>
-                {/* Radix menubar 的顶层菜单不提供这里需要的受控开合，悬浮层改用局部状态管理。 */}
-                <div
-                  className="relative"
-                  onBlurCapture={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                      scheduleCloseCategoryMenu(category.enid)
-                    }
-                  }}
-                  onFocusCapture={() => {
-                    if (hasLabels) {
-                      openCategoryMenu(category.enid)
-                    }
-                  }}
-                  onPointerEnter={() => {
-                    if (hasLabels) {
-                      openCategoryMenu(category.enid)
-                    }
-                  }}
-                  onPointerLeave={() => {
-                    if (hasLabels) {
-                      scheduleCloseCategoryMenu(category.enid)
-                    }
-                  }}
-                >
-                  <MenubarTrigger onClick={() => onNavigateCategory(category, "")}>
-                    {category.name}
-                  </MenubarTrigger>
-
-                  {hasLabels && isHovered ? (
-                    <div className="absolute left-0 top-full z-50 min-w-[14rem] pt-2">
-                      <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl">
-                        <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-text-muted">
-                          选择标签
-                        </p>
-                        <div className="space-y-1">
-                          {category.labelList.map((label) => (
-                            <button
-                              key={label.enid}
-                              className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-text-secondary transition hover:bg-surface-soft focus:bg-surface-soft focus:outline-none"
-                              onClick={() => onNavigateCategory(category, label.enid)}
-                              type="button"
-                            >
-                              <span className="truncate">{label.name}</span>
-                            </button>
-                          ))}
-                        </div>
+                {hasLabels && isHovered ? (
+                  <div className="absolute left-0 top-full z-50 min-w-[14rem] pt-2">
+                    <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl">
+                      <div className="space-y-1">
+                        {category.labelList.map((label) => (
+                          <button
+                            key={label.enid}
+                            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-text-secondary transition hover:bg-surface-soft focus:bg-surface-soft focus:outline-none"
+                            onClick={() => onNavigateCategory(category, label.enid)}
+                            type="button"
+                          >
+                            <span className="truncate">{label.name}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ) : null}
-                </div>
-              </MenubarMenu>
-            )
-          })}
-        </Menubar>
-      </div>
-    </Card>
+                  </div>
+                ) : null}
+              </div>
+            </MenubarMenu>
+          )
+        })}
+      </Menubar>
+    </div>
   )
 }

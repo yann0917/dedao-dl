@@ -12,8 +12,6 @@ import {
   semanticSubtlePanelClass,
 } from "@/lib/semanticStyles"
 
-const CATALOG_PREVIEW_COUNT = 12
-
 const ebookDownloadOptions: DownloadOption[] = [
   { value: 1, label: "下载 HTML" },
   { value: 2, label: "下载 PDF" },
@@ -82,13 +80,10 @@ export function EbookDetailPage() {
   const [data, setData] = useState<EbookDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [catalogExpanded, setCatalogExpanded] = useState(false)
   const [shelfLoading, setShelfLoading] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-
-    setCatalogExpanded(false)
 
     const load = async () => {
       setLoading(true)
@@ -145,8 +140,6 @@ export function EbookDetailPage() {
   const chapterCount = catalogList.length || detail.count || 0
   const pressName = detail.press?.name || "未知"
   const pressBrief = detail.press?.brief || ""
-  const shouldShowCatalogToggle = catalogList.length > CATALOG_PREVIEW_COUNT
-  const visibleCatalogList = catalogExpanded ? catalogList : catalogList.slice(0, CATALOG_PREVIEW_COUNT)
   const isOnBookshelf = Boolean(detail.is_on_bookshelf)
 
   const handleAddToShelf = async () => {
@@ -333,18 +326,11 @@ export function EbookDetailPage() {
           </Card>
 
           <Card className="p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-text-primary">目录</h3>
-              {shouldShowCatalogToggle ? (
-                <Button onClick={() => setCatalogExpanded((value) => !value)} variant="outline">
-                  {catalogExpanded ? "收起目录" : `展开全部目录 (${catalogList.length})`}
-                </Button>
-              ) : null}
-            </div>
+            <h3 className="text-xl font-semibold text-text-primary">目录</h3>
             <div className="mt-4">
               {catalogList.length > 0 ? (
-                <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft/60">
-                  {visibleCatalogList.map((item, index) => {
+                <div className="max-h-[36rem] overflow-y-auto rounded-2xl border border-border bg-surface-soft/60">
+                  {catalogList.map((item, index) => {
                     const level = normalizeCatalogLevel(item.level)
 
                     return (
@@ -378,11 +364,6 @@ export function EbookDetailPage() {
                   当前电子书暂无目录信息。
                 </div>
               )}
-              {shouldShowCatalogToggle && !catalogExpanded ? (
-                <p className="mt-3 text-xs text-text-muted">
-                  当前仅展示前 {CATALOG_PREVIEW_COUNT} 条目录，共 {catalogList.length} 条。
-                </p>
-              ) : null}
             </div>
           </Card>
 

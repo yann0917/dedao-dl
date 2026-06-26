@@ -14,7 +14,7 @@ var (
 var webCmd = &cobra.Command{
 	Use:   "web",
 	Short: "启动 Web UI 与 API 服务",
-	Long:  "启动基于 gin 的 Web API，并打开内置的 React 前端页面。",
+	Long:  "启动基于 gin 的 Web API，并打开内置的 Web 页面。",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return webserver.Start(webserver.Options{
 			Host:        webHost,

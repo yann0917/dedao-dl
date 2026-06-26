@@ -46,6 +46,21 @@ func GetBadgerDB(dbPath string) (*BadgerDB, error) {
 	return badgerInstance, nil
 }
 
+// CloseBadgerDB 关闭全局 BadgerDB 实例；若未初始化则直接返回。
+func CloseBadgerDB() error {
+	if badgerInstance == nil {
+		return nil
+	}
+
+	if err := badgerInstance.Close(); err != nil {
+		return err
+	}
+
+	badgerInstance = nil
+	once = sync.Once{}
+	return nil
+}
+
 // NewBadgerDB 创建一个新的 BadgerDB 实例
 func NewBadgerDB(dbPath string) (*BadgerDB, error) {
 	// 确保数据库目录存在

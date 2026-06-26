@@ -12,7 +12,6 @@ export function HomePortalUserCard() {
   return (
     <Card className="flex h-full min-h-[360px] flex-col justify-between p-6">
       <div>
-        <p className={semanticMetaTextClass}>学习状态</p>
         <div className="mt-5 flex flex-col items-center text-center">
           <img
             alt={user?.nickname ?? "avatar"}

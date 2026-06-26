@@ -228,7 +228,7 @@ function getStatusText(item: CourseListItem, key: ManageTabKey) {
     return item.in_bookrack || item.is_on_bookshelf ? "书架中" : "可查看"
   }
 
-  return "仅展示"
+  return ""
 }
 
 function getBadgeLabels(item: CourseListItem, key: ManageTabKey) {
@@ -251,7 +251,7 @@ function getBadgeLabels(item: CourseListItem, key: ManageTabKey) {
   }
 
   if (key === "compass") {
-    badges.push("只读")
+    badges.push("")
   }
 
   return badges
