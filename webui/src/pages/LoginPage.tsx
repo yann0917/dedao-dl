@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { BadgeCheck, BookOpen, Search } from "lucide-react"
+import { BadgeCheck, BookOpen, Trophy } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { QrLoginCard } from "@/components/auth/QrLoginCard"
 import { Card } from "@/components/ui/Card"
@@ -9,8 +9,8 @@ import { useAuth } from "@/providers/AuthProvider"
 
 const loginHighlights = [
   { icon: BadgeCheck, title: "扫码登录", text: "打开页面后即可使用二维码登录当前账号。" },
-  { icon: Search, title: "统一协议", text: "所有接口统一返回 code、msg、data。" },
-  { icon: BookOpen, title: "学习工作台", text: "登录后可继续查看课程、电子书、听书和用户信息。" },
+  { icon: Trophy, title: "得到榜单", text: "可查看课程、听书、电子书等内容榜单。" },
+  { icon: BookOpen, title: "学习工作台", text: "可查看课程、电子书、听书和用户信息。" },
 ]
 
 export function LoginPage() {

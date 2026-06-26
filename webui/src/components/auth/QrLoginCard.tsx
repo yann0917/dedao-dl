@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { Loader2, RefreshCcw, ScanLine } from "lucide-react"
+import { toast } from "sonner"
 import { api, type QRCodeSession, type UserInfo } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
-import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSectionClass } from "@/lib/semanticStyles"
+import { getSemanticStatusBadgeClass, semanticMetaTextClass } from "@/lib/semanticStyles"
 
 type QrLoginCardProps = {
   onLoginSuccess: (user?: UserInfo | null) => void | Promise<void>
@@ -11,8 +12,6 @@ type QrLoginCardProps = {
 
 export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
   const [session, setSession] = useState<QRCodeSession | null>(null)
-  const [statusText, setStatusText] = useState("正在准备二维码...")
-  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [polling, setPolling] = useState(false)
 
@@ -28,18 +27,16 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
 
   const loadQRCode = async () => {
     setLoading(true)
-    setError(null)
-    setStatusText("正在生成二维码...")
 
     try {
       const next = await api.auth.createQRCode()
       setSession(next)
       setPolling(true)
-      setStatusText("请使用得到 App 或微信扫码登录")
     } catch (err) {
       setPolling(false)
-      setError(err instanceof Error ? err.message : "二维码生成失败")
-      setStatusText("二维码生成失败，请稍后重试")
+      toast.error("二维码生成失败", {
+        description: err instanceof Error ? err.message : "请稍后重试",
+      })
     } finally {
       setLoading(false)
     }
@@ -58,25 +55,29 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
       try {
         const result = await api.auth.getQRCodeStatus(session.sessionId)
         if (result.status === 1) {
-          setStatusText("扫码成功，正在进入工作台...")
           window.clearInterval(timer)
           setPolling(false)
+          toast.success("扫码成功", {
+            description: "正在进入工作台...",
+          })
           await onLoginSuccess(result.user ?? null)
           return
         }
 
         if (result.status === 2) {
-          setStatusText("二维码已过期，请刷新后重新扫码")
           window.clearInterval(timer)
           setPolling(false)
+          toast.error("二维码已过期", {
+            description: "请刷新后重新扫码",
+          })
           return
         }
-
-        setStatusText("等待扫码确认...")
       } catch (err) {
-        setError(err instanceof Error ? err.message : "轮询登录状态失败")
         setPolling(false)
         window.clearInterval(timer)
+        toast.error("轮询登录状态失败", {
+          description: err instanceof Error ? err.message : "请稍后重试",
+        })
       }
     }, 2000)
 
@@ -107,13 +108,12 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
           </div>
         </div>
 
-        <div className={`${semanticPageSectionClass} bg-surface-inverse p-4 text-text-inverse`}>
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <ScanLine className="h-4 w-4" />
+        <div className="rounded-2xl border border-border bg-surface-soft p-4 text-text-primary">
+          <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
+            <ScanLine className="h-4 w-4 text-accent" />
             得到 App / 微信扫码
           </div>
-          <p className="mt-2 text-sm text-text-inverse/78">{statusText}</p>
-          {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
+          <p className={`mt-2 text-sm ${semanticMetaTextClass}`}>使用得到 App 或微信扫码，手机确认后会自动进入工作台。</p>
         </div>
 
         <div className="flex gap-3">

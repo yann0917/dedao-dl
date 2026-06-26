@@ -1,4 +1,4 @@
-import { BookOpen, GraduationCap, Headphones, Loader2, RefreshCcw, Sparkles, Trophy } from "lucide-react"
+import { BookOpen, Loader2, RefreshCcw, Sparkles, Trophy } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { api, type RankBaseInfoResponse, type RankBoard, type RankListItem, type RankListResponse } from "@/api"
 import { Button } from "@/components/ui/Button"
@@ -58,14 +58,12 @@ function RankBoardHero({ board }: { board: RankBoard | null }) {
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 space-y-3">
           <span className={badge.className}>{badge.label}</span>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold">{board?.title || "得到榜单"}</h2>
-            <p className="text-sm text-white/80">{board?.sub_title || board?.rn_left_title || "选择一个榜单查看当前排行内容。"}</p>
-          </div>
-          <div className="flex flex-wrap gap-3 text-sm text-white/85">
-            {board?.rn_left_title ? <span className="rounded-full bg-white/12 px-3 py-1.5">{board.rn_left_title}</span> : null}
-            {board?.rn_right_title ? <span className="rounded-full bg-white/12 px-3 py-1.5">{board.rn_right_title}</span> : null}
-          </div>
+          <h2 className="text-2xl font-semibold">{board?.title || "得到榜单"}</h2>
+          {board?.rn_right_title ? (
+            <div className="flex flex-wrap gap-3 text-sm text-white/85">
+              <span className="rounded-full bg-white/12 px-3 py-1.5">{board.rn_right_title}</span>
+            </div>
+          ) : null}
         </div>
 
         <div className="grid min-w-[14rem] grid-cols-2 gap-3">
@@ -238,10 +236,7 @@ export function DedaoLeaderboardPage() {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
               <Trophy className="h-5 w-5" />
             </div>
-            <div className="space-y-1">
-              <h1 className="text-lg font-semibold text-text-primary">得到榜单</h1>
-              <p className={semanticMetaTextClass}>直接调用榜单接口，支持切换内容类型和具体榜单。</p>
-            </div>
+            <h1 className="text-lg font-semibold text-text-primary">得到榜单</h1>
           </div>
 
           <Button className="gap-2 self-start md:self-auto" onClick={() => void loadBaseInfo()} variant="outline">
@@ -249,16 +244,6 @@ export function DedaoLeaderboardPage() {
             刷新榜单
           </Button>
         </header>
-
-        {normalizeAssetUrl(baseInfo?.header.index_image) ? (
-          <div className="overflow-hidden rounded-3xl border border-border bg-surface-soft">
-            <img
-              alt="得到榜单头图"
-              className="h-full max-h-56 w-full object-cover"
-              src={normalizeAssetUrl(baseInfo?.header.index_image)}
-            />
-          </div>
-        ) : null}
 
         {baseLoading ? (
           <div className="flex min-h-[18rem] items-center justify-center gap-3 text-sm text-text-muted">
@@ -323,13 +308,8 @@ export function DedaoLeaderboardPage() {
       ) : null}
 
       <section className={`${semanticPageSectionClass} p-6`}>
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-text-primary">榜单内容</h2>
-            <p className={semanticMetaTextClass}>
-              {currentBoard ? `${currentBoard.title} · 共 ${currentBoard.list.length} 条` : "选择榜单后查看详细内容"}
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-text-primary">榜单内容</h2>
         </div>
 
         {listLoading ? (
@@ -350,35 +330,6 @@ export function DedaoLeaderboardPage() {
         )}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <Card className="p-5">
-          <div className="flex items-center gap-3">
-            <GraduationCap className="h-5 w-5 text-accent" />
-            <div>
-              <p className="font-medium text-text-primary">课程榜</p>
-              <p className={`text-sm ${semanticMetaTextClass}`}>适合查看课程热度、总榜和主题分榜。</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-5">
-          <div className="flex items-center gap-3">
-            <Headphones className="h-5 w-5 text-success" />
-            <div>
-              <p className="font-medium text-text-primary">听书榜</p>
-              <p className={`text-sm ${semanticMetaTextClass}`}>支持热门榜、新书榜和细分类榜单切换。</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-5">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-warning" />
-            <div>
-              <p className="font-medium text-text-primary">电子书榜</p>
-              <p className={`text-sm ${semanticMetaTextClass}`}>展示热门、畅销、热读与多个专题排行。</p>
-            </div>
-          </div>
-        </Card>
-      </section>
     </main>
   )
 }
