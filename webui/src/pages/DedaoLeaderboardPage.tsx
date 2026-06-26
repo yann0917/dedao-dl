@@ -88,35 +88,37 @@ function RankItemCardView({ item, index }: { item: RankListItem; index: number }
   const showBought = item.authority_intro?.is_buy
 
   return (
-    <Card className="h-full overflow-hidden p-5 transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="flex h-full flex-col gap-4">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-lg font-semibold text-accent">
-            {index + 1}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{item.title || "未命名内容"}</h3>
-              {showBought ? <span className={getSemanticStatusBadgeClass("success")}>已购</span> : null}
-              {item.is_today ? <span className={getSemanticStatusBadgeClass("warning")}>今日</span> : null}
-            </div>
-            <p className={`mt-1 text-sm ${semanticMetaTextClass}`}>{item.author || item.type_name || "得到内容"}</p>
-          </div>
-        </div>
-
+    <Card className="h-full overflow-visible p-5 transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="flex h-full flex-col gap-3">
         <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
-          <div className="overflow-hidden rounded-2xl bg-surface-soft">
-            {cover ? (
-              <img alt={item.title || "榜单封面"} className="h-full w-full object-cover" src={cover} />
-            ) : (
-              <div className="flex h-full min-h-[9rem] items-center justify-center bg-surface-soft text-text-muted">
-                <BookOpen className="h-8 w-8" />
-              </div>
-            )}
+          <div className="relative overflow-visible">
+            <div className="overflow-hidden rounded-2xl bg-surface-soft">
+              {cover ? (
+                <img alt={item.title || "榜单封面"} className="h-full w-full object-cover" src={cover} />
+              ) : (
+                <div className="flex h-full min-h-[9rem] items-center justify-center bg-surface-soft text-text-muted">
+                  <BookOpen className="h-8 w-8" />
+                </div>
+              )}
+            </div>
+
+            <div className="pointer-events-none absolute -left-3 -top-3 z-10">
+              <span className="inline-flex items-center rounded-full bg-black/45 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur ring-1 ring-white/20 shadow-soft">
+                #{index + 1}
+              </span>
+            </div>
           </div>
 
           <div className="min-w-0 space-y-3">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{item.title || "未命名内容"}</h3>
+                {showBought ? <span className={getSemanticStatusBadgeClass("success")}>已购</span> : null}
+                {item.is_today ? <span className={getSemanticStatusBadgeClass("warning")}>今日</span> : null}
+              </div>
+              <p className={`text-sm ${semanticMetaTextClass}`}>{item.author || item.type_name || "得到内容"}</p>
+            </div>
+
             <p className="line-clamp-3 text-sm leading-7 text-text-secondary">
               {item.recommend_title || item.recommend_intro || item.intro || "暂无简介"}
             </p>
@@ -232,11 +234,11 @@ export function DedaoLeaderboardPage() {
 
       <section className={`${semanticPageSectionClass} space-y-6 p-6`}>
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
               <Trophy className="h-5 w-5" />
             </div>
-            <h1 className="text-lg font-semibold text-text-primary">得到榜单</h1>
+            <h1 className="text-lg font-semibold leading-none text-text-primary">得到榜单</h1>
           </div>
 
           <Button className="gap-2 self-start md:self-auto" onClick={() => void loadBaseInfo()} variant="outline">
