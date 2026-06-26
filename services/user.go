@@ -81,7 +81,7 @@ type OdobVipUser struct {
 		UID               int    `json:"uid"`
 		VStateValue       int    `json:"v_state_value"`
 		WeekCount         int    `json:"week_count"`
-	}
+	} `json:"user"`
 }
 
 // OdobVIPInfo 获取每天听本书 VIP 信息

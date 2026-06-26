@@ -1,6 +1,7 @@
 package services
 
 import (
+	"io"
 	"math"
 
 	"errors"
@@ -26,14 +27,31 @@ type CourseIntro struct {
 
 // CourseInfo product intro info
 type CourseInfo struct {
-	ClassInfo              ClassInfo     `json:"class_info"`
-	Items                  []CourseIntro `json:"items"`
-	ArticleIntro           ArticleIntro  `json:"intro_article"`
-	ChapterList            []Chapter     `json:"chapter_list"`
-	FlatArticleList        []ArticleBase `json:"flat_article_list"`
-	UserType               string        `json:"user_type"`
-	HasMoreFlatArticleList bool          `json:"has_more_flat_article_list"`
-	IsShowGrading          bool          `json:"is_show_grading"`
+	ClassInfo              ClassInfo        `json:"class_info"`
+	Items                  []CourseIntro    `json:"items"`
+	ArticleIntro           ArticleIntro     `json:"intro_article"`
+	ChapterList            []Chapter        `json:"chapter_list"`
+	FlatArticleList        []ArticleBase    `json:"flat_article_list"`
+	UserType               string           `json:"user_type"`
+	HasMoreFlatArticleList bool             `json:"has_more_flat_article_list"`
+	IsShowGrading          bool             `json:"is_show_grading"`
+	ClassReviewsCount      int              `json:"class_reviews_count"`
+	ClassCommentInfo       ClassCommentInfo `json:"class_comment_info"`
+}
+
+type ClassCommentInfo struct {
+	CommentList  []ClassComment `json:"comment_list"`
+	Count        int            `json:"count"`
+	AverageScore string         `json:"average_score"`
+}
+
+type ClassComment struct {
+	ID             int    `json:"id"`
+	Title          string `json:"title"`
+	Score          int    `json:"score"`
+	NoStyleContent string `json:"no_style_content"`
+	Nickname       string `json:"nickname"`
+	AvatarS        string `json:"avatar_s"`
 }
 
 // ClassInfo class info
@@ -210,7 +228,17 @@ func (c *Course) HasAudio() bool {
 
 // CourseListV2 获取V2版本的课程列表
 func (s *Service) CourseList(category, order string, page, limit int) (response *CourseList, err error) {
-	body, err := s.reqCourseList(category, order, page, limit)
+	return s.CourseListWithFilter(category, order, CatAll, page, limit)
+}
+
+// CourseListWithFilter 获取带筛选条件的资产列表
+func (s *Service) CourseListWithFilter(category, order, filter string, page, limit int) (response *CourseList, err error) {
+	var body io.ReadCloser
+	if filter == CatAll {
+		body, err = s.reqCourseList(category, order, page, limit)
+	} else {
+		body, err = s.reqCourseListWithFilter(category, order, filter, page, limit)
+	}
 	if err != nil {
 		return
 	}
@@ -224,7 +252,17 @@ func (s *Service) CourseList(category, order string, page, limit int) (response 
 // CourseGroupList fetches a single page of items within a specific group.
 // 获取分组内的课程列表（单页）
 func (s *Service) CourseGroupList(category, order string, groupID, page, limit int) (response *CourseList, err error) {
-	body, err := s.reqCourseGroupList(category, order, groupID, page, limit)
+	return s.CourseGroupListWithFilter(category, order, CatAll, groupID, page, limit)
+}
+
+// CourseGroupListWithFilter 获取分组内带筛选条件的资产列表
+func (s *Service) CourseGroupListWithFilter(category, order, filter string, groupID, page, limit int) (response *CourseList, err error) {
+	var body io.ReadCloser
+	if filter == CatAll {
+		body, err = s.reqCourseGroupList(category, order, groupID, page, limit)
+	} else {
+		body, err = s.reqCourseGroupListWithFilter(category, order, filter, groupID, page, limit)
+	}
 	if err != nil {
 		return
 	}

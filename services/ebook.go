@@ -387,6 +387,15 @@ type EbookInfo struct {
 	} `json:"bookInfo"`
 }
 
+type EbookShelfAddResp struct {
+	Data EbookShelfAddData `json:"data"`
+}
+
+type EbookShelfAddData struct {
+	N     int `json:"n"`
+	Count int `json:"count"`
+}
+
 // EbookVIPInfo ebook vip info
 type EbookVIPInfo struct {
 	UID                int    `json:"uid"`
@@ -598,6 +607,38 @@ type EbookNoteListRequest struct {
 	BookEnid string `json:"book_enid"`
 }
 
+// EbookCommentList 电子书评分和书评列表
+type EbookCommentList struct {
+	EbookScore EbookScore  `json:"ebook_score"`
+	SelfInfo   SelfInfo    `json:"self_info"`
+	List       []EbookNote `json:"list"`
+	Total      int         `json:"total"`
+	Book       Book        `json:"book"`
+}
+
+type SelfInfo struct {
+	Score      int `json:"score"`
+	AuditState int `json:"audit_state"`
+}
+
+type Book struct {
+	BookType int `json:"book_type"`
+}
+
+type EbookScore struct {
+	Id           int      `json:"id"`
+	Pid          int      `json:"pid"`
+	Ptype        int      `json:"ptype"`
+	Isbn         string   `json:"isbn"`
+	AverageScore string   `json:"average_score"`
+	ScoreInfo    []string `json:"score_info"`
+	CreateTime   string   `json:"create_time"`
+	UpdateTime   string   `json:"update_time"`
+	Total        string   `json:"total"`
+	Status       int      `json:"status"`
+	BookStatus   int      `json:"book_status"`
+}
+
 // EbookPages 使用默认选项的 EbookPages
 func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
 	operation := func() (*EbookPage, error) {
@@ -651,6 +692,63 @@ func (s *Service) EbookDetail(enid string) (detail *EbookDetail, err error) {
 		return d, nil
 	}
 	return withRetry(operation, "book-detail")
+}
+
+// EbookCommentList 获取电子书评分和书评列表
+func (s *Service) EbookCommentList(enid, sort string, page, limit int) (list *EbookCommentList, err error) {
+	operation := func() (*EbookCommentList, error) {
+		body, err := s.reqEbookCommentList(enid, sort, page, limit)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+
+		var result *EbookCommentList
+		if err = handleJSONParse(body, &result); err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+
+	return withRetry(operation, "ebook-comment-list")
+}
+
+// EbookShelfAdd 加入电子书书架
+func (s *Service) EbookShelfAdd(ids []string) (resp *EbookShelfAddResp, err error) {
+	operation := func() (*EbookShelfAddResp, error) {
+		body, err := s.reqEbookShelfAdd(ids)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+
+		var result *EbookShelfAddResp
+		if err = handleJSONParse(body, &result); err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+
+	return withRetry(operation, "ebook-shelf-add")
+}
+
+// EbookShelfRemove 移出电子书书架
+func (s *Service) EbookShelfRemove(ids []string) (resp *EbookShelfAddResp, err error) {
+	operation := func() (*EbookShelfAddResp, error) {
+		body, err := s.reqEbookShelfRemove(ids)
+		if err != nil {
+			return nil, err
+		}
+		defer body.Close()
+
+		var result *EbookShelfAddResp
+		if err = handleJSONParse(body, &result); err != nil {
+			return nil, err
+		}
+		return result, nil
+	}
+
+	return withRetry(operation, "ebook-shelf-remove")
 }
 
 // EbookReadToken get ebook read token

@@ -1,9 +1,5 @@
 package services
 
-import (
-	"github.com/yann0917/dedao-dl/utils"
-)
-
 type QrCodeResp struct {
 	ErrCode int    `json:"errCode"`
 	ErrMsg  string `json:"errMsg"`
@@ -36,10 +32,6 @@ func (s *Service) GetQrcode(token string) (resp *QrCodeResp, err error) {
 	if err != nil {
 		return
 	}
-	content := "https://m.igetget.com/oauth/qrcode/v2/authorize?token=" + resp.Data.QrCodeString
-	obj := utils.New()
-	obj.Get(content).Print()
-
 	return
 }
 
@@ -50,4 +42,8 @@ func (s *Service) CheckLogin(token, qrcode string) (check *CheckLoginResp, cooki
 	}
 
 	return
+}
+
+func QRCodeAuthorizeURL(token string) string {
+	return "https://m.igetget.com/oauth/qrcode/v2/authorize?token=" + token
 }
