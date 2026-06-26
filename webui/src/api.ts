@@ -347,6 +347,118 @@ export type HomePortalResponse = {
   courseContentError?: string
 }
 
+export type RankSquareHeader = {
+  index_image: string
+}
+
+export type RankTypeInfo = {
+  rank_id: number
+  title: string
+  sub_title: string
+}
+
+export type RankNavGroup = {
+  ptype: number
+  name: string
+  rank_type_list: RankTypeInfo[]
+}
+
+export type RankBaseInfoResponse = {
+  header: RankSquareHeader
+  nav_list: RankNavGroup[]
+}
+
+export type RankListItem = {
+  product_id: number
+  product_type: number
+  origin_type: number
+  origin_id: number
+  type_name: string
+  index_img: string
+  square_img: string
+  logo: string
+  title: string
+  recommend_title: string
+  recommend_intro: string
+  intro: string
+  author: string
+  status: number
+  log_id: number
+  log_type: string
+  track_info: string
+  dd_url: string
+  metrics: string
+  hot_intro: {
+    number: number
+    intro: string
+    score: string
+    user_score_count: number
+  }
+  collection_info: {
+    number: number
+    intro: string
+  }
+  progress_intro: {
+    intro: string
+    progress: number
+    max_progress: number
+    is_finish: number
+    uint: string
+  }
+  cost_intro: {
+    price: string
+    discount_price: string
+    coupon_price: string
+    tag: string
+    tag_color: number
+  }
+  authority_intro: {
+    is_buy: boolean
+    is_vip: boolean
+    is_vip_expired: boolean
+    has_authority: boolean
+    in_book_rack: boolean
+    is_subscribe: boolean
+  }
+  corner_img_vertical: string
+  online_time: string
+  is_today: boolean
+  is_show_newbook: boolean
+  recommend_ebook: boolean
+  douban_info: {
+    score: string
+    use_douban: boolean
+    douban_icon: string
+  }
+  learn_count_info: {
+    learn_count: number
+    learn_count_desc: string
+  }
+}
+
+export type RankBoard = {
+  id: number
+  title: string
+  sub_title: string
+  count: number
+  rn_img: string
+  rn_left_title: string
+  rn_right_title: string
+  rank_type: number
+  background_color: string
+  resource_type: number
+  tips: string
+  share_img: string
+  dd_url: string
+  log_id: number
+  log_type: string
+  list: RankListItem[]
+}
+
+export type RankListResponse = {
+  list: RankBoard[]
+}
+
 export type AlgoOption = {
   name: string
   value: string
@@ -811,6 +923,10 @@ export const api = {
       request<HomeContentResponse>(
         `/api/home/label-content?type=${type}&enid=${encodeURIComponent(enid)}&page=${page}&pageSize=${pageSize}`,
       ),
+  },
+  rank: {
+    baseInfo: () => request<RankBaseInfoResponse>("/api/rank/base-info"),
+    list: (rankType: number) => request<RankListResponse>(`/api/rank/list?rankType=${rankType}`),
   },
   algo: {
     filter: (params: Partial<AlgoFilterRequest>) => request<AlgoFilterResponse>(`/api/algo/filter?${buildAlgoQuery(params)}`),

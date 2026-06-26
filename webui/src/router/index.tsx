@@ -9,6 +9,7 @@ import { CategoryPage } from "@/pages/CategoryPage"
 import { CourseArticleListPage } from "@/pages/CourseArticleListPage"
 import { CourseDetailPage } from "@/pages/CourseDetailPage"
 import { CoursePage } from "@/pages/CoursePage"
+import { DedaoLeaderboardPage } from "@/pages/DedaoLeaderboardPage"
 import { EbookCommentPage } from "@/pages/EbookCommentPage"
 import { EbookDetailPage } from "@/pages/EbookDetailPage"
 import { HomePage } from "@/pages/HomePage"
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "leaderboard",
+        element: <DedaoLeaderboardPage />,
       },
       {
         path: "courses",
