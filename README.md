@@ -109,6 +109,7 @@ Available Commands:
   ace         获取我的锦囊
   article     获取文章详情
   cat         获取课程分类
+  clean       清理 output 或 .cache 目录
   channel     学习圈相关操作
   course      获取我购买过课程
   dl          下载已购买课程，并转换成 PDF & 音频
@@ -228,6 +229,18 @@ dedao-dl --json recent
 * `--max-id` 分页游标，默认 `0`
 * `--product-type` 产品类型过滤（如 `66`）
 * `--filter-product-type` 是否按 `product_type` 过滤，默认 `true`
+
+`dedao-dl clean` 清理工作目录下的输出或缓存目录
+
+```bash
+dedao-dl clean output
+dedao-dl clean cache
+```
+
+说明：
+
+* `clean output` 会清空并重建 `output/` 目录
+* `clean cache` 会先关闭 BadgerDB，再清空并重建 `.cache/` 目录
 
 `dedao-dl free` 获取免费课程列表
 

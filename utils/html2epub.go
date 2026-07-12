@@ -46,6 +46,7 @@ type HtmlToEpub struct {
 	book         *epub.Epub
 	imgIdx       int
 	sectionCSS   string
+	tempCSSPath  string
 }
 
 const kindleSafeCSS = `
@@ -71,6 +72,8 @@ func (h *HtmlToEpub) Run() (err error) {
 	return h.run()
 }
 func (h *HtmlToEpub) run() (err error) {
+	defer h.cleanupTempFiles()
+
 	err = h.genBook()
 	if err != nil {
 		return
@@ -90,6 +93,14 @@ func (h *HtmlToEpub) run() (err error) {
 	}
 
 	return
+}
+
+func (h *HtmlToEpub) cleanupTempFiles() {
+	if h.tempCSSPath == "" {
+		return
+	}
+	_ = os.Remove(h.tempCSSPath)
+	h.tempCSSPath = ""
 }
 
 func (h *HtmlToEpub) genBook() error {
@@ -198,7 +209,6 @@ func (h *HtmlToEpub) setKindleSafeCSS() error {
 	if err != nil {
 		return fmt.Errorf("can't create css tempfile: %s", err)
 	}
-	defer os.Remove(temp.Name())
 
 	if _, err = temp.WriteString(kindleSafeCSS); err != nil {
 		_ = temp.Close()
@@ -208,6 +218,7 @@ func (h *HtmlToEpub) setKindleSafeCSS() error {
 		return fmt.Errorf("can't close css tempfile: %s", err)
 	}
 
+	h.tempCSSPath = temp.Name()
 	h.sectionCSS, err = h.book.AddCSS(temp.Name(), "epub-kindle-safe.css")
 	if err != nil {
 		return fmt.Errorf("can't add kindle safe css: %s", err)
