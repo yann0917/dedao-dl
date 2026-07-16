@@ -7,7 +7,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.11.0
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.3
 	github.com/bmaupin/go-epub v1.1.0
-	github.com/dgraph-io/badger/v4 v4.8.0
+	github.com/dgraph-io/badger/v4 v4.9.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-resty/resty/v2 v2.17.2
 	github.com/gomarkdown/markdown v0.0.0-20260614204949-e08cff860f76
