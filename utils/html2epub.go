@@ -1,19 +1,20 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"mime"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
-	"errors"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/bmaupin/go-epub"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/yann0917/dedao-dl/request"
 )
 
@@ -44,7 +45,24 @@ type HtmlToEpub struct {
 	DefaultCover []byte
 	book         *epub.Epub
 	imgIdx       int
+	sectionCSS   string
+	tempCSSPath  string
 }
+
+const kindleSafeCSS = `
+body, div, p, li, span, a, blockquote, h1, h2, h3, h4, h5, h6 {
+	font-family: STHeiti, STYuan, "Amazon Ember", Helvetica, Arial, sans-serif !important;
+}
+pre, code, kbd, samp {
+	font-family: monospace !important;
+}
+`
+
+var (
+	cssFontFaceBlockRE = regexp.MustCompile(`(?is)@font-face\s*\{.*?\}`)
+	cssFontFamilyRE    = regexp.MustCompile(`(?i)font-family\s*:[^;}{]+;?`)
+	inlineFontFamilyRE = regexp.MustCompile(`(?i)font-family\s*:[^;]+;?`)
+)
 
 func (h *HtmlToEpub) Run() (err error) {
 	if len(h.HTML) == 0 {
@@ -54,6 +72,8 @@ func (h *HtmlToEpub) Run() (err error) {
 	return h.run()
 }
 func (h *HtmlToEpub) run() (err error) {
+	defer h.cleanupTempFiles()
+
 	err = h.genBook()
 	if err != nil {
 		return
@@ -75,11 +95,22 @@ func (h *HtmlToEpub) run() (err error) {
 	return
 }
 
+func (h *HtmlToEpub) cleanupTempFiles() {
+	if h.tempCSSPath == "" {
+		return
+	}
+	_ = os.Remove(h.tempCSSPath)
+	h.tempCSSPath = ""
+}
+
 func (h *HtmlToEpub) genBook() error {
 	h.book = epub.NewEpub(h.Title)
 	h.book.SetAuthor(h.Author)
 	h.book.SetDescription(h.Description)
-	return h.setCover()
+	if err := h.setCover(); err != nil {
+		return err
+	}
+	return h.setKindleSafeCSS()
 }
 
 func (h *HtmlToEpub) setCover() (err error) {
@@ -97,11 +128,11 @@ func (h *HtmlToEpub) setCover() (err error) {
 		h.Cover = temp.Name()
 	}
 
-	m, err := mimetype.DetectFile(h.Cover)
+	coverExt, err := detectFileImageExt(h.Cover)
 	if err != nil {
 		return fmt.Errorf("can't detect cover mime type %s", err)
 	}
-	cover, err := h.book.AddImage(h.Cover, "cover"+m.Extension())
+	cover, err := h.book.AddImage(h.Cover, "cover"+coverExt)
 	if err != nil {
 		return fmt.Errorf("can't add cover %s", err)
 	}
@@ -116,6 +147,7 @@ func (h *HtmlToEpub) add(html HtmlContent) (err error) {
 	if err != nil {
 		return
 	}
+	h.sanitizeFontStyles(doc)
 
 	images := h.saveImages(doc)
 	doc.Find("img").
@@ -142,12 +174,12 @@ func (h *HtmlToEpub) add(html HtmlContent) (err error) {
 	}
 	if html.ChapterID != "cover.xhtml" {
 		if len(html.Toc) > 0 {
-			_, err = h.book.AddSection(content, html.Toc[0].Text, html.ChapterID, "")
+			_, err = h.book.AddSection(content, html.Toc[0].Text, html.ChapterID, h.sectionCSS)
 			if err != nil {
 				return
 			}
 		} else {
-			_, err = h.book.AddSection(content, "", html.ChapterID, "")
+			_, err = h.book.AddSection(content, "", html.ChapterID, h.sectionCSS)
 			if err != nil {
 				return
 			}
@@ -170,6 +202,57 @@ func (h *HtmlToEpub) add(html HtmlContent) (err error) {
 	// 	}
 	// }
 	return
+}
+
+func (h *HtmlToEpub) setKindleSafeCSS() error {
+	temp, err := os.CreateTemp("", "dedao-kindle-safe-*.css")
+	if err != nil {
+		return fmt.Errorf("can't create css tempfile: %s", err)
+	}
+
+	if _, err = temp.WriteString(kindleSafeCSS); err != nil {
+		_ = temp.Close()
+		return fmt.Errorf("can't write css tempfile: %s", err)
+	}
+	if err = temp.Close(); err != nil {
+		return fmt.Errorf("can't close css tempfile: %s", err)
+	}
+
+	h.tempCSSPath = temp.Name()
+	h.sectionCSS, err = h.book.AddCSS(temp.Name(), "epub-kindle-safe.css")
+	if err != nil {
+		return fmt.Errorf("can't add kindle safe css: %s", err)
+	}
+	return nil
+}
+
+func (h *HtmlToEpub) sanitizeFontStyles(doc *goquery.Document) {
+	doc.Find("style").Each(func(i int, style *goquery.Selection) {
+		text := style.Text()
+		text = cssFontFaceBlockRE.ReplaceAllString(text, "")
+		text = cssFontFamilyRE.ReplaceAllString(text, "")
+		text = strings.TrimSpace(text)
+		if text == "" {
+			style.Remove()
+			return
+		}
+		style.SetText(text)
+	})
+
+	doc.Find("[style]").Each(func(i int, s *goquery.Selection) {
+		inline, ok := s.Attr("style")
+		if !ok || inline == "" {
+			return
+		}
+		inline = inlineFontFamilyRE.ReplaceAllString(inline, "")
+		inline = strings.TrimSpace(inline)
+		inline = strings.Trim(inline, ";")
+		if inline == "" {
+			s.RemoveAttr("style")
+			return
+		}
+		s.SetAttr("style", inline)
+	})
 }
 
 func (h *HtmlToEpub) saveImages(doc *goquery.Document) map[string]string {
@@ -275,25 +358,22 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 		localFile = fd.Name()
 	}
 
-	// check mime
-	fmime, err := mimetype.DetectFile(localFile)
-	{
-		if err != nil {
-			log.Printf("can't detect image mime of %s: %s", src, err)
-			return
-		}
-		if !strings.HasPrefix(fmime.String(), "image") {
-			log.Printf("mime of %s is %s instead of images", src, fmime.String())
-			return
-		}
+	ext, mimeType, err := detectFileImageExtAndType(localFile)
+	if err != nil {
+		log.Printf("can't detect image mime of %s: %s", src, err)
+		return
+	}
+	if !strings.HasPrefix(mimeType, "image/") {
+		log.Printf("mime of %s is %s instead of images", src, mimeType)
+		return
 	}
 
 	// add image
 	internalName := fmt.Sprintf("image_%03d", h.imgIdx)
 	{
 		h.imgIdx += 1
-		if !strings.HasSuffix(internalName, fmime.Extension()) {
-			internalName += fmime.Extension()
+		if !strings.HasSuffix(internalName, ext) {
+			internalName += ext
 		}
 		internalRef, err = h.book.AddImage(localFile, internalName)
 		if err != nil {
@@ -308,6 +388,28 @@ func (h *HtmlToEpub) changeRef(htmlFile string, img *goquery.Selection, refs, do
 	}
 
 	img.SetAttr("src", internalRef)
+}
+
+func detectFileImageExt(filePath string) (string, error) {
+	ext, _, err := detectFileImageExtAndType(filePath)
+	return ext, err
+}
+
+func detectFileImageExtAndType(filePath string) (string, string, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", "", err
+	}
+	mimeType := http.DetectContentType(data)
+	extensions, err := mime.ExtensionsByType(mimeType)
+	if err != nil || len(extensions) == 0 {
+		ext := strings.ToLower(filepath.Ext(filePath))
+		if ext == "" {
+			return "", mimeType, fmt.Errorf("unknown file extension for %s", filePath)
+		}
+		return ext, mimeType, nil
+	}
+	return extensions[0], mimeType, nil
 }
 
 func (h *HtmlToEpub) openLocalFile(htmlFile string, ref string) (fd *os.File, err error) {

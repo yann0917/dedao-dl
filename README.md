@@ -109,6 +109,7 @@ Available Commands:
   ace         获取我的锦囊
   article     获取文章详情
   cat         获取课程分类
+  clean       清理 output 或 .cache 目录
   channel     学习圈相关操作
   course      获取我购买过课程
   dl          下载已购买课程，并转换成 PDF & 音频
@@ -119,11 +120,43 @@ Available Commands:
   help        Help about any command
   login       登录得到 pc 端 https://www.dedao.cn
   odob        获取我的听书书架
+  recent      查询用户最近学习情况
   su          切换登录过的账号
   topic       获取推荐话题列表
   users       查看登录过的用户列表
+  web         启动 Web UI 与 API 服务
   who         查看当前登录的用户
 ```
+
+### Web UI 使用说明
+
+项目内置了 Web UI（前端页面）和 Web API（后端 gin 服务），可通过 `web` 命令启动：
+
+```bash
+# 默认启动地址：http://127.0.0.1:17878 ，并自动打开浏览器
+dedao-dl web
+
+# 指定监听地址/端口（适合局域网访问或端口冲突时）
+dedao-dl web --host 0.0.0.0 --port 17878
+
+# 仅启动服务，不自动打开浏览器
+dedao-dl web --open=false
+```
+
+说明：
+
+* Web 服务读取当前目录下的 `config.json`（与 CLI 共用配置与登录信息）
+* 无需提前在 CLI 登录：打开 Web 页面后即可使用二维码登录；若已在 CLI 登录过，也可直接进入
+* 退出：在终端按 `Ctrl + C`，服务会进行优雅关闭
+
+Web 页面功能（随版本迭代可能略有调整）：
+
+* 扫码登录：打开页面即可扫码登录
+* 学习工作台：统一查看已购课程 / 听书 / 电子书 / 锦囊（含分组）与基础信息
+* 内容详情：课程详情与文章列表、听书详情与文稿入口、电子书详情与书评
+* 下载导出：一键发起下载任务（MP3 / PDF / Markdown / HTML / EPUB）
+* 下载进度：在页面底部查看下载队列与进度
+* 得到榜单：查看课程 / 听书 / 图书等榜单内容
 
 `dedao-dl cat` 获取课程分类
 
@@ -158,6 +191,56 @@ Available Commands:
 | 10 |  82 | 陈海贤·亲密关系30讲        | 陈海贤·心理学博士                 | 2019-11-05 00:02:21 |  99.00 |      100 |
 +----+-----+-------------------------+---------------------------------+---------------------+--------+----------+
 ```
+
+`course/odob/ebook` 支持分页与排序参数：
+
+```bash
+dedao-dl course --page 1 --limit 18
+dedao-dl course --order buy --page 1 --limit 18
+dedao-dl course --group-id 12345 --page 1 --limit 18
+dedao-dl odob --page 1 --limit 18
+dedao-dl odob --group-id 12345 --page 1 --limit 18
+dedao-dl ebook --page 1 --limit 18
+dedao-dl ebook --group-id 12345 --page 1 --limit 18
+```
+
+参数规则说明：
+
+* `--page` 和 `--limit` 需要同时传；都不传时保持原逻辑（自动拉取全部）
+* 分页模式（同时传 `--page` 和 `--limit`）下不展开分组，只展示当前页原始列表
+* `course --order` 支持 `study`（默认）和 `buy`（最近购买）
+* `odob --order`、`ebook --order` 仅支持 `study`
+
+`dedao-dl recent` 查询最近学习情况（默认使用当前登录用户 uid_hazy）
+
+```bash
+dedao-dl recent -h
+dedao-dl recent
+dedao-dl recent --page-size 20 --max-id 0
+dedao-dl recent --product-type 66 --filter-product-type=true
+dedao-dl recent --uid-hazy <uid_hazy>
+dedao-dl --json recent
+```
+
+参数说明：
+
+* `--uid-hazy` 默认自动读取当前登录用户，也可显式指定
+* `--page-size` 每页数量，默认 `20`
+* `--max-id` 分页游标，默认 `0`
+* `--product-type` 产品类型过滤（如 `66`）
+* `--filter-product-type` 是否按 `product_type` 过滤，默认 `true`
+
+`dedao-dl clean` 清理工作目录下的输出或缓存目录
+
+```bash
+dedao-dl clean output
+dedao-dl clean cache
+```
+
+说明：
+
+* `clean output` 会清空并重建 `output/` 目录
+* `clean cache` 会先关闭 BadgerDB，再清空并重建 `.cache/` 目录
 
 `dedao-dl free` 获取免费课程列表
 
@@ -245,6 +328,20 @@ Available Commands:
 `./dedao-dl ebook notes -i 158162` 查看电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id
 
 `./dedao-dl ebook 158162 -t4` 下载电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id，-t4 表示下载 markdown 格式的读书笔记
+
+## Skills 使用说明
+
+仓库内置两个面向 agent 的技能说明文件，位于 `skills/` 目录：
+
+* `skills/dedao-dl-commands/SKILL.md`：纯命令速查，适合“命令怎么写、参数怎么传、给我可复制命令”的场景
+* `skills/dedao-dl-usage/SKILL.md`：完整用法与排障，适合“从登录到下载流程”和“报错排查”的场景
+
+推荐使用方式：
+
+* 只要命令：优先使用 `dedao-dl-commands`
+* 要步骤和排查：使用 `dedao-dl-usage`
+* 面向 agent 自动化时，默认使用 JSON 输出：`dedao-dl --json <command> ...`
+* 不确定参数时，先执行：`dedao-dl <command> -h`
 
 ## References
 

@@ -90,18 +90,36 @@ func (s *Service) reqUser() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqRecent 请求用户最近学习情况
+func (s *Service) reqRecent(param RecentRequest) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(param).
+		Post("/api/pc/blade/v2/recent")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqCourseType 请求首页课程分类列表
 func (s *Service) reqCourseType() (io.ReadCloser, error) {
 	resp, err := s.client.R().Post("/api/hades/v1/index/detail")
 	return handleHTTPResponse(resp, err)
 }
 
+// reqNavbar 请求已购导航栏配置
+func (s *Service) reqNavbar() (io.ReadCloser, error) {
+	resp, err := s.client.R().Get("/api/hades/v1/navbar/get")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqCourseListV2 请求课程列表
 func (s *Service) reqCourseList(category, order string, page, limit int) (io.ReadCloser, error) {
+	return s.reqCourseListWithFilter(category, order, CatAll, page, limit)
+}
+
+func (s *Service) reqCourseListWithFilter(category, order, filter string, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"display_group":   true,
-		"filter":          "all",
+		"filter":          filter,
 		"group_id":        0,
 		"order":           order,
 		"filter_complete": 0,
@@ -116,10 +134,14 @@ func (s *Service) reqCourseList(category, order string, page, limit int) (io.Rea
 // It uses the /api/hades/v2/product/group/list endpoint with display_group=false to prevent nesting.
 // 请求分组内的课程列表
 func (s *Service) reqCourseGroupList(category, order string, groupID, page, limit int) (io.ReadCloser, error) {
+	return s.reqCourseGroupListWithFilter(category, order, CatAll, groupID, page, limit)
+}
+
+func (s *Service) reqCourseGroupListWithFilter(category, order, filter string, groupID, page, limit int) (io.ReadCloser, error) {
 	resp, err := s.client.R().SetBody(map[string]interface{}{
 		"category":        category,
 		"display_group":   false, // Prevent nested groups
-		"filter":          "group",
+		"filter":          filter,
 		"group_id":        groupID,
 		"order":           order,
 		"filter_complete": 0,
@@ -153,16 +175,21 @@ func (s *Service) reqCourseInfo(ID string) (io.ReadCloser, error) {
 // reqArticleList 请求文章列表
 // chapterID = "" 获取所有的文章列表，否则只获取该章节的文章列表
 func (s *Service) reqArticleList(ID, chapterID string, maxID int) (io.ReadCloser, error) {
+	return s.reqArticleListWithOptions(ID, chapterID, 30, maxID, false)
+}
+
+// reqArticleListWithOptions 请求文章列表，支持 count/maxID/reverse 选项。
+func (s *Service) reqArticleListWithOptions(ID, chapterID string, count, maxID int, reverse bool) (io.ReadCloser, error) {
 	resp, err := s.client.R().
 		SetBody(map[string]interface{}{
 			"chapter_id":      chapterID,
-			"count":           30,
+			"count":           count,
 			"detail_id":       ID,
 			"include_edge":    false,
 			"is_unlearn":      false,
 			"max_id":          maxID,
 			"max_order_num":   0,
-			"reverse":         false,
+			"reverse":         reverse,
 			"since_id":        0,
 			"since_order_num": 0,
 			"unlearn_switch":  false,
@@ -184,6 +211,43 @@ func (s *Service) reqArticleCommentList(enId, sort string, page, limit int) (io.
 			"sort_by":      sort,
 			"source_type":  65,
 		}).Post("/pc/ledgers/notes/article_comment_list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookCommentList 请求电子评分及书评列表
+func (s *Service) reqEbookCommentList(enid, sort string, page, limit int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"enid":      enid,
+			"page":      page,
+			"page_size": limit,
+			"sort":      sort,
+			"ptype":     2,
+		}).
+		Post("/pc/ebook2/v1/comment/list")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookShelfAdd 请求加入电子书书架
+func (s *Service) reqEbookShelfAdd(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"book_enids": ids,
+		}).
+		Post("/api/pc/ebook2/v1/bookshelf/add")
+
+	return handleHTTPResponse(resp, err)
+}
+
+// reqEbookShelfRemove 请求移出电子书书架
+func (s *Service) reqEbookShelfRemove(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"pids":  ids,
+			"ptype": 2,
+		}).
+		Post("/api/pc/hades/v1/product/remove")
+
 	return handleHTTPResponse(resp, err)
 }
 
@@ -309,8 +373,34 @@ func (s *Service) reqOdobVIPInfo() (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqOdobAudioDetail 请求每天听本书书 音频 info
-func (s *Service) reqOdobAudioDetail(aliasID string) (io.ReadCloser, error) {
+// reqOdobShelfAdd 请求听书加入书架
+func (s *Service) reqOdobShelfAdd(ids []string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"book_enids": ids,
+		}).
+		Post("pc/odob/v2/bookrack/pc/add")
+
+	return handleHTTPResponse(resp, err)
+}
+
+// reqOdobAudioDetail 请求每天听本书音频详情
+// topicIDStr: https://www.dedao.cn/audioBook/detail?id=xxx 中的 id
+func (s *Service) reqOdobAudioDetail(topicIDStr string) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		// SetBody(map[string]interface{}{
+		// 	"alias_id": topicIDStr,
+		// }).
+		// Post("pc/odob/pc/audio/detail/alias")
+		SetQueryParam("topic_id_str", topicIDStr).
+		Get("/pc/odob/pc/audio/detail")
+
+	return handleHTTPResponse(resp, err)
+}
+
+// reqOdobAudioDetail 请求每天听本书音频详情
+// aliasID: reqOdobAudioDetail 返回的 alias_id
+func (s *Service) reqOdobAudioDetailAlias(aliasID string) (io.ReadCloser, error) {
 	resp, err := s.client.R().
 		SetBody(map[string]interface{}{
 			"alias_id": aliasID,
@@ -374,6 +464,17 @@ func (s *Service) reqSearchHot() (io.ReadCloser, error) {
 			"is_login": 0,
 		}).
 		Post("/api/search/pc/hot")
+	return handleHTTPResponse(resp, err)
+}
+
+// reqSearchSuggest 搜索建议
+func (s *Service) reqSearchSuggest(query string, searchType int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"query":      query,
+			"searchType": searchType,
+		}).
+		Post("/api/search/pc/suggest")
 	return handleHTTPResponse(resp, err)
 }
 

@@ -19,10 +19,17 @@ func init() {
 }
 
 func main() {
-	// 设置信号处理，确保程序退出前关闭数据库
-	setupCleanupOnExit()
+	if !isWebCommand(os.Args[1:]) {
+		// 非 web 模式继续沿用信号清理，避免中断时遗留数据库句柄。
+		setupCleanupOnExit()
+	}
 
-	cmd.Execute()
+	defer closeBadgerDB()
+
+	if err := cmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func setupCleanupOnExit() {
@@ -33,16 +40,19 @@ func setupCleanupOnExit() {
 		<-c
 		fmt.Println("正在关闭程序...")
 
-		// 获取 BadgerDB 实例并关闭
-		db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
-		if err == nil && db != nil {
-			if err := db.Close(); err != nil {
-				fmt.Printf("关闭数据库时出错: %v\n", err)
-			} else {
-				fmt.Println("数据库已安全关闭")
-			}
-		}
+		closeBadgerDB()
 
 		os.Exit(0)
 	}()
+}
+
+func closeBadgerDB() {
+	if err := utils.CloseBadgerDB(); err != nil {
+		fmt.Printf("关闭数据库时出错: %v\n", err)
+		return
+	}
+}
+
+func isWebCommand(args []string) bool {
+	return len(args) > 0 && args[0] == "web"
 }

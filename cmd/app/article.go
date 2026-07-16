@@ -74,7 +74,7 @@ func ArticleDetailByEnId(articleEnid string) (detail *services.ArticleDetail, er
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, articleEnid, appid)
+	detail, err = getService().ArticleDetail(token, appid)
 	return
 }
 
@@ -116,7 +116,7 @@ func ArticleDetail(id, aid int) (detail *services.ArticleDetail, enId string, er
 	enId = aEnid
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, aEnid, appid)
+	detail, err = getService().ArticleDetail(token, appid)
 	if err != nil {
 		fmt.Printf("err:%#v\n", err)
 		return
@@ -155,7 +155,7 @@ func OdobArticleDetail(aEnid string) (detail *services.ArticleDetail, err error)
 
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, aEnid, appid)
+	detail, err = getService().ArticleDetail(token, appid)
 	if err != nil {
 		fmt.Printf("err:%#v\n", err)
 		return

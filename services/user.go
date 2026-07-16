@@ -81,7 +81,21 @@ type OdobVipUser struct {
 		UID               int    `json:"uid"`
 		VStateValue       int    `json:"v_state_value"`
 		WeekCount         int    `json:"week_count"`
+	} `json:"user"`
+}
+
+// OdobVIPInfo 获取每天听本书 VIP 信息
+func (s *Service) OdobVIPInfo() (info *OdobVipUser, err error) {
+	body, err := s.reqOdobVIPInfo()
+	if err != nil {
+		return
 	}
+	defer body.Close()
+
+	if err = handleJSONParse(body, &info); err != nil {
+		return
+	}
+	return
 }
 
 // User get user info

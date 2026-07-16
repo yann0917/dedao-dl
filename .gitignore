@@ -34,6 +34,7 @@ dedao-dl_*
 
 output/
 config.json
+webui/node_modules/
 
 # Development artifacts with personal data
 debug*.txt

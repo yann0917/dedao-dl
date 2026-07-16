@@ -19,8 +19,9 @@ var (
 		Scheme: "https",
 		Host:   "dedao.cn",
 	}
-	baseURL   = "https://www.dedao.cn"
-	UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+	baseURL       = "https://www.dedao.cn"
+	mobileBaseURL = "https://m.igetget.com"
+	UserAgent     = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
 )
 
 // Response dedao success response
@@ -221,7 +222,8 @@ func ParseCookies(cookie string, v interface{}) (err error) {
 	list := strings.Split(cookie, ";")
 	cookieM := make(map[string]string, len(list))
 	for _, item := range list {
-		parts := strings.Split(item, "=")
+		// Use SplitN to handle values containing '=' (e.g., base64 encoded tokens)
+		parts := strings.SplitN(item, "=", 2)
 		if len(parts) > 1 {
 			if parts[1] != "" {
 				cookieM[strings.TrimSpace(parts[0])] = parts[1]

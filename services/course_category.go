@@ -29,6 +29,39 @@ type CourseCategoryList struct {
 	} `json:"data"`
 }
 
+type NavbarChild struct {
+	Name      string `json:"name"`
+	Count     int    `json:"count"`
+	Filter    string `json:"filter"`
+	ShowCount bool   `json:"show_count"`
+}
+
+type NavbarItem struct {
+	ID          int           `json:"id"`
+	Name        string        `json:"name"`
+	Category    string        `json:"category"`
+	ChannelType string        `json:"channel_type"`
+	ItemType    string        `json:"item_type"`
+	Children    []NavbarChild `json:"children"`
+}
+
+type NavbarData struct {
+	List []NavbarItem `json:"list"`
+}
+
+// GetNavbar 获取已购导航与筛选配置
+func (s *Service) GetNavbar() (data *NavbarData, err error) {
+	body, err := s.reqNavbar()
+	if err != nil {
+		return
+	}
+	defer body.Close()
+	if err = handleJSONParse(body, &data); err != nil {
+		return
+	}
+	return
+}
+
 // CourseType get course type list
 func (s *Service) CourseType() (list *CourseCategoryList, err error) {
 

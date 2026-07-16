@@ -101,9 +101,9 @@ func TestAudioByAlias(t *testing.T) {
 
 func TestArticleDetail(t *testing.T) {
 	token := "KWn/CP3W2txbAhtG26cVSr0YwlF3n7LCqzYAOHpyWw3+ft2hqSH+BqlOZTnBur2gXU0ByFmUQmz0tYVxepbdpTy81Gk="
-	sign := "b23a426b357d1b83"
+	// sign := "b23a426b357d1b83"
 	appID := "1632426125495894021"
-	result, err := service.ArticleDetail(token, sign, appID)
+	result, err := service.ArticleDetail(token, appID)
 	if err != nil {
 		fmt.Printf("err:=%#v \n", err)
 	}

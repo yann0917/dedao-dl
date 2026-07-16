@@ -8,6 +8,7 @@ import (
 
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 // LoginByCookie login by cookie
@@ -19,8 +20,11 @@ func LoginByCookie(cookie string) (err error) {
 	}
 	// save config
 	u.CookieStr = cookie
-	config.Instance.SetUser(&u)
-	config.Instance.Save()
+	_, err = config.Instance.SetUser(&u)
+	if err != nil {
+		return
+	}
+	err = config.Instance.Save()
 	return
 }
 
@@ -39,6 +43,9 @@ func LoginByQr() error {
 	if err != nil {
 		return err
 	}
+	if code != nil {
+		utils.New().Get(services.QRCodeAuthorizeURL(code.Data.QrCodeString)).Print()
+	}
 
 	ticker := time.NewTicker(time.Duration(1) * time.Second)
 	fmt.Println("同时支持「得到App」和「微信」扫码")
@@ -51,6 +58,9 @@ func LoginByQr() error {
 			}
 			if check.Data.Status == 1 {
 				err = LoginByCookie(cookie)
+				if err != nil {
+					return err
+				}
 				fmt.Println("扫码成功")
 				return nil
 			} else if check.Data.Status == 2 {

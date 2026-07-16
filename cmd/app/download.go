@@ -23,26 +23,40 @@ type DeDaoDownloader interface {
 	Download() error
 }
 
+type DownloadProgressFunc func(total, current, pct int, currentName string)
+
+type DownloadLogFunc func(level, message string)
+
 type CourseDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
 	EnID         string
 	AID          int
+	Title        string
 	IsMerge      bool
 	IsComment    bool
 	IsOrder      bool
 	ClassName    string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type OdobDownload struct {
 	DownloadType int // 1:mp3, 2:PDF文档, 3:markdown文档
 	ID           int
+	EnID         string
+	Title        string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type EBookDownload struct {
 	DownloadType int // 1:html, 2:PDF文档, 3:epub
 	ID           int
 	EnID         string
+	Title        string
+	ProgressCB   DownloadProgressFunc
+	LogCB        DownloadLogFunc
 }
 
 type EBookNotesDownload struct {
@@ -51,9 +65,73 @@ type EBookNotesDownload struct {
 	EnID         string
 }
 
+func calculateProgress(total, current int) int {
+	if total <= 0 {
+		if current > 0 {
+			return 100
+		}
+		return 0
+	}
+	if current <= 0 {
+		return 0
+	}
+	if current >= total {
+		return 100
+	}
+	return int(float64(current) / float64(total) * 100)
+}
+
+func countDownloadableData(data []downloader.Datum) int {
+	total := 0
+	for _, item := range data {
+		if item.IsCanDL {
+			total++
+		}
+	}
+	return total
+}
+
+func (d *CourseDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *CourseDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
+func (d *OdobDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *OdobDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
+func (d *EBookDownload) log(level, message string) {
+	if d.LogCB != nil {
+		d.LogCB(level, message)
+	}
+}
+
+func (d *EBookDownload) report(total, current int, currentName string) {
+	if d.ProgressCB != nil {
+		d.ProgressCB(total, current, calculateProgress(total, current), currentName)
+	}
+}
+
 func (d *CourseDownload) Download() error {
 	var course *services.CourseInfo
 	var err error
+
+	d.log("info", "开始准备课程下载")
 
 	if d.EnID != "" {
 		course, err = getService().CourseInfo(d.EnID)
@@ -67,8 +145,15 @@ func (d *CourseDownload) Download() error {
 		return err
 	}
 
+	if d.Title == "" && course != nil {
+		d.Title = course.ClassInfo.Name
+	}
+	d.report(1, 0, d.Title)
+	d.log("info", "课程信息获取完成")
+
 	switch d.DownloadType {
 	case 1: // mp3
+		d.log("info", "开始准备课程音频下载")
 		enid := course.ClassInfo.Enid
 		count := course.ClassInfo.CurrentArticleCount
 		if count == 0 {
@@ -80,40 +165,45 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		downloadData := extractDownloadData(course, articles, d.AID, 1, d.IsOrder)
+		total := countDownloadableData(downloadData.Data)
 		errs := make([]error, 0)
 
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "MP3")
 		if err != nil {
 			return err
 		}
+		d.log("info", "课程音频输出目录已创建："+path)
 
+		current := 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
+				d.log("warning", "跳过不可下载内容："+datum.Title)
 				continue
 			}
+			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
+				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
+				continue
 			}
-
+			current++
+			d.report(total, current, datum.Title)
+			d.log("info", "下载完成："+datum.Title)
 		}
 		if len(errs) > 0 {
 			return errs[0]
 		}
 	case 2:
 		// 下载 PDF
-		errs := make([]error, 0)
-
 		path, err := utils.Mkdir(OutputDir, utils.FileName(course.ClassInfo.Name, ""), "PDF")
 		if err != nil {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
+		d.log("info", "开始生成课程 PDF，输出目录："+path)
 		if err := DownloadPdfCourse(d, course, path); err != nil {
 			return err
-		}
-		if len(errs) > 0 {
-			return errs[0]
 		}
 	case 3:
 		// 下载 Markdown
@@ -122,58 +212,66 @@ func (d *CourseDownload) Download() error {
 			return err
 		}
 		d.ClassName = course.ClassInfo.Name
+		d.log("info", "开始生成课程 Markdown，输出目录："+path)
 		if err := DownloadMarkdownCourse(d, course, path); err != nil {
 			return err
 		}
 	}
+	d.report(1, 1, d.Title)
 	return nil
 
 }
 
 func (d *OdobDownload) Download() error {
 	fileName := "每天听本书"
-	article := config.Instance.GetCourseCache(CateAudioBook, d.ID)
-	aliasID := ""
-	if article != nil {
-		aliasID = article.AudioDetail.AliasID
+	d.log("info", "开始准备听书下载")
+	article, aliasID, err := d.resolveTarget()
+	if err != nil {
+		return err
 	}
-	if aliasID == "" {
-		list, err := CourseList(CateAudioBook)
-		if err != nil {
-			return nil
-		}
-		for _, course := range list.List {
-			if d.ID > 0 && course.ID == d.ID {
-				article = &course
-				break
-			}
-		}
+	if article != nil && article.Title != "" {
+		fileName = article.Title
 	}
-
-	if article == nil {
-		return nil
+	if d.Title == "" {
+		d.Title = fileName
 	}
+	audioID := article.ID
+	if audioID <= 0 {
+		audioID = d.ID
+	}
+	d.report(1, 0, d.Title)
 
 	switch d.DownloadType {
 	case 1:
+		d.log("info", "开始准备听书音频下载")
 		downloadData := downloader.Data{
 			Title: fileName,
 		}
 		downloadData.Type = "audio"
-		downloadData.Data = extractOdobDownloadData(d.ID, article)
+		downloadData.Data = extractOdobDownloadData(audioID, article)
+		total := countDownloadableData(downloadData.Data)
 		errs := make([]error, 0)
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "MP3")
 		if err != nil {
 			return err
 		}
+		d.log("info", "听书音频输出目录已创建："+path)
+		current := 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
+				d.log("warning", "跳过不可下载内容："+datum.Title)
 				continue
 			}
+			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
 			if err := downloader.Download(datum, stream, path); err != nil {
+				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
+				continue
 			}
+			current++
+			d.report(total, current, datum.Title)
+			d.log("info", "下载完成："+datum.Title)
 		}
 		if len(errs) > 0 {
 			return errs[0]
@@ -183,12 +281,18 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
+		d.log("info", "开始生成听书文稿 PDF："+fileName)
 		content, err2 := getArticleDetail(aliasID)
 		if err2 != nil {
 			return err2
 		}
 		res := ContentsToMarkdown(content)
-		return utils.Md2Pdf(path, article.Title, []byte(res))
+		if err := utils.Md2Pdf(path, article.Title, []byte(res)); err != nil {
+			return err
+		}
+		d.report(1, 1, article.Title)
+		d.log("info", "听书文稿 PDF 生成完成："+article.Title)
+		return nil
 
 	case 3:
 		// 下载 Markdown
@@ -196,16 +300,164 @@ func (d *OdobDownload) Download() error {
 		if err != nil {
 			return err
 		}
+		d.log("info", "开始生成听书文稿 Markdown："+fileName)
 		if err := DownloadMarkdownAudioBook(aliasID, path, article); err != nil {
 			return err
 		}
 	}
+	d.report(1, 1, d.Title)
 	return nil
+}
+
+// resolveTarget resolves odob resource from id/topic_id_str/audio_id without relying on bookshelf listing.
+func (d *OdobDownload) resolveTarget() (article *services.Course, aliasID string, err error) {
+	if d.ID > 0 {
+		article = config.Instance.GetCourseCache(CateAudioBook, d.ID)
+	}
+
+	if article != nil {
+		if article.AudioDetail != nil {
+			aliasID = article.AudioDetail.AliasID
+		}
+		if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
+			aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
+		}
+	}
+
+	// For non-numeric input, first treat it as topic_id_str and resolve audio_id.
+	if d.EnID != "" {
+		detail, detailErr := getService().AudioDetailAlias(d.EnID)
+		if detailErr != nil {
+			return nil, "", fmt.Errorf("通过 topic_id_str 获取听书详情失败: %w", detailErr)
+		}
+		if detail == nil {
+			return nil, "", errors.New("通过 topic_id_str 获取听书详情失败: 返回为空")
+		}
+
+		aliasID = detail.AliasID
+		if aliasID == "" {
+			return nil, "", errors.New("听书详情中未返回 alias_id")
+		}
+
+		info, infoErr := OdobArticleInfo(aliasID)
+		if infoErr != nil {
+			return nil, "", fmt.Errorf("通过 alias_id 获取文章信息失败: %w", infoErr)
+		}
+		if info == nil {
+			return nil, "", errors.New("通过 alias_id 获取文章信息失败: 返回为空")
+		}
+
+		if article == nil {
+			article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
+		}
+		if article != nil {
+			if article.Enid == "" {
+				article.Enid = d.EnID
+			}
+			if article.Title == "" || article.Title == "每天听本书" {
+				article.Title = detail.Title
+			}
+			article.HasPlayAuth = article.HasPlayAuth || detail.HasPlayAuth
+			if article.AudioDetail == nil {
+				article.AudioDetail = &services.Audio{}
+			}
+			if article.AudioDetail.MP3PlayURL == "" {
+				article.AudioDetail.MP3PlayURL = detail.MP3PlayURL
+			}
+			if article.AudioDetail.Size == 0 {
+				article.AudioDetail.Size = detail.Size
+			}
+			if article.AudioDetail.TopicEncodeID == "" {
+				article.AudioDetail.TopicEncodeID = d.EnID
+			}
+			article.AudioDetail.AliasID = aliasID
+		}
+		return article, aliasID, nil
+	}
+
+	// Fallback to list/cache matching for ID/enid (if available).
+	if article == nil || aliasID == "" {
+		list, listErr := CourseList(CateAudioBook)
+		if listErr == nil && list != nil {
+			for _, course := range list.List {
+				if (d.ID > 0 && course.ID == d.ID) || (d.EnID != "" && course.Enid == d.EnID) {
+					c := course
+					article = &c
+					if article.AudioDetail != nil {
+						aliasID = article.AudioDetail.AliasID
+					}
+					if aliasID == "" && len(article.OdobGroupExtInfo.OdobAliasList) > 0 {
+						aliasID = article.OdobGroupExtInfo.OdobAliasList[0]
+					}
+					break
+				}
+			}
+		}
+	}
+
+	// Directly resolve alias by detail_id to support non-bookshelf resources.
+	if aliasID == "" && d.ID > 0 {
+		if info, infoErr := getService().ArticleInfo(strconv.Itoa(d.ID), 1); infoErr == nil && info != nil {
+			aliasID = info.Audio.AliasID
+			if aliasID == "" && len(info.ArticleInfo.AudioAliasIds) > 0 {
+				aliasID = info.ArticleInfo.AudioAliasIds[0]
+			}
+			if aliasID != "" {
+				if article == nil {
+					article = buildOdobCourseFromArticleInfo(info, aliasID, d.ID)
+				}
+				return article, aliasID, nil
+			}
+		}
+	}
+
+	if article == nil && d.EnID != "" {
+		article = &services.Course{
+			ID:    d.ID,
+			Enid:  d.EnID,
+			Title: d.EnID,
+			Type:  13,
+		}
+	}
+
+	return article, aliasID, nil
+}
+
+func buildOdobCourseFromArticleInfo(info *services.ArticleInfo, aliasID string, fallbackID int) *services.Course {
+	courseID := fallbackID
+	if courseID <= 0 {
+		courseID = info.ClassID
+	}
+	title := info.ArticleTitle
+	if title == "" {
+		title = info.ClassTitle
+	}
+	if title == "" {
+		title = "每天听本书"
+	}
+
+	return &services.Course{
+		ID:          courseID,
+		ClassID:     info.ClassID,
+		Enid:        info.Audio.TopicEncodeID,
+		Title:       title,
+		Type:        13,
+		HasPlayAuth: info.Audio.HasPlayAuth || info.IsBuy == 1,
+		AudioDetail: &services.Audio{
+			AudioID:       aliasID,
+			AliasID:       aliasID,
+			TopicEncodeID: info.Audio.TopicEncodeID,
+			MP3PlayURL:    info.Audio.MP3PlayURL,
+			Size:          info.Audio.Size,
+		},
+	}
 }
 
 func (d *EBookDownload) Download() error {
 	var detail *services.EbookDetail
 	var err error
+
+	d.log("info", "开始准备电子书下载")
 
 	if d.EnID != "" {
 		detail, err = EbookDetailByEnID(d.EnID)
@@ -218,10 +470,17 @@ func (d *EBookDownload) Download() error {
 	if err != nil {
 		return err
 	}
-	return downloadEBook(detail, d.DownloadType)
+	if d.Title == "" {
+		if detail.Title != "" {
+			d.Title = detail.Title
+		} else {
+			d.Title = detail.OperatingTitle
+		}
+	}
+	return downloadEBook(detail, d)
 }
 
-func downloadEBook(detail *services.EbookDetail, downloadType int) error {
+func downloadEBook(detail *services.EbookDetail, d *EBookDownload) error {
 	title := strconv.Itoa(detail.ID) + "_"
 	if detail.Title != "" {
 		title += detail.Title
@@ -230,22 +489,30 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 	}
 
 	title += "_" + detail.BookAuthor
+	d.report(4, 1, "获取电子书详情")
+	d.log("info", "电子书详情获取完成："+title)
 	info, svgContent, err := EbookPage(detail.Enid)
 	if err != nil {
 		return err
 	}
+	d.report(4, 2, "拉取电子书页面")
+	d.log("info", "电子书页面抓取完成")
 	sort.Sort(svgContent)
 
-	switch downloadType {
+	switch d.DownloadType {
 	case 1:
+		d.log("info", "开始生成 HTML 文件")
 		if err = utils.Svg2Html(title, svgContent, info.BookInfo.Toc); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 	case 2:
+		d.log("info", "开始生成 PDF 文件")
 		if err = utils.Svg2Pdf(title, svgContent, info.BookInfo.Toc); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 	case 3:
 		var opts utils.EpubOptions
@@ -254,9 +521,12 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 		opts.Description = detail.BookIntro
 		opts.Toc = info.BookInfo.Toc
 
+		d.report(4, 3, "生成 EPUB")
+		d.log("info", "开始生成 EPUB 文件")
 		if err = utils.Svg2Epub(title, svgContent, opts); err != nil {
 			return err
 		}
+		d.report(4, 4, title)
 
 		// Only clear cache for this specific book on successful completion
 		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
@@ -264,6 +534,7 @@ func downloadEBook(detail *services.EbookDetail, downloadType int) error {
 		}
 	}
 
+	d.log("info", "电子书下载完成："+title)
 	return err
 }
 
@@ -289,7 +560,9 @@ func extractDownloadData(course *services.CourseInfo, articles *services.Article
 // 生成课程下载数据
 func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int, isOrder bool) []downloader.Datum {
 	data := downloader.EmptyData
-	audioIds := map[int]string{}
+	if articles == nil {
+		return data
+	}
 
 	audioData := make([]*downloader.Datum, 0)
 	for _, article := range articles.List {
@@ -297,9 +570,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 			continue
 		}
 
-		if article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
-			audioIds[article.ID] = article.Audio.AliasID
-
+		if article.Audio != nil && article.Audio.MP3PlayURL != "" && len(article.AudioAliasIds) > 0 {
 			var urls []downloader.URL
 			key := article.Enid
 			streams := map[string]downloader.Stream{
@@ -335,7 +606,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 	}
 
 	if flag == 1 {
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 	}
 
 	for _, d := range audioData {
@@ -347,19 +618,30 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 // 生成 AudioBook 下载数据
 func extractOdobDownloadData(aid int, article *services.Course) []downloader.Datum {
 	data := downloader.EmptyData
-	audioIds := map[int]string{}
 	audioData := make([]*downloader.Datum, 0)
-	aliasID := article.AudioDetail.AliasID
+	var aliasID string
+	if article.AudioDetail != nil {
+		aliasID = article.AudioDetail.AliasID
+	}
+	topicIDStr := article.Enid
+	if topicIDStr == "" && article.AudioDetail != nil {
+		topicIDStr = article.AudioDetail.TopicEncodeID
+	}
 
 	if article.Type == 13 {
-		audioIds[aid] = article.AudioDetail.AliasID
-
 		var urls []downloader.URL
-		key := article.Enid
+		key := topicIDStr
+		if key == "" {
+			key = aliasID
+		}
+		audioSize := 0
+		if article.AudioDetail != nil {
+			audioSize = article.AudioDetail.Size
+		}
 		streams := map[string]downloader.Stream{
 			key: {
 				URLs:    urls,
-				Size:    article.AudioDetail.Size,
+				Size:    audioSize,
 				Quality: key,
 			},
 		}
@@ -367,24 +649,41 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		if !article.HasPlayAuth {
 			isCanDL = false
 		}
-		detail, err := getService().AudioDetailAlias(aliasID)
-		if err != nil {
-			fmt.Println(err)
-			return nil
+		m3u8URL := ""
+		if article.AudioDetail != nil {
+			m3u8URL = article.AudioDetail.MP3PlayURL
+		}
+		if m3u8URL == "" && topicIDStr != "" {
+			detail, err := getService().AudioDetailAlias(topicIDStr)
+			if err != nil {
+				fmt.Println(err)
+				return nil
+			}
+			m3u8URL = detail.MP3PlayURL
+			if aliasID == "" {
+				aliasID = detail.AudioID
+				if aliasID == "" {
+					aliasID = detail.AliasID
+				}
+			}
+			if article.Title == "" {
+				article.Title = detail.Title
+			}
+			isCanDL = isCanDL && detail.HasPlayAuth
 		}
 		datum := &downloader.Datum{
 			ID:      aid,
-			Enid:    article.Enid,
+			Enid:    key,
 			ClassID: article.ClassID,
 			Title:   article.Title,
 			IsCanDL: isCanDL,
-			M3U8URL: detail.MP3PlayURL,
+			M3U8URL: m3u8URL,
 			Streams: streams,
 			Type:    "audio",
 		}
 
 		audioData = append(audioData, datum)
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 
 		for _, d := range audioData {
 			data = append(data, *d)
@@ -405,8 +704,6 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		for i, audio := range details.OdobAudioDetailList {
 			// 使用音频的 SourceID 作为 ID
 			audioID := audio.SourceID
-
-			audioIds[audioID] = audio.AliasID
 
 			key := audio.TopicEncodeID
 			if key == "" {
@@ -453,7 +750,7 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 		}
 
 		// 处理流数据
-		handleStreams(audioData, audioIds)
+		handleStreams(audioData)
 
 		// 将数据添加到结果集
 		for _, d := range audioData {
@@ -464,11 +761,11 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 	return data
 }
 
-func handleStreams(audioData []*downloader.Datum, audioIds map[int]string) {
+func handleStreams(audioData []*downloader.Datum) {
 	wgp := utils.NewWaitGroupPool(10)
 	for _, datum := range audioData {
 		wgp.Add()
-		go func(datum *downloader.Datum, streams map[int]string) {
+		go func(datum *downloader.Datum) {
 			defer func() {
 				wgp.Done()
 			}()
@@ -490,7 +787,7 @@ func handleStreams(audioData []*downloader.Datum, audioIds map[int]string) {
 					}
 				}
 			}
-		}(datum, audioIds)
+		}(datum)
 	}
 	wgp.Wait()
 }
@@ -637,7 +934,7 @@ func courseArticleDetailByEnid(articleEnid string) (detail *services.ArticleDeta
 	}
 	token := info.DdArticleToken
 	appid := "1632426125495894021"
-	detail, err = getService().ArticleDetail(token, articleEnid, appid)
+	detail, err = getService().ArticleDetail(token, appid)
 	return
 }
 
@@ -651,17 +948,26 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 	if err != nil {
 		return err
 	}
+	total := 0
+	for _, item := range list.List {
+		if d.AID == 0 || item.ID == d.AID {
+			total++
+		}
+	}
 	name, fileName := "", ""
 	mName, mFileName := "", ""
 	if d.IsMerge {
 		mName = utils.FileName(d.ClassName+"-合集", "md")
 		mFileName = filepath.Join(path, mName)
 		fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
+		d.log("info", "将额外生成课程 Markdown 合集："+mName)
 	}
+	current := 0
 	for _, v := range list.List {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
+		d.log("info", "开始处理文章："+v.Title)
 		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -715,6 +1021,9 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 			return err
 		}
 		fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
+		current++
+		d.report(total, current, v.Title)
+		d.log("info", "文章处理完成："+v.Title)
 		if d.IsMerge {
 			f, err := os.OpenFile(mFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 			if err != nil {
@@ -733,6 +1042,7 @@ func DownloadMarkdownCourse(d *CourseDownload, course *services.CourseInfo, path
 	}
 	if d.IsMerge {
 		fmt.Printf("\033[32;1m%s\033[0m\n", "合集完成")
+		d.log("info", "课程 Markdown 合集生成完成")
 	}
 	return nil
 }
@@ -747,6 +1057,12 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 	if err != nil {
 		return err
 	}
+	total := 0
+	for _, item := range list.List {
+		if d.AID == 0 || item.ID == d.AID {
+			total++
+		}
+	}
 	name, fileName := "", ""
 	// mName, mFileName := "", ""
 	// if d.IsMerge {
@@ -754,10 +1070,12 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 	// 	mFileName = filepath.Join(path, mName)
 	// 	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】\n", mFileName)
 	// }
+	current := 0
 	for _, v := range list.List {
 		if d.AID > 0 && v.ID != d.AID {
 			continue
 		}
+		d.log("info", "开始生成 PDF："+v.Title)
 		detail, err := courseArticleDetailByEnid(v.Enid)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -800,6 +1118,9 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 		if err != nil {
 			return err
 		}
+		current++
+		d.report(total, current, v.Title)
+		d.log("info", "PDF 生成完成："+v.Title)
 		// 	f, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		// 	if err != nil {
 		// 		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
@@ -837,6 +1158,9 @@ func DownloadPdfCourse(d *CourseDownload, course *services.CourseInfo, path stri
 }
 
 func DownloadMarkdownAudioBook(aliasID, path string, article *services.Course) error {
+	if article != nil {
+		fmt.Printf("开始生成听书 Markdown：%s\n", article.Title)
+	}
 	content, err2 := getArticleDetail(aliasID)
 	if err2 != nil {
 		return err2

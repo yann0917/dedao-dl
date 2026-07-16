@@ -9,7 +9,7 @@ type ArticleDetail struct {
 
 // Content article Content
 type Content struct {
-	Aid      string      `json:"aid"`
+	Aid      interface{} `json:"aid"` // string or number
 	AliasID  string      `json:"aliasId"`
 	Contents interface{} `json:"contents"`
 	Desc     string      `json:"desc"`
@@ -361,8 +361,12 @@ type ArticleComment struct {
 
 // ArticleList get class article list
 func (s *Service) ArticleList(id, chapterID string, maxID int) (list *ArticleList, err error) {
+	return s.ArticleListWithOptions(id, chapterID, 30, maxID, false)
+}
 
-	body, err := s.reqArticleList(id, chapterID, maxID)
+// ArticleListWithOptions get class article list with count/maxID/reverse options.
+func (s *Service) ArticleListWithOptions(id, chapterID string, count, maxID int, reverse bool) (list *ArticleList, err error) {
+	body, err := s.reqArticleListWithOptions(id, chapterID, count, maxID, reverse)
 	if err != nil {
 		return
 	}
@@ -389,7 +393,7 @@ func (s *Service) ArticleInfo(enid string, aType int) (info *ArticleInfo, err er
 }
 
 // ArticleDetail get article detail
-func (s *Service) ArticleDetail(token, id, appID string) (detail *ArticleDetail, err error) {
+func (s *Service) ArticleDetail(token, appID string) (detail *ArticleDetail, err error) {
 
 	body, err := s.reqArticleDetail(token, appID)
 	if err != nil {
