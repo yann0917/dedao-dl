@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yann0917/dedao-dl/config"
 	"github.com/yann0917/dedao-dl/services"
+	"github.com/yann0917/dedao-dl/utils"
 )
 
 const articleAppID = "1632426125495894021"
@@ -69,11 +70,11 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 		switch content.Type {
 		case "audio":
 			title := strings.TrimRight(content.Title, ".mp3")
-			res += getMDHeader(1) + title + "\r\n\r\n"
+			res += utils.MarkdownHeader(1) + title + "\r\n\r\n"
 		case "header":
 			content.Text = strings.Trim(content.Text, " ")
 			if len(content.Text) > 0 {
-				res += getMDHeader(content.Level) + content.Text + "\r\n\r\n"
+				res += utils.MarkdownHeader(content.Level) + content.Text + "\r\n\r\n"
 			}
 		case "blockquote":
 			texts := strings.Split(content.Text, "\n")
@@ -96,7 +97,7 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 			}
 			res += resL
 		case "elite":
-			res += getMDHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
+			res += utils.MarkdownHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
 		case "image":
 			res += "![" + content.URL + "](" + content.URL
 			if content.Legend != "" {
@@ -104,7 +105,7 @@ func contentsToMarkdown(contents []services.Content) (res string) {
 			}
 			res += ")" + "\r\n\r\n"
 		case "label-group":
-			res += getMDHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
+			res += utils.MarkdownHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
 		}
 	}
 
@@ -125,12 +126,15 @@ func paragraphToMarkdown(content interface{}) (res string, err error) {
 
 	for _, item := range cont {
 		subContent := strings.Trim(item.Text.Content, " ")
+		link := utils.NormalizeMarkdownLink(item.Text.Link)
 		switch item.Type {
 		case "text":
 			if item.Text.Bold {
 				res += " **" + subContent + "** "
 			} else if item.Text.Highlight {
 				res += " *" + subContent + "* "
+			} else if link != "" {
+				res += "[" + subContent + "](" + link + ") "
 			} else {
 				res += subContent
 			}
@@ -157,12 +161,15 @@ func listToMarkdown(content interface{}) (res string, err error) {
 	for _, group := range cont {
 		for _, item := range group {
 			subContent := strings.Trim(item.Text.Content, " ")
+			link := utils.NormalizeMarkdownLink(item.Text.Link)
 			switch item.Type {
 			case "text":
 				if item.Text.Bold {
 					res += "* **" + subContent + "** "
 				} else if item.Text.Highlight {
 					res += "* *" + subContent + "* "
+				} else if link != "" {
+					res += "* [" + subContent + "](" + link + ") "
 				} else {
 					res += "* " + subContent
 				}
@@ -172,21 +179,4 @@ func listToMarkdown(content interface{}) (res string, err error) {
 	}
 
 	return
-}
-
-func getMDHeader(level int) string {
-	headers := map[int]string{
-		1: "# ",
-		2: "## ",
-		3: "### ",
-		4: "#### ",
-		5: "##### ",
-		6: "###### ",
-	}
-
-	if value, ok := headers[level]; ok {
-		return value
-	}
-
-	return ""
 }

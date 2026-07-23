@@ -797,11 +797,11 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 		switch content.Type {
 		case "audio":
 			title := strings.TrimRight(content.Title, ".mp3")
-			res += getMdHeader(1) + title + "\r\n\r\n"
+			res += utils.MarkdownHeader(1) + title + "\r\n\r\n"
 		case "header":
 			content.Text = strings.Trim(content.Text, " ")
 			if len(content.Text) > 0 {
-				res += getMdHeader(content.Level) + content.Text + "\r\n\r\n"
+				res += utils.MarkdownHeader(content.Level) + content.Text + "\r\n\r\n"
 			}
 		case "blockquote":
 			texts := strings.Split(content.Text, "\n")
@@ -824,7 +824,7 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 			}
 			res += resL
 		case "elite": // 划重点
-			res += getMdHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
+			res += utils.MarkdownHeader(2) + "划重点\r\n\r\n" + content.Text + "\r\n\r\n"
 
 		case "image":
 			res += "![" + content.URL + "](" + content.URL
@@ -833,7 +833,7 @@ func ContentsToMarkdown(contents []services.Content) (res string) {
 			}
 			res += ")" + "\r\n\r\n"
 		case "label-group":
-			res += getMdHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
+			res += utils.MarkdownHeader(2) + "`" + content.Text + "`" + "\r\n\r\n"
 		}
 	}
 
@@ -853,14 +853,17 @@ func paragraphToMarkDown(content interface{}) (res string, err error) {
 	}
 	for _, item := range cont {
 		subContent := strings.Trim(item.Text.Content, " ")
+		link := utils.NormalizeMarkdownLink(item.Text.Link)
 		switch item.Type {
 		case "text":
 			if item.Text.Bold {
 				res += " **" + subContent + "** "
 			} else if item.Text.Highlight {
 				res += " *" + subContent + "* "
+			} else if link != "" {
+				res += "[" + subContent + "](" + link + ") "
 			} else {
-				res += subContent
+				res += subContent + " "
 			}
 		}
 	}
@@ -884,12 +887,15 @@ func listToMarkdown(content interface{}) (res string, err error) {
 	for _, item := range cont {
 		for _, item := range item {
 			subContent := strings.Trim(item.Text.Content, " ")
+			link := utils.NormalizeMarkdownLink(item.Text.Link)
 			switch item.Type {
 			case "text":
 				if item.Text.Bold {
 					res += "* **" + subContent + "** "
 				} else if item.Text.Highlight {
 					res += "* *" + subContent + "* "
+				} else if link != "" {
+					res += "* [" + subContent + "](" + link + ") "
 				} else {
 					res += "* " + subContent
 				}
@@ -901,7 +907,7 @@ func listToMarkdown(content interface{}) (res string, err error) {
 }
 
 func articleCommentsToMarkdown(contents []services.ArticleComment) (res string) {
-	res = getMdHeader(2) + "热门留言\r\n\r\n"
+	res = utils.MarkdownHeader(2) + "热门留言\r\n\r\n"
 	for _, content := range contents {
 		res += content.NotesOwner.Name + "：" + content.Note + "\r\n\r\n"
 		if content.CommentReply != "" {
@@ -910,21 +916,6 @@ func articleCommentsToMarkdown(contents []services.ArticleComment) (res string) 
 	}
 	res += "---\r\n"
 	return
-}
-
-func getMdHeader(level int) string {
-	heads := map[int]string{
-		1: "# ",
-		2: "## ",
-		3: "### ",
-		4: "#### ",
-		5: "##### ",
-		6: "###### ",
-	}
-	if s, ok := heads[level]; ok {
-		return s
-	}
-	return ""
 }
 
 func courseArticleDetailByEnid(articleEnid string) (detail *services.ArticleDetail, err error) {
