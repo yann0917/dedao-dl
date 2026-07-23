@@ -155,6 +155,48 @@ func ResolveURL(u *url.URL, p string) string {
 	return baseURL + path.Join("/", p)
 }
 
+func NormalizeMarkdownLink(rawLink string) string {
+	rawLink = strings.TrimSpace(rawLink)
+	if rawLink == "" {
+		return ""
+	}
+	if strings.HasPrefix(rawLink, "http://") || strings.HasPrefix(rawLink, "https://") {
+		return rawLink
+	}
+	parsedURL, err := url.Parse(rawLink)
+	if err != nil {
+		return rawLink
+	}
+	decodedLink := strings.TrimSpace(parsedURL.Query().Get("url"))
+	if decodedLink == "" {
+		return rawLink
+	}
+	decodedLink, err = url.QueryUnescape(decodedLink)
+	if err != nil {
+		return rawLink
+	}
+	decodedLink = strings.TrimSpace(decodedLink)
+	if decodedLink == "" {
+		return rawLink
+	}
+	return decodedLink
+}
+
+func MarkdownHeader(level int) string {
+	headers := map[int]string{
+		1: "# ",
+		2: "## ",
+		3: "### ",
+		4: "#### ",
+		5: "##### ",
+		6: "###### ",
+	}
+	if value, ok := headers[level]; ok {
+		return value
+	}
+	return ""
+}
+
 // DrawProgressBar Draw ProgressBar
 func DrawProgressBar(prefix string, proportion float32, width int, suffix ...string) {
 	pos := int(proportion * float32(width))

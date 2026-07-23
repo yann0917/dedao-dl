@@ -34,6 +34,7 @@ type Contents []struct {
 		Bold      bool   `json:"bold"`
 		Content   string `json:"content"`
 		Highlight bool   `json:"highlight"`
+		Link      string `json:"link"`
 	} `json:"text"`
 	Type string `json:"type"`
 }
