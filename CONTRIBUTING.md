@@ -5,12 +5,12 @@ Thank you for your interest in contributing to dedao-dl! We welcome contribution
 ## How to Contribute
 
 ### Reporting Bugs
-- Check if the bug has already been reported in the [Issues](https://github.com/yann0917/dedao-dl/issues)
+- Check if the bug has already been reported in [Issues](https://github.com/yann0917/dedao-dl/issues).
 - If not, create a new issue with:
-  - Clear description of the bug
-  - Steps to reproduce
-  - Expected and actual behavior
-  - Your environment (OS, Go version, etc.)
+  - Clear description of the bug.
+  - Steps to reproduce.
+  - Expected and actual behavior.
+  - Your environment (OS, Go version, etc.).
 
 ### Suggesting Enhancements
 - Use the Issues tab to suggest new features
