@@ -365,9 +365,9 @@ dedao-dl clean cache
 
 ![follow me](/docs/img/scan_search_green.png)
 
-## Stargazers over time
+## Star History
 
-[![Stargazers over time](https://starchart.cc/yann0917/dedao-dl.svg)](https://starchart.cc/yann0917/dedao-dl)
+[](https://www.star-history.com/?repos=yann0917%2Fdedao-dl&type=date&legend=top-left)
 
 ## License
 
