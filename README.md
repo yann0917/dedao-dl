@@ -365,9 +365,15 @@ dedao-dl clean cache
 
 ![follow me](/docs/img/scan_search_green.png)
 
-## Stargazers over time
+## Star History
 
-[![Stargazers over time](https://starchart.cc/yann0917/dedao-dl.svg)](https://starchart.cc/yann0917/dedao-dl)
+<a href="https://www.star-history.com/?repos=yann0917%2Fdedao-dl&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=yann0917/dedao-dl&type=date&theme=dark&legend=top-left&sealed_token=FcuGWUCiv7tHfnB-5rVV_z0MrtdIHt3_GHVuK7gkPQuZB5cYK36v8Zu8WGfVssCJaX2Pb0Rg8qW2VzBK" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=yann0917/dedao-dl&type=date&legend=top-left&sealed_token=FcuGWUCiv7tHfnB-5rVV_z0MrtdIHt3_GHVuK7gkPQuZB5cYK36v8Zu8WGfVssCJaX2Pb0Rg8qW2VzBK" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=yann0917/dedao-dl&type=date&legend=top-left&sealed_token=FcuGWUCiv7tHfnB-5rVV_z0MrtdIHt3_GHVuK7gkPQuZB5cYK36v8Zu8WGfVssCJaX2Pb0Rg8qW2VzBK" />
+ </picture>
+</a>
 
 ## License
 
