@@ -566,6 +566,19 @@ func (s *Service) reqChannelVipInfo(channelID int) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
+// reqChannelTopicDetail 请求学习圈频道主题详情
+// topicID: 主题（二级分类）ID
+func (s *Service) reqChannelTopicDetail(topicID int) (io.ReadCloser, error) {
+	resp, err := s.client.R().
+		SetBody(map[string]interface{}{
+			"filter":       "all",
+			"product_id":   topicID,
+			"product_type": 4006,
+		}).
+		Post("/pc/sphere/v1/app/topic/detail")
+	return handleHTTPResponse(resp, err)
+}
+
 // reqEbookNoteList 请求电子书笔记列表
 // bookEnid: 电子书的加密ID
 func (s *Service) reqEbookNoteList(bookEnid string) (io.ReadCloser, error) {

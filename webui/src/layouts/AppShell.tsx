@@ -1,4 +1,4 @@
-import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Menu, Rows3, Search, Trophy, UserCircle2, X } from "lucide-react"
+import { BookMarked, Compass, GraduationCap, Headphones, Home, Loader2, Menu, Rows3, Search, Sparkles, Trophy, UserCircle2, X } from "lucide-react"
 import type { ComponentType } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
@@ -10,6 +10,7 @@ import { useAuth } from "@/providers/AuthProvider"
 const primaryNavItems = [
   { to: "/", label: "首页", icon: Home, end: true },
   { to: "/leaderboard", label: "得到榜单", icon: Trophy },
+  { to: "/ai-channel", label: "AI 学习圈", icon: Sparkles },
 ]
 
 const purchasedNavItems = [

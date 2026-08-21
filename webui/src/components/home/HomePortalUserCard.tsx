@@ -24,22 +24,26 @@ export function HomePortalUserCard() {
       </div>
 
       <div className="mt-6 grid gap-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3">
           <div className={`${semanticSubtlePanelClass} p-4`}>
             <div className="inline-flex items-center gap-2 text-sm text-text-muted">
               <Clock3 className="h-4 w-4" />
               今日学习
             </div>
-            <p className="mt-3 text-2xl font-semibold text-text-primary">{Math.round((user?.today_study_time ?? 0) / 60)}</p>
-            <p className="text-xs text-text-muted">分钟</p>
+            <p className="mt-3 text-2xl font-semibold text-text-primary">
+              {Math.round((user?.today_study_time ?? 0) / 60)}
+              <span className="ml-1 text-xs font-normal text-text-muted">分钟</span>
+            </p>
           </div>
           <div className={`${semanticSubtlePanelClass} p-4`}>
             <div className="inline-flex items-center gap-2 text-sm text-text-muted">
               <BookOpen className="h-4 w-4" />
               连续学习
             </div>
-            <p className="mt-3 text-2xl font-semibold text-text-primary">{user?.study_serial_days ?? 0}</p>
-            <p className="text-xs text-text-muted">天</p>
+            <p className="mt-3 text-2xl font-semibold text-text-primary">
+              {user?.study_serial_days ?? 0}
+              <span className="ml-1 text-xs font-normal text-text-muted">天</span>
+            </p>
           </div>
         </div>
 

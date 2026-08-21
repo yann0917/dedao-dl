@@ -459,6 +459,162 @@ export type RankListResponse = {
   list: RankBoard[]
 }
 
+export type ChannelPerson = {
+  uid: number
+  name: string
+  title: string
+  bio: string
+  avatar: string
+  v_stat: number
+}
+
+export type ChannelSellingPoint = {
+  count_desc: string
+  name: string
+}
+
+export type ChannelStatistics = {
+  total_subscribers: number
+  selling_points: ChannelSellingPoint[]
+  content_quantity: number
+  messages: string[]
+  tips: string[]
+}
+
+export type ChannelStyleSheet = {
+  host_bg: string
+  host_border: string
+}
+
+export type ChannelInfo = {
+  channel_id: number
+  is_free: boolean
+  is_sharable: boolean
+  is_show_equity: boolean
+  subscription_ptype: number
+  theme: string
+  title: string
+  description: string
+  logo: string
+  badge: string
+  theme_color: string
+  host: ChannelPerson
+  hosts: ChannelPerson[]
+  guests: ChannelPerson[]
+  equity_title: string
+  equity_description: string
+  guests_url: string
+  equity_url: string
+  purchase_url: string
+  guests_ddurl: string
+  equity_ddurl: string
+  purchase_ddurl: string
+  statistics: ChannelStatistics
+  main_button: string
+  vice_button: string
+  vice_line: string
+  style_sheet: ChannelStyleSheet
+  equity_manage_ddurl: string
+  is_vip: boolean
+  is_pop: boolean
+  show_ai_assistant: boolean
+  show_new_classes_layout: boolean
+  show_coupon_renewal: boolean
+  countdown_tips: string
+}
+
+export type ChannelItemSource = {
+  source_name: string
+  source_type: number
+  source_id: number
+}
+
+export type ChannelItem = {
+  product_type: number
+  product_id: number
+  en_id: string
+  class_id: number
+  class_en_id: string
+  title: string
+  cover: string
+  logo: string
+  summary: string
+  difficulty_level: number
+  ddurl: string
+  status: string
+  has_video: boolean
+  has_live: boolean
+  duration: number
+  progress: number
+  publish_time: number
+  learn_count: number
+  is_read: boolean
+  live_status: number
+  live_playback_status: number
+  live_status_tips: string
+  source: ChannelItemSource
+}
+
+export type ChannelTopicCategory = {
+  id: number
+  channel_id: number
+  title: string
+  icon: string
+  night_icon: string
+  intro: string
+  description: string
+  status: number
+  sort_no: number
+  content_type: string
+  show_homepage: number
+  dd_url: string
+  items: ChannelItem[]
+  length: number
+}
+
+export type ChannelHomepageCategory = {
+  category_id: number
+  category_name: string
+  category_icon: string
+  category_dark_icon: string
+  list: ChannelTopicCategory[]
+}
+
+export type ChannelMedal = {
+  dd_url: string
+  status: number
+  icon: string
+}
+
+export type ChannelDefaultVipCard = {
+  pid: number
+  ptype: number
+  img: string
+}
+
+export type ChannelVipInfo = {
+  uid: number
+  nickname: string
+  slogan: string
+  avatar: string
+  avatar_s: string
+  v_state_value: number
+  is_vip: boolean
+  begin_time: number
+  end_time: number
+  expire_time: number
+  current_time: number
+  surplus_days: number
+  subscribed_days: number
+  is_ever_subscribed: boolean
+  is_expire: boolean
+  current_work_card_id: number
+  err_tips: string
+  medals: ChannelMedal[]
+  default_vip_card: ChannelDefaultVipCard
+  equity_intro: string
+}
+
 export type AlgoOption = {
   name: string
   value: string
@@ -927,6 +1083,14 @@ export const api = {
   rank: {
     baseInfo: () => request<RankBaseInfoResponse>("/api/rank/base-info"),
     list: (rankType: number) => request<RankListResponse>(`/api/rank/list?rankType=${rankType}`),
+  },
+  channel: {
+    info: (channelId: number) => request<ChannelInfo>(`/api/channel/info?channelId=${channelId}`),
+    homepage: (channelId: number) =>
+      request<ChannelHomepageCategory[]>(`/api/channel/homepage?channelId=${channelId}`),
+    vip: (channelId: number) => request<ChannelVipInfo>(`/api/channel/vip?channelId=${channelId}`),
+    topicDetail: (topicId: number) =>
+      request<ChannelTopicCategory>(`/api/channel/topic-detail?topicId=${topicId}`),
   },
   algo: {
     filter: (params: Partial<AlgoFilterRequest>) => request<AlgoFilterResponse>(`/api/algo/filter?${buildAlgoQuery(params)}`),

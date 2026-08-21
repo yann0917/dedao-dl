@@ -55,7 +55,7 @@ export function FreeResourceSection({ module, resources, error, onOpenResource }
         {resources.map((resource) => (
           <button className="text-left" key={resource.id} onClick={() => onOpenResource(resource)} type="button">
             <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative aspect-video overflow-hidden">
+              <div className="relative aspect-[16/10] overflow-hidden">
                 <img
                   alt={resource.name}
                   className="h-full w-full object-cover transition duration-500 hover:scale-105"
@@ -120,8 +120,8 @@ export function LabeledShelfSection({
     <section>
       <SectionHeader
         actions={
-          labels.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
+          labels.length > 0 || loading ? (
+            <div className="flex flex-wrap items-center gap-2">
               {labels.map((label) => (
                 <button
                   className={cn(getSemanticChipClass(selectedEnid === label.enid), "text-xs")}
@@ -132,6 +132,9 @@ export function LabeledShelfSection({
                   {label.name}
                 </button>
               ))}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-text-muted" aria-label="正在刷新内容" />
+              ) : null}
             </div>
           ) : null
         }
@@ -140,13 +143,6 @@ export function LabeledShelfSection({
 
       {error ? (
         <Card className="mb-5 border-warning bg-warning-soft p-4 text-sm text-warning">{error}</Card>
-      ) : null}
-
-      {loading ? (
-        <Card className="flex items-center justify-center p-8 text-text-muted">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          正在刷新{variant === "course" ? "课程" : "电子书"}内容...
-        </Card>
       ) : null}
 
       <div className={cn("grid gap-5", variant === "course" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-3 xl:grid-cols-5")}>
@@ -158,7 +154,7 @@ export function LabeledShelfSection({
             type="button"
           >
             <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-              <div className={cn("overflow-hidden bg-surface-soft", variant === "course" ? "aspect-video" : "aspect-[3/4] p-3")}>
+              <div className={cn("overflow-hidden bg-surface-soft", variant === "course" ? "aspect-[16/10]" : "aspect-[3/4] p-3")}>
                 <img
                   alt={product.title}
                   className={cn(

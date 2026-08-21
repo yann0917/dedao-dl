@@ -403,6 +403,11 @@ type ChannelHomepageCategory struct {
 	List             []ChannelTopicCategory `json:"list"`
 }
 
+// ChannelTopicDetail 主题详情（接口返回 topic 包装结构）
+type ChannelTopicDetail struct {
+	Topic *ChannelTopicCategory `json:"topic"`
+}
+
 // ChannelTopicCategory 分类下的主题
 type ChannelTopicCategory struct {
 	ID           int           `json:"id"`

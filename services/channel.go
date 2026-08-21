@@ -43,3 +43,22 @@ func (s *Service) ChannelVipInfo(channelID int) (info *ChannelVipInfo, err error
 	}
 	return
 }
+
+// ChannelTopicDetail 根据主题ID获取主题详情列表
+// 接口返回 {"topic": {...}} 包装结构，这里解包后直接返回主题对象
+func (s *Service) ChannelTopicDetail(topicID int) (topic *ChannelTopicCategory, err error) {
+	body, err := s.reqChannelTopicDetail(topicID)
+	if err != nil {
+		return
+	}
+	defer body.Close()
+
+	var detail *ChannelTopicDetail
+	if err = handleJSONParse(body, &detail); err != nil {
+		return
+	}
+	if detail == nil {
+		return nil, nil
+	}
+	return detail.Topic, nil
+}

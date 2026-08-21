@@ -25,7 +25,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
 
   if (banners.length === 0) {
     return (
-      <Card className="flex h-full min-h-[300px] items-center justify-center p-8">
+      <Card className="flex aspect-video w-full items-center justify-center p-8">
         <div className="text-center">
           <p className="text-lg font-medium text-text-primary">首页 Banner 暂未加载</p>
         </div>
@@ -34,13 +34,13 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
   }
 
   return (
-    <Card className="relative h-full min-h-[300px] overflow-hidden">
-      <Carousel className="h-full min-h-[300px]" opts={{ align: "start", loop: banners.length > 1 }} setApi={setApi}>
-        <CarouselContent className="h-full min-h-[300px]">
+    <Card className="relative aspect-video w-full self-start overflow-hidden">
+      <Carousel className="h-full w-full" opts={{ align: "start", loop: banners.length > 1 }} setApi={setApi}>
+        <CarouselContent className="h-full">
           {banners.map((banner) => (
-            <CarouselItem className="h-full min-h-[300px]" key={banner.id}>
+            <CarouselItem className="h-full" key={banner.id}>
               <button
-                className="group relative h-full min-h-[300px] w-full text-left"
+                className="group relative h-full w-full text-left"
                 onClick={() => window.open(banner.url, "_blank", "noopener,noreferrer")}
                 type="button"
               >

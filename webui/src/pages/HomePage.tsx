@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react"
+import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { type HomeCategory, type HomeFreeResource, type HomeNavigation } from "@/api"
 import { HomeBannerCarousel } from "@/components/home/HomeBannerCarousel"
@@ -28,6 +29,12 @@ export function HomePage() {
   const portal = useHomePortal()
 
   const handleSelectCourse = (enid: string) => {
+    // 精选课程为 AI 学习圈时，点击任意卡片跳转 AI 学习圈
+    if (portal.selectedCourseEnid.startsWith("aiSphereGroupType:")) {
+      navigate("/ai-channel")
+      return
+    }
+
     navigate(`/courses/${encodeURIComponent(enid)}?from=home`)
   }
 
@@ -71,6 +78,12 @@ export function HomePage() {
       return
     }
 
+    // 精选课程的 enid 带 aiSphereGroupType: 前缀时跳转 AI 学习圈
+    if (kind === "course" && selectedLabel.enid.startsWith("aiSphereGroupType:")) {
+      navigate("/ai-channel")
+      return
+    }
+
     navigate(
       `/category?${buildCategoryQuery({
         id: selectedLabel.id,
@@ -82,6 +95,12 @@ export function HomePage() {
       })}`,
     )
   }
+
+  // 当前选中的课程 label 名称，用于「查看更多」按钮文案
+  const selectedCourseLabelName = useMemo(
+    () => portal.courseLabels.find((item) => item.enid === portal.selectedCourseEnid)?.name,
+    [portal.courseLabels, portal.selectedCourseEnid],
+  )
 
   if (portal.loading) {
     return (
@@ -135,7 +154,7 @@ export function HomePage() {
         labels={portal.courseLabels}
         loading={portal.switchingSection === "course"}
         module={portal.moduleMap.get("class")}
-        moreButtonText="查看更多精选课程"
+        moreButtonText={`查看更多${selectedCourseLabelName || "精选课程"}`}
         onClickMore={() => handleOpenCategoryFromShelf("course")}
         onOpenProduct={handleSelectCourse}
         onSelectLabel={(label) => handleSelectShelfLabel("course", label)}

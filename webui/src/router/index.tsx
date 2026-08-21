@@ -10,6 +10,7 @@ import { CourseArticleListPage } from "@/pages/CourseArticleListPage"
 import { CourseDetailPage } from "@/pages/CourseDetailPage"
 import { CoursePage } from "@/pages/CoursePage"
 import { DedaoLeaderboardPage } from "@/pages/DedaoLeaderboardPage"
+import { AIChannelPage } from "@/pages/AIChannelPage"
 import { EbookCommentPage } from "@/pages/EbookCommentPage"
 import { EbookDetailPage } from "@/pages/EbookDetailPage"
 import { HomePage } from "@/pages/HomePage"
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: "leaderboard",
         element: <DedaoLeaderboardPage />,
+      },
+      {
+        path: "ai-channel",
+        element: <AIChannelPage />,
       },
       {
         path: "courses",
