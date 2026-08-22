@@ -4,7 +4,9 @@ import {
   FolderOpen,
   GraduationCap,
   Headphones,
+  LayoutGrid,
   LibraryBig,
+  List,
   Loader2,
 } from "lucide-react"
 import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from "react"
@@ -83,6 +85,14 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
     active: false,
     groupId: 0,
     title: "",
+  })
+  // 布局偏好：卡片(card) / 列表(list)，按分类独立记忆
+  const [viewMode, setViewMode] = useState<"card" | "list">(() => {
+    try {
+      return localStorage.getItem(`purchasedCollection:${config.category}:viewMode`) === "list" ? "list" : "card"
+    } catch {
+      return "card"
+    }
   })
 
   useEffect(() => {
@@ -217,6 +227,18 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
     )
   }
 
+  const toggleViewMode = () => {
+    setViewMode((current) => {
+      const next = current === "card" ? "list" : "card"
+      try {
+        localStorage.setItem(`purchasedCollection:${config.category}:viewMode`, next)
+      } catch {
+        // 忽略存储异常，不影响布局切换
+      }
+      return next
+    })
+  }
+
   const actionHelpers = {
     navigate,
     openItem,
@@ -247,7 +269,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
 
       {!groupMode.active && filterOptions.length > 0 ? (
         <Card className="p-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {filterOptions.map((item) => {
               const active = currentFilter === item.filter
 
@@ -263,6 +285,10 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                 </button>
               )
             })}
+            <Button className="ml-auto" onClick={toggleViewMode} variant="outline">
+              {viewMode === "card" ? <List className="mr-2 h-4 w-4" /> : <LayoutGrid className="mr-2 h-4 w-4" />}
+              {viewMode === "card" ? "切换列表" : "切换卡片"}
+            </Button>
           </div>
         </Card>
       ) : null}
@@ -287,7 +313,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
       ) : null}
 
       {!loading ? (
-        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        <section className={viewMode === "card" ? "grid gap-5 md:grid-cols-2 xl:grid-cols-5" : "flex flex-col gap-4"}>
           {items.map((item) => {
             const title = item.title || item.name || `${config.itemLabel}内容`
             const summary = config.getSummary?.(item) || item.intro || item.subtitle || "暂无简介"
@@ -295,22 +321,81 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
             const secondaryMeta = item.is_group ? "进入分组" : (config.getSecondaryMeta?.(item) ?? "打开详情")
             const progress = item.is_group ? null : config.getProgress?.(item)
             const isInteractive = config.isItemInteractive ? config.isItemInteractive(item) : true
+            const itemKey = `${item.group_id || item.id}-${item.enid || title}`
+
+            const interactiveProps = {
+              onClick: isInteractive ? () => openItem(item) : undefined,
+              onKeyDown: isInteractive ? (event: KeyboardEvent<HTMLDivElement>) => handleCardKeyDown(event, item) : undefined,
+              role: isInteractive ? ("button" as const) : undefined,
+              tabIndex: isInteractive ? 0 : undefined,
+            }
+
+            // 列表布局：封面在左、内容在右，单列排列
+            if (viewMode === "list") {
+              return (
+                <div className="text-left" key={itemKey} {...interactiveProps}>
+                  <Card className={`overflow-hidden transition ${isInteractive ? "hover:shadow-lg" : ""}`}>
+                    <div className="flex flex-col gap-4 p-4 sm:flex-row">
+                      <div className={`relative w-full max-w-36 shrink-0 overflow-hidden rounded-xl bg-surface-soft sm:w-36 ${coverContainerClassName}`}>
+                        {item.icon || item.cover || item.index_img ? (
+                          <img
+                            alt={title}
+                            className={`h-full w-full transition duration-500 hover:scale-105 ${coverImageClassName}`}
+                            decoding="async"
+                            loading="lazy"
+                            src={item.icon || item.cover || item.index_img}
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-text-muted">
+                            {item.is_group ? <FolderOpen className="h-10 w-10" /> : <FallbackIcon className="h-10 w-10" />}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex min-w-0 flex-1 flex-col gap-2">
+                        <span className="w-fit rounded-full bg-surface-panel/90 px-3 py-1 text-xs font-medium text-text-secondary">
+                          {item.is_group ? "内容分组" : config.itemLabel}
+                        </span>
+                        <h3 className="line-clamp-2 text-base font-semibold text-text-primary">{title}</h3>
+                        <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{summary}</p>
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
+                          <span>{primaryMeta}</span>
+                          {secondaryMeta ? <span>{secondaryMeta}</span> : null}
+                        </div>
+                        {typeof progress === "number" ? (
+                          <div className="h-1.5 overflow-hidden rounded-full bg-surface-soft">
+                            <div
+                              className="h-full rounded-full bg-primary transition-[width]"
+                              style={{ width: `${Math.max(0, Math.min(progress, 100))}%` }}
+                            />
+                          </div>
+                        ) : null}
+                        {config.renderActions ? (
+                          <div
+                            className="flex flex-wrap items-center gap-2 border-t border-border pt-1"
+                            onClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => event.stopPropagation()}
+                          >
+                            {config.renderActions(item, actionHelpers)}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )
+            }
 
             return (
-              <div
-                className="text-left"
-                key={`${item.group_id || item.id}-${item.enid || title}`}
-                onClick={isInteractive ? () => openItem(item) : undefined}
-                onKeyDown={isInteractive ? (event) => handleCardKeyDown(event, item) : undefined}
-                role={isInteractive ? "button" : undefined}
-                tabIndex={isInteractive ? 0 : undefined}
-              >
+              <div className="text-left" key={itemKey} {...interactiveProps}>
                 <Card className={`h-full overflow-hidden transition ${isInteractive ? "hover:-translate-y-1 hover:shadow-lg" : ""}`}>
                   <div className={`relative overflow-hidden bg-surface-soft ${coverContainerClassName}`}>
                     {item.icon || item.cover || item.index_img ? (
                       <img
                         alt={title}
                         className={`h-full w-full transition duration-500 hover:scale-105 ${coverImageClassName}`}
+                        decoding="async"
+                        loading="lazy"
                         src={item.icon || item.cover || item.index_img}
                       />
                     ) : (

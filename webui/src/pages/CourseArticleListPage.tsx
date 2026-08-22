@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock3, FileText, Headphones, Loader2, Play, Rows4, SortAsc, SortDesc } from "lucide-react"
+import { ArrowLeft, Clock3, FileText, Headphones, LayoutGrid, List, Loader2, Play, Rows4, SortAsc, SortDesc } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, type CourseArticleItem, type CourseArticleListResponse, type CourseInfoResponse } from "@/api"
@@ -9,6 +9,18 @@ import { getSemanticStatusBadgeClass, semanticMetaTextClass, semanticPageSection
 import { useAudioPlayer } from "@/providers/AudioPlayerProvider"
 
 const articlePageSize = 30
+
+// 布局偏好存储键：卡片(card) / 列表(list)
+const viewModeStorageKey = "courseArticleList:viewMode"
+type ViewMode = "card" | "list"
+
+function loadSavedViewMode(): ViewMode {
+  try {
+    return localStorage.getItem(viewModeStorageKey) === "list" ? "list" : "card"
+  } catch {
+    return "card"
+  }
+}
 const chapterQuickDownloadOptions: QuickDownloadOption[] = [
   { value: 1, label: "音频" },
   { value: 2, label: "PDF" },
@@ -43,6 +55,7 @@ export function CourseArticleListPage() {
   const { enid = "" } = useParams()
   const [searchParams] = useSearchParams()
   const [reverse, setReverse] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>(loadSavedViewMode)
   const [courseInfo, setCourseInfo] = useState<CourseInfoResponse | null>(null)
   const [articles, setArticles] = useState<CourseArticleListResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -197,6 +210,72 @@ export function CourseArticleListPage() {
     }
   }
 
+  const toggleViewMode = () => {
+    setViewMode((current) => {
+      const next: ViewMode = current === "card" ? "list" : "card"
+      try {
+        localStorage.setItem(viewModeStorageKey, next)
+      } catch {
+        // 忽略存储异常，不影响布局切换
+      }
+      return next
+    })
+  }
+
+  // 文章标签（已读 / 含音频 / 含视频）
+  const renderArticleBadges = (item: CourseArticleItem) => (
+    <div className="flex flex-wrap gap-2">
+      {item.is_read ? <span className={getSemanticStatusBadgeClass("success")}>已读</span> : null}
+      {item.audio?.mp3_play_url ? (
+        <span className={getSemanticStatusBadgeClass("accent")}>含音频</span>
+      ) : null}
+      {item.video_status === 1 ? <span className={getSemanticStatusBadgeClass("warning")}>含视频</span> : null}
+    </div>
+  )
+
+  // 文章元信息（学习人数 / 发布时间）
+  const renderArticleMeta = (item: CourseArticleItem) => (
+    <div className="flex flex-wrap gap-3 text-sm text-text-muted">
+      <span className="inline-flex items-center gap-1">
+        <Headphones className="h-4 w-4" />
+        {item.cur_learn_count || 0} 人学习
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <Clock3 className="h-4 w-4" />
+        {formatPublishTime(item.publish_time)}
+      </span>
+    </div>
+  )
+
+  // 文章操作按钮（播放 / 查看文章 / 下载）
+  const renderArticleActions = (item: CourseArticleItem) => (
+    <div className="flex flex-wrap items-center gap-3">
+      {item.audio?.mp3_play_url ? (
+        <Button onClick={() => playArticle(item)} variant="outline">
+          <Play className="mr-2 h-4 w-4" />
+          播放
+        </Button>
+      ) : null}
+      <Button onClick={() => openArticleDetail(item)}>
+        <FileText className="mr-2 h-4 w-4" />
+        查看文章
+      </Button>
+      <QuickDownloadButtons
+        onDownload={(downloadType) =>
+          api.download.course({
+            enid,
+            title: `${courseTitle} - ${item.title}`,
+            articleId: item.id,
+            downloadType,
+            isOrder: true,
+          })
+        }
+        options={chapterQuickDownloadOptions}
+        triggerClassName="h-10"
+      />
+    </div>
+  )
+
   if (loading) {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
@@ -272,72 +351,60 @@ export function CourseArticleListPage() {
               {reverse ? <SortAsc className="mr-2 h-4 w-4" /> : <SortDesc className="mr-2 h-4 w-4" />}
               {reverse ? "切回正序" : "切换倒序"}
             </Button>
+            <Button onClick={toggleViewMode} variant="outline">
+              {viewMode === "card" ? <List className="mr-2 h-4 w-4" /> : <LayoutGrid className="mr-2 h-4 w-4" />}
+              {viewMode === "card" ? "切换列表" : "切换卡片"}
+            </Button>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {articleItems.map((item) => (
-          <Card className="h-full p-5" key={item.enid}>
-            <div className="flex h-full flex-col gap-4">
-              <img
-                alt={item.title}
-                className="aspect-[16/9] w-full rounded-3xl object-cover"
-                src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/640x360/e2e8f0/334155?text=Article"}
-              />
-
-              <div className="flex flex-wrap gap-2">
-                {item.is_read ? <span className={getSemanticStatusBadgeClass("success")}>已读</span> : null}
-                {item.audio?.mp3_play_url ? (
-                  <span className={getSemanticStatusBadgeClass("accent")}>含音频</span>
-                ) : null}
-                {item.video_status === 1 ? <span className={getSemanticStatusBadgeClass("warning")}>含视频</span> : null}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <h3 className="line-clamp-2 text-xl font-semibold text-text-primary">{item.title}</h3>
-                <p className="mt-3 line-clamp-3 text-sm leading-7 text-text-secondary">{item.summary || "暂无摘要"}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-3 text-sm text-text-muted">
-                <span className="inline-flex items-center gap-1">
-                  <Headphones className="h-4 w-4" />
-                  {item.cur_learn_count || 0} 人学习
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <Clock3 className="h-4 w-4" />
-                  {formatPublishTime(item.publish_time)}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                {item.audio?.mp3_play_url ? (
-                  <Button onClick={() => playArticle(item)} variant="outline">
-                    <Play className="mr-2 h-4 w-4" />
-                    播放
-                  </Button>
-                ) : null}
-                <Button onClick={() => openArticleDetail(item)}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  查看文章
-                </Button>
-                <QuickDownloadButtons
-                  onDownload={(downloadType) =>
-                    api.download.course({
-                      enid,
-                      title: `${courseTitle} - ${item.title}`,
-                      articleId: item.id,
-                      downloadType,
-                      isOrder: true,
-                    })
-                  }
-                  options={chapterQuickDownloadOptions}
-                  triggerClassName="h-10"
+      <section className={viewMode === "card" ? "grid gap-5 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}>
+        {articleItems.map((item) =>
+          viewMode === "card" ? (
+            <Card className="h-full p-5" key={item.enid}>
+              <div className="flex h-full flex-col gap-4">
+                <img
+                  alt={item.title}
+                  className="aspect-[16/9] w-full rounded-3xl object-cover"
+                  decoding="async"
+                  loading="lazy"
+                  src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/640x360/e2e8f0/334155?text=Article"}
                 />
+                {renderArticleBadges(item)}
+
+                <div className="min-w-0 flex-1">
+                  <h3 className="line-clamp-2 text-xl font-semibold text-text-primary">{item.title}</h3>
+                  <p className="mt-3 line-clamp-3 text-sm leading-7 text-text-secondary">{item.summary || "暂无摘要"}</p>
+                </div>
+
+                {renderArticleMeta(item)}
+                {renderArticleActions(item)}
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ) : (
+            <Card className="p-4" key={item.enid}>
+              <div className="flex gap-4">
+                <img
+                  alt={item.title}
+                  className="h-28 w-28 shrink-0 rounded-2xl object-cover"
+                  decoding="async"
+                  loading="lazy"
+                  src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/240x240/e2e8f0/334155?text=Article"}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  {renderArticleBadges(item)}
+                  <h3 className="line-clamp-1 text-lg font-semibold text-text-primary">{item.title}</h3>
+                  <p className="line-clamp-2 text-sm leading-6 text-text-secondary">{item.summary || "暂无摘要"}</p>
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
+                    {renderArticleMeta(item)}
+                    {renderArticleActions(item)}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ),
+        )}
       </section>
 
       {articleItems.length === 0 ? (
