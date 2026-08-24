@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 )
@@ -29,13 +30,16 @@ func (p *PdfOption) GenPdf(buf *bytes.Buffer) (err error) {
 
 	if p.CoverPath != "" {
 		pdfg.Cover.EnableLocalFileAccess.Set(true)
-		dir, err := CurrentDir()
+		dir, err := os.Getwd()
 		if err != nil {
 			pdfg.Cover.EnableLocalFileAccess.Set(false)
 		}
 		dir = filepath.Join(dir, p.CoverPath)
 		if runtime.GOOS == "windows" {
-			pdfg.Cover.Input = dir
+			// Windows: 反斜杠路径会被 wkhtmltopdf 当作 URL 协议(c:)解析失败，
+			// 统一转为正斜杠 file:// URL
+			dir = strings.ReplaceAll(dir, "\\", "/")
+			pdfg.Cover.Input = "file:///" + dir
 		} else {
 			pdfg.Cover.Input = "file://" + dir
 		}
