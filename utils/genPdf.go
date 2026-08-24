@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -29,16 +30,15 @@ func (p *PdfOption) GenPdf(buf *bytes.Buffer) (err error) {
 
 	if p.CoverPath != "" {
 		pdfg.Cover.EnableLocalFileAccess.Set(true)
-		dir, err := CurrentDir()
+		dir, err := filepath.Abs(p.CoverPath)
 		if err != nil {
-			pdfg.Cover.EnableLocalFileAccess.Set(false)
+			return fmt.Errorf("获取 cover 文件路径失败: %w", err)
 		}
-		dir = filepath.Join(dir, p.CoverPath)
+		slashPath := filepath.ToSlash(dir)
 		if runtime.GOOS == "windows" {
-			pdfg.Cover.Input = dir
-		} else {
-			pdfg.Cover.Input = "file://" + dir
+			slashPath = "/" + slashPath
 		}
+		pdfg.Cover.Input = (&url.URL{Scheme: "file", Path: slashPath}).String()
 	}
 
 	pdfg.Dpi.Set(300)

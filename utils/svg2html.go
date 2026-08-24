@@ -4,17 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"html"
-	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/JoshVarga/svgparser"
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/yann0917/dedao-dl/request"
 )
 
@@ -225,82 +222,6 @@ func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err err
 	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
 
 	return err
-}
-
-func genPdf(buf *bytes.Buffer, fileName, coverPath string) (err error) {
-	pdfg, _ := wkhtmltopdf.NewPDFGenerator()
-
-	page := wkhtmltopdf.NewPageReader(buf)
-	page.FooterFontSize.Set(10)
-	page.FooterRight.Set("[page]")
-	page.DisableSmartShrinking.Set(true)
-
-	page.EnableLocalFileAccess.Set(true)
-	pdfg.AddPage(page)
-
-	pdfg.Cover.EnableLocalFileAccess.Set(true)
-
-	dir, _ := CurrentDir()
-	coverPath = filepath.Join(dir, coverPath)
-
-	if runtime.GOOS == "windows" {
-		pdfg.Cover.Input = coverPath
-	} else {
-		pdfg.Cover.Input = "file://" + coverPath
-	}
-
-	pdfg.Dpi.Set(300)
-
-	pdfg.TOC.Include = true
-	pdfg.TOC.TocHeaderText.Set("目 录")
-	pdfg.TOC.HeaderFontSize.Set(18)
-
-	pdfg.TOC.TocLevelIndentation.Set(15)
-	pdfg.TOC.TocTextSizeShrink.Set(0.9)
-	pdfg.TOC.DisableDottedLines.Set(false)
-	pdfg.TOC.EnableTocBackLinks.Set(true)
-
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-
-	pdfg.MarginTop.Set(15)
-	pdfg.MarginBottom.Set(15)
-	pdfg.MarginLeft.Set(15)
-	pdfg.MarginRight.Set(15)
-
-	err = pdfg.Create()
-	if err != nil {
-		fmt.Printf("pdfg create err: %#v\n", err)
-		return
-	}
-
-	// Write buffer contents to file on disk
-	err = pdfg.WriteFile(fileName)
-	if err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-		return
-	}
-	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
-	err = os.Remove(coverPath)
-	return
-}
-
-func SaveFile(title, ext, content string) (err error) {
-	path, err := Mkdir(OutputDir, "Ebook")
-	if err != nil {
-		return err
-	}
-
-	fileName, err := FilePath(filepath.Join(path, FileName(title, "")), ext, false)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("正在生成文件：【\033[37;1m%s\033[0m】 ", fileName)
-	if err = WriteFileWithTrunc(fileName, content); err != nil {
-		fmt.Printf("\033[31;1m%s\033[0m\n", "失败"+err.Error())
-		return
-	}
-	fmt.Printf("\033[32;1m%s\033[0m\n", "完成")
-	return
 }
 
 // AllInOneHtml generate ebook content all in one html file
