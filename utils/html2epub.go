@@ -56,6 +56,9 @@ body, div, p, li, span, a, blockquote, h1, h2, h3, h4, h5, h6 {
 pre, code, kbd, samp {
 	font-family: monospace !important;
 }
+p {
+	margin: 1.5em 0;
+}
 `
 
 var (

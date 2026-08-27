@@ -13,14 +13,10 @@ import (
 const (
 	maxRetries     = 3
 	initialBackoff = 3 * time.Second
-	retryDelay     = 1 * time.Second
 	// 缓存前缀
 	ebookPageCachePrefix = "ebook:page:"
 	// 缓存过期时间：24小时
 	ebookPageCacheTTL = 24 * time.Hour
-	// 请求间隔时间范围（秒）
-	minRequestInterval = 1
-	maxRequestInterval = 3
 	// 触发反爬虫后的冷却时间（秒）
 	cooldownTime = 60
 	// 最大连续失败次数，超过此数认为触发了反爬虫
@@ -78,14 +74,6 @@ func (r *requestLimiter) getToken() time.Duration {
 	// 添加小的随机抖动，使请求不那么规律
 	jitter := time.Duration(rand.Float64() * 200 * float64(time.Millisecond))
 	return jitter
-}
-
-// min 返回两个整数中的较小值
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // 全局请求控制相关变量
