@@ -63,15 +63,8 @@ func (a SvgContents) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a SvgContents) Less(i, j int) bool { return a[i].OrderIndex < a[j].OrderIndex } // 从小到大排序
 
 const (
-	footNoteImgW     = 20 // 脚注图片≈11x11px & 特殊字图片≈19x19
-	footNoteImgH     = 20 // 行内图片高度=20
-	svgShapePath     = "path"
-	svgShapePolygon  = "polygon"
-	svgShapePolyline = "polyline"
-	svgShapeLine     = "line"
-	svgShapeRect     = "rect"
-	svgShapeEllipse  = "ellipse"
-	svgShapeCircle   = "circle"
+	footNoteImgW = 20 // 脚注图片≈11x11px & 特殊字图片≈19x19
+	footNoteImgH = 20 // 行内图片高度=20
 
 	eBookTypeHtml = "html"
 	eBookTypePdf  = "pdf"
@@ -90,7 +83,6 @@ func Svg2Html(title string, svgContents []*SvgContent, toc []EbookToc) (err erro
 	for _, ebookToc := range toc {
 		tocLevel[ebookToc.Text] = ebookToc.Level
 	}
-	// fmt.Println(tocLevel)
 
 	result, err := AllInOneHtml(svgContents, toc)
 	if err != nil {
@@ -244,6 +236,55 @@ func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err
 	return
 }
 
+// locateTocAnchorID 在当前渲染行上定位 TOC 锚点
+// offset 主信号：用 TOC 的 Offset（字节偏移）匹配本行 SVG text 的最小 offset，
+// 定位到章节内标题所在行（含二级/三级目录）；匹配成功推进 offsetIdx。
+// 文本兜底：对未提供有效 Offset 的目录项，按标题文本匹配定位。
+// 返回锚点 id（TOC Href 中 # 后部分），无匹配返回空串。
+func locateTocAnchorID(items []HtmlEle, offsetEntries []EbookToc, offsetIdx *int, textEntries []EbookToc, textMatched []bool, lineText string) string {
+	// 计算本行最小的字节偏移（SVG text 的 offset 属性）
+	lineMinOffset := -1
+	for _, item := range items {
+		if item.Offset == "" {
+			continue
+		}
+		if o, err := strconv.Atoi(item.Offset); err == nil {
+			if lineMinOffset == -1 || o < lineMinOffset {
+				lineMinOffset = o
+			}
+		}
+	}
+
+	// offset 主信号：按字节偏移定位下一个未消费的目录项
+	if *offsetIdx < len(offsetEntries) && lineMinOffset >= 0 {
+		entry := offsetEntries[*offsetIdx]
+		if lineMinOffset >= entry.Offset {
+			*offsetIdx++
+			if tagArr := strings.Split(entry.Href, "#"); len(tagArr) > 1 {
+				return tagArr[1]
+			}
+		}
+	}
+
+	// 文本兜底：仅对未提供有效 offset 的目录项，按标题文本匹配
+	if len([]rune(lineText)) >= 2 {
+		for i, e := range textEntries {
+			if textMatched[i] {
+				continue
+			}
+			norm := strings.ReplaceAll(e.Text, " ", "")
+			if norm != "" && strings.Contains(norm, lineText) {
+				textMatched[i] = true
+				if tagArr := strings.Split(e.Href, "#"); len(tagArr) > 1 {
+					return tagArr[1]
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
 // OneByOneHtml one by one generate chapter html
 // eType: html/pdf/epub, index: []*SvgContent index, svgContent: one chapter content
 func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookToc) (result, cover string, err error) {
@@ -260,6 +301,24 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 	case eBookTypePdf, eBookTypeEpub:
 		result += GenHeadHtml()
 	}
+
+	// 按章节分组 TOC 项，用于在章节内定位锚点（含二级/三级目录）
+	// 有有效 Offset 的目录项走字节偏移匹配（主信号），无 Offset 的走标题文本匹配（兜底）
+	offsetEntries := make([]EbookToc, 0)
+	textEntries := make([]EbookToc, 0)
+	for _, t := range toc {
+		tagArr := strings.Split(t.Href, "#")
+		if len(tagArr) > 0 && tagArr[0] == svgContent.ChapterID {
+			if t.Offset > 0 {
+				offsetEntries = append(offsetEntries, t)
+			} else {
+				textEntries = append(textEntries, t)
+			}
+		}
+	}
+	sort.Slice(offsetEntries, func(i, j int) bool { return offsetEntries[i].Offset < offsetEntries[j].Offset })
+	offsetIdx := 0
+	textMatched := make([]bool, len(textEntries))
 
 	for _, content := range svgContent.Contents {
 		result += `
@@ -473,13 +532,27 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 						}
 					}
 					if contWOTag != "" {
+						// 定位本行对应的 TOC 锚点（offset 主信号 + 文本兜底）
+						anchorID := locateTocAnchorID(lineContent[v], offsetEntries, &offsetIdx, textEntries, textMatched, contWOTag)
+						// 行内已有同名 id（SVG 自带锚点）时避免生成重复 id
+						if anchorID != "" && id == anchorID {
+							anchorID = ""
+						}
 						if matchH {
 							result += `
 </div>`
-							result += `<div class='header` + strconv.Itoa(level) + `'>` + GenTocLevelHtml(level, true)
+							result += `<div class='header` + strconv.Itoa(level) + `'`
+							if anchorID != "" {
+								result += ` id="` + anchorID + `"`
+							}
+							result += `>` + GenTocLevelHtml(level, true)
 						} else {
 							result += `
-	<p>`
+	<p`
+							if anchorID != "" {
+								result += ` id="` + anchorID + `"`
+							}
+							result += `>`
 						}
 					}
 					if i > 1 && item.Name == "image" {
@@ -814,12 +887,10 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 				yInt, _ = strconv.ParseFloat(attrPre["y"], 64)
 				ele.Y = attrPre["y"]
 			}
-			// id &offset 设置标题 margin-left
-			if _, ok := attr["id"]; ok {
-				ele.ID = attr["id"]
-				if _, ok := attr["offset"]; ok {
-					offset = attr["offset"]
-				}
+			// 捕获 id 和 offset，用于后续 TOC 锚点定位
+			ele.ID = attr["id"]
+			if _, ok := attr["offset"]; ok {
+				offset = attr["offset"]
 			}
 			ele.Offset = offset
 			ele.Href = parseAttrHref(attr)
