@@ -41,6 +41,16 @@ type HtmlEle struct {
 	TextAlign string `json:"text_align"` // left; center; right
 }
 
+type SvgRect struct {
+	X      float64
+	Y      float64
+	Width  float64
+	Height float64
+	Rx     string
+	Ry     string
+	Style  string
+}
+
 type EbookToc struct {
 	Href      string `json:"href"`
 	Level     int    `json:"level"`
@@ -337,6 +347,7 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 		}
 
 		lineContent := GenLineContentByElement(svgContent.ChapterID, element)
+		rects := GenRectContentByElement(element)
 
 		keys := make([]float64, 0, len(lineContent))
 		for k := range lineContent {
@@ -344,7 +355,20 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 		}
 		sort.Float64s(keys)
 
+		activeRectIdx := -1
 		for _, v := range keys {
+			rectIdx := matchRectForLine(rects, v)
+			if rectIdx != activeRectIdx {
+				if activeRectIdx >= 0 {
+					result += `
+</div>`
+				}
+				if rectIdx >= 0 {
+					result += `
+<div style="` + buildRectWrapperStyle(rects[rectIdx]) + `">`
+				}
+				activeRectIdx = rectIdx
+			}
 			cont, id, contWOTag, firstX := "", "", "", 0.0
 			if lineContent[v][0].ID != "" {
 				id = lineContent[v][0].ID
@@ -584,6 +608,10 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 				}
 			}
 		}
+		if activeRectIdx >= 0 {
+			result += `
+</div>`
+		}
 		result += `</div>`
 		switch eType {
 		case eBookTypePdf, eBookTypeEpub:
@@ -809,6 +837,16 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 					// 检查Y坐标是否不同，通常上标的Y坐标会比基线的Y坐标小
 					yInt, _ := strconv.ParseFloat(attr["y"], 64)
 					lastYInt, _ := strconv.ParseFloat(lastY, 64)
+					// 上下标必须紧贴前一个文本元素；跨行的数字开头正文不能按上下标处理。
+					if isPossibleSuperOrSub && yInt != 0 && lastYInt != 0 && lastHInt > 0 {
+						yDiff := yInt - lastYInt
+						if yDiff < 0 {
+							yDiff = -yDiff
+						}
+						if yDiff > lastHInt*0.5 {
+							isPossibleSuperOrSub = false
+						}
+					}
 					if yInt != 0 && lastYInt != 0 && yInt < lastYInt &&
 						(lastYInt-yInt > 2) { // 至少需要有明显的Y轴差异
 						// Y坐标比前一个元素小，很可能是上标
@@ -879,13 +917,30 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 			ele.Width = attr["width"]
 			ele.Height = attr["height"]
 
-			// footnote image with text in one line
+			// 小图标通常跟正文同行，但如果前一个元素已经显式换行，
+			// 则应当跟随下一行文本，而不是挂到上一行末尾。
 			yInt, _ := strconv.ParseFloat(ele.Y, 64)
 			w, _ := strconv.ParseFloat(ele.Width, 64)
 			if children.Name == "image" && w < footNoteImgW {
-				attrPre := element.Children[k-1].Attributes
-				yInt, _ = strconv.ParseFloat(attrPre["y"], 64)
-				ele.Y = attrPre["y"]
+				aligned := false
+				if k > 0 {
+					attrPre := element.Children[k-1].Attributes
+					prevHasExplicitNewline := attrPre["newline"] == "true"
+					if !prevHasExplicitNewline {
+						if prevY, ok := attrPre["y"]; ok {
+							yInt, _ = strconv.ParseFloat(prevY, 64)
+							ele.Y = prevY
+							aligned = true
+						}
+					}
+				}
+				if !aligned && k+1 < len(element.Children) {
+					attrNext := element.Children[k+1].Attributes
+					if nextY, ok := attrNext["y"]; ok {
+						yInt, _ = strconv.ParseFloat(nextY, 64)
+						ele.Y = nextY
+					}
+				}
 			}
 			// 捕获 id 和 offset，用于后续 TOC 锚点定位
 			ele.ID = attr["id"]
@@ -904,7 +959,69 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 			lastName = children.Name
 		}
 	}
+	for y := range lineContent {
+		sort.SliceStable(lineContent[y], func(i, j int) bool {
+			xi, errI := strconv.ParseFloat(lineContent[y][i].X, 64)
+			xj, errJ := strconv.ParseFloat(lineContent[y][j].X, 64)
+			if errI != nil || errJ != nil {
+				return lineContent[y][i].X < lineContent[y][j].X
+			}
+			return xi < xj
+		})
+	}
 	return
+}
+
+func GenRectContentByElement(element *svgparser.Element) (rects []SvgRect) {
+	for _, child := range element.Children {
+		if child.Name != "rect" {
+			continue
+		}
+		attr := child.Attributes
+		x, errX := strconv.ParseFloat(attr["x"], 64)
+		y, errY := strconv.ParseFloat(attr["y"], 64)
+		w, errW := strconv.ParseFloat(attr["width"], 64)
+		h, errH := strconv.ParseFloat(attr["height"], 64)
+		if errX != nil || errY != nil || errW != nil || errH != nil {
+			continue
+		}
+		rects = append(rects, SvgRect{
+			X:      x,
+			Y:      y,
+			Width:  w,
+			Height: h,
+			Rx:     attr["rx"],
+			Ry:     attr["ry"],
+			Style:  strings.ReplaceAll(attr["style"], "fill", "background"),
+		})
+	}
+	sort.SliceStable(rects, func(i, j int) bool {
+		return rects[i].Y < rects[j].Y
+	})
+	return
+}
+
+func matchRectForLine(rects []SvgRect, lineY float64) int {
+	for i, rect := range rects {
+		if lineY >= rect.Y && lineY <= rect.Y+rect.Height {
+			return i
+		}
+	}
+	return -1
+}
+
+func buildRectWrapperStyle(rect SvgRect) string {
+	styles := []string{
+		rect.Style,
+		"padding: 0.2em 1.2em;",
+		"margin: 1em 0;",
+	}
+	if rect.Rx != "" {
+		styles = append(styles, "border-radius:"+rect.Rx+"px;")
+	} else if rect.Ry != "" {
+		styles = append(styles, "border-radius:"+rect.Ry+"px;")
+	}
+	return strings.Join(styles, "")
 }
 
 func parseAttrHref(attr map[string]string) string {
