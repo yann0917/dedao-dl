@@ -226,6 +226,42 @@ func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err err
 	return err
 }
 
+// footnoteExpandScript 电子书脚注点击展开脚本：
+// 点击脚注小图标，在图标旁显示注释浮层，浮层内容可选中复制。
+const footnoteExpandScript = `<script>
+(function () {
+  if (window.__fnPopupBound) return;
+  window.__fnPopupBound = true;
+  var popup = document.createElement('div');
+  popup.className = 'fn-popup';
+  popup.style.display = 'none';
+  document.body.appendChild(popup);
+  function close() { popup.style.display = 'none'; }
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest ? e.target.closest('.fn-trigger') : null;
+    if (trigger) {
+      e.preventDefault();
+      if (popup.style.display === 'block') { close(); return; }
+      popup.textContent = trigger.getAttribute('data-footnote') || '';
+      popup.style.display = 'block';
+      var rect = trigger.getBoundingClientRect();
+      var pw = popup.offsetWidth, ph = popup.offsetHeight;
+      var left = rect.left + rect.width / 2 - pw / 2;
+      var top = rect.bottom + 6;
+      if (left < 8) left = 8;
+      if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+      if (top + ph > window.innerHeight - 8) top = window.innerHeight - ph - 8;
+      if (top < 8) top = rect.top - ph - 6;
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+      return;
+    }
+    if (popup.contains(e.target)) return;
+    close();
+  });
+})();
+</script>`
+
 // AllInOneHtml generate ebook content all in one html file
 func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err error) {
 	result = GenHeadHtml()
@@ -238,7 +274,7 @@ func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err
 		}
 		result += chapter
 	}
-	result += `
+	result += footnoteExpandScript + `
 </body>
 </html>`
 	// 使用同样的方法处理反转义，保留已转义的HTML标签
@@ -424,13 +460,24 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 							img = `<div style="` + style + `">` + img + `</div>`
 						}
 						if (w < footNoteImgW || h < footNoteImgH) && len(item.Class) > 0 {
-							img = `
+							if eType == eBookTypeHtml {
+								// HTML：点击展开浮层，注释文本存入 data-footnote，由脚本读取展示，可选中复制
+								img = `
+	<sup class="fn-trigger" data-footnote="` + item.Alt + `"><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
+									`" src="` + item.Href +
+									`" alt="` + item.Alt +
+									`" class="` + item.Class +
+									`"/></sup>`
+							} else {
+								// PDF：保留原生 title 悬浮提示
+								img = `
 	<sup><img width="` + strconv.FormatFloat(w, 'f', 0, 64) +
-								`" src="` + item.Href +
-								`" alt="` + item.Alt +
-								`" title="` + item.Alt +
-								`" class="` + item.Class +
-								`"/></sup>`
+									`" src="` + item.Href +
+									`" alt="` + item.Alt +
+									`" title="` + item.Alt +
+									`" class="` + item.Class +
+									`"/></sup>`
+							}
 						}
 					case eBookTypeEpub:
 						img = `
@@ -712,6 +759,9 @@ func GenHeadHtml() (result string) {
 		p { margin: 1.5em 0; }
 		img { page-break-inside: avoid; max-width: 100% !important;}
 		img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
+		/* 脚注点击展开浮层：内容可选中复制 */
+		.fn-trigger { cursor: pointer; }
+		.fn-popup { position: fixed; z-index: 9999; background: #fff; border: 1px solid #eee; box-shadow: 0 2px 12px rgba(0,0,0,.18); padding: 10px 14px; border-radius: 6px; max-width: 320px; font-size: 14px; line-height: 1.7; color: #333; user-select: text; white-space: normal; word-break: break-word; }
 	</style>
 </head>
 <body>`
