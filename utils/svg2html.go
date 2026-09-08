@@ -38,7 +38,11 @@ type HtmlEle struct {
 		Href  string `json:"href"`
 		Style string `json:"style"`
 	} `json:"fn"`
-	TextAlign string `json:"text_align"` // left; center; right
+	// AnchorName / AnchorChapter 记录注释引用 <a href> 的原始锚点名与所属章节，
+	// 用于在渲染前把「正文角标」与「注释正文」配对，统一成 fn-ref / fn-note 锚点。
+	AnchorName    string `json:"anchor_name"`
+	AnchorChapter string `json:"anchor_chapter"`
+	TextAlign     string `json:"text_align"` // left; center; right
 }
 
 type SvgRect struct {
@@ -135,8 +139,15 @@ func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error
 		tocLevel[ebookToc.Text] = ebookToc.Level
 	}
 
+	// 整书级注释配对：正文角标 ↔ 注释正文 双向跳转
+	chapters, bErr := buildBookChapters(svgContents)
+	if bErr != nil {
+		return bErr
+	}
+	assignFootnoteAnchors(chapters)
+
 	for k, svgContent := range svgContents {
-		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, toc)
+		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, toc, chapters[k].pages)
 		if err1 != nil {
 			err = err1
 			return
@@ -178,8 +189,16 @@ func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err err
 	}
 	// fmt.Println(chapterToc)
 
+	// 整书级注释配对：正文角标 ↔ 注释正文 双向跳转
+	chapters, bErr := buildBookChapters(svgContents)
+	if bErr != nil {
+		err = bErr
+		return
+	}
+	assignFootnoteAnchors(chapters)
+
 	for k, svgContent := range svgContents {
-		chapter, coverUrl, err1 := OneByOneHtml(eBookTypeEpub, k, svgContent, opt.Toc)
+		chapter, coverUrl, err1 := OneByOneHtml(eBookTypeEpub, k, svgContent, opt.Toc, chapters[k].pages)
 		if err1 != nil {
 			err = err1
 			return
@@ -266,8 +285,14 @@ const footnoteExpandScript = `<script>
 func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err error) {
 	result = GenHeadHtml()
 	fnA, fnB = ParseBookFnDelimiter(svgContents)
+	// 整书级注释配对：正文角标 ↔ 注释正文 双向跳转
+	chapters, bErr := buildBookChapters(svgContents)
+	if bErr != nil {
+		return "", bErr
+	}
+	assignFootnoteAnchors(chapters)
 	for k, svgContent := range svgContents {
-		chapter, _, err1 := OneByOneHtml(eBookTypeHtml, k, svgContent, toc)
+		chapter, _, err1 := OneByOneHtml(eBookTypeHtml, k, svgContent, toc, chapters[k].pages)
 		if err1 != nil {
 			err = err1
 			return
@@ -333,7 +358,7 @@ func locateTocAnchorID(items []HtmlEle, offsetEntries []EbookToc, offsetIdx *int
 
 // OneByOneHtml one by one generate chapter html
 // eType: html/pdf/epub, index: []*SvgContent index, svgContent: one chapter content
-func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookToc) (result, cover string, err error) {
+func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookToc, prepared []chapterPage) (result, cover string, err error) {
 	switch eType {
 	case eBookTypeHtml:
 		// 锚点目录
@@ -366,30 +391,26 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 	offsetIdx := 0
 	textMatched := make([]bool, len(textEntries))
 
-	for _, content := range svgContent.Contents {
-		result += `
-<div id="` + svgContent.ChapterID + `">`
-		// 预处理 SVG 内容，处理 HTML 标签
-		processedContent := preprocessSvgContent(content)
-
-		valid := NewValidUTF8Reader(strings.NewReader(processedContent))
-		validReader := []byte(processedContent)
-		_, _ = valid.Read(validReader)
-
-		element, err1 := svgparser.Parse(bytes.NewReader(validReader), false)
+	// 视图渲染：优先使用调用方传入（已整书解析并配对）的 pages，
+	// 否则回退到单章解析（此时不做跨章节配对，仅供 PDF 等兜底）。
+	var pages []chapterPage
+	if prepared != nil {
+		pages = prepared
+	} else {
+		var err1 error
+		pages, err1 = parseChapterPages(svgContent)
 		if err1 != nil {
 			err = err1
 			return
 		}
+	}
 
-		lineContent := GenLineContentByElement(svgContent.ChapterID, element)
-		rects := GenRectContentByElement(element)
-
-		keys := make([]float64, 0, len(lineContent))
-		for k := range lineContent {
-			keys = append(keys, k)
-		}
-		sort.Float64s(keys)
+	for _, pg := range pages {
+		result += `
+<div id="` + svgContent.ChapterID + `">`
+		lineContent := pg.lineContent
+		rects := pg.rects
+		keys := pg.keys
 
 		activeRectIdx := -1
 		for _, v := range keys {
@@ -419,14 +440,9 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 
 				if i == 0 {
 					firstX, _ = strconv.ParseFloat(item.X, 64)
-					lastIndex := len(lineContent[v]) - 1
-					if lineContent[v][lastIndex].Name != "image" {
-						lineStyle = lineContent[v][lastIndex].Style
-					} else if lastIndex-1 >= 0 {
-						lineStyle = lineContent[v][lastIndex-1].Style
-					} else {
-						lineStyle = item.Style
-					}
+					// lineStyle 代表本行“正文”的样式：从行尾向前查找非注释引用、非图片
+					// 的文本元素，避免注释角标（Fn.Href 非空）的蓝色小字号样式污染整行正文。
+					lineStyle = findLineStyle(lineContent[v])
 				}
 				centerL := (reqEbookPageWidth / 2) * 0.9
 				centerH := (reqEbookPageWidth / 2) * 1.1
@@ -569,7 +585,12 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 					}
 
 					if item.Fn.Href != "" {
-						cont += fmt.Sprintf(`<a id=%s href=%s`, item.ID, item.Fn.Href)
+						if item.ID != "" {
+							cont += fmt.Sprintf(`<a id="%s" href="%s"`, item.ID, item.Fn.Href)
+						} else {
+							// 同一注释项拆分出的非首段只挂 href，不重复 id
+							cont += fmt.Sprintf(`<a href="%s"`, item.Fn.Href)
+						}
 						if item.Fn.Style != "" {
 							cont += fmt.Sprintf(` style="%s"`, item.Fn.Style)
 						}
@@ -631,15 +652,22 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 					}
 					if cont != "" {
 						// 保留每个元素的原始样式
-						if id != "" && style != "" {
-							result += `<span id="` + id + `" style="` + style + `">`
+						// 外层包裹整行：若行末是注释角标，用本行“正文”样式 lineStyle，
+						// 避免角标的小蓝样式污染整行正文（正文变蓝/变小）；
+						// 行末为正常正文/图片时保留 style（含 display:block/居中）。
+						wrapStyle := style
+						if item.Fn.Href != "" && lineStyle != "" {
+							wrapStyle = lineStyle
+						}
+						if id != "" && wrapStyle != "" {
+							result += `<span id="` + id + `" style="` + wrapStyle + `">`
 						} else {
 							if id != "" {
 								result += `<span id="` + id + `">`
 							}
-							if style != "" {
+							if wrapStyle != "" {
 								// 确保样式正确应用
-								result += `<span style="` + style + `">`
+								result += `<span style="` + wrapStyle + `">`
 							}
 						}
 						result += cont + `</span>`
@@ -836,18 +864,17 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 									hrefArr := strings.Split(href, "/")
 									href = hrefArr[len(hrefArr)-1:][0]
 									tagArr := strings.Split(href, "#")
-									// footnote jump back and forth
 									if len(tagArr) > 1 {
-										if strings.Contains(tagArr[1], fnA) {
-											ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnA, fnB, -1)
-										} else {
-											ele.Fn.Href = "#" + tagArr[0] + "_" + strings.Replace(tagArr[1], fnB, fnA, -1)
-										}
-										attr["id"] = chapterID + "_" + tagArr[1]
+										// 记录注释引用的原始锚点信息，渲染前由 assignFootnoteAnchors
+										// 把「正文角标」与「注释正文」配对，统一生成 fn-ref / fn-note 锚点。
+										ele.AnchorChapter = tagArr[0]
+										ele.AnchorName = tagArr[1]
+										// 兜底：未配对前先构造成同章节锚点，保证链接可展示、可点击。
+										ele.Fn.Href = "#" + tagArr[0] + "_" + tagArr[1]
 									} else {
 										ele.Fn.Href = "#" + tagArr[0]
-										attr["id"] = chapterID
 									}
+									// 不再用 chapterID 前缀覆盖原生 id，保留 SVG 原始 id（注释正文首段自带的）。
 									ele.Fn.Style = attrC["style"]
 								}
 							}
@@ -1020,6 +1047,173 @@ func GenLineContentByElement(chapterID string, element *svgparser.Element) (line
 		})
 	}
 	return
+}
+
+// findLineStyle 从行尾向前查找本行“正文”样式：
+// 跳过注释角标（AnchorName 非空）与图片，避免角标蓝色小字号污染整行正文；
+// 若整行都是角标/图片，则回退到行末元素样式。
+func findLineStyle(line []HtmlEle) string {
+	for i := len(line) - 1; i >= 0; i-- {
+		if line[i].AnchorName == "" && line[i].Name != "image" {
+			return line[i].Style
+		}
+	}
+	if len(line) > 0 {
+		return line[len(line)-1].Style
+	}
+	return ""
+}
+
+// chapterPage 是一章内单页的解析产物；bookChapter 是一章的全部页。
+type chapterPage struct {
+	chapterID   string
+	lineContent map[float64][]HtmlEle
+	rects       []SvgRect
+	keys        []float64
+}
+
+type bookChapter struct {
+	chID  string
+	pages []chapterPage
+}
+
+// parseChapterPages 解析一章的全部页面，返回每页的 lineContent/rects/keys，
+// 供整书注释配对与渲染使用（正文角标与章尾注释可能落在不同页/不同章节）。
+func parseChapterPages(svgContent *SvgContent) ([]chapterPage, error) {
+	pages := make([]chapterPage, 0, len(svgContent.Contents))
+	for _, content := range svgContent.Contents {
+		processedContent := preprocessSvgContent(content)
+		valid := NewValidUTF8Reader(strings.NewReader(processedContent))
+		validReader := []byte(processedContent)
+		_, _ = valid.Read(validReader)
+		element, err1 := svgparser.Parse(bytes.NewReader(validReader), false)
+		if err1 != nil {
+			return nil, err1
+		}
+		lineContent := GenLineContentByElement(svgContent.ChapterID, element)
+		rects := GenRectContentByElement(element)
+		keys := make([]float64, 0, len(lineContent))
+		for k := range lineContent {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+		pages = append(pages, chapterPage{
+			chapterID:   svgContent.ChapterID,
+			lineContent: lineContent,
+			rects:       rects,
+			keys:        keys,
+		})
+	}
+	return pages, nil
+}
+
+// buildBookChapters 解析整本书的所有章节，返回每章的全部页（含各页 lineContent），
+// 供 assignFootnoteAnchors 进行整书级注释配对，再逐章交由 OneByOneHtml 渲染。
+func buildBookChapters(svgContents []*SvgContent) ([]bookChapter, error) {
+	chapters := make([]bookChapter, 0, len(svgContents))
+	for _, sc := range svgContents {
+		pages, err := parseChapterPages(sc)
+		if err != nil {
+			return nil, err
+		}
+		chapters = append(chapters, bookChapter{chID: sc.ChapterID, pages: pages})
+	}
+	return chapters, nil
+}
+
+// assignFootnoteAnchors 在渲染前把【整本书】的注释引用配对，统一生成互跳锚点。
+// 判定规则（与文字形式无关，只看结构）：
+//   - 带 <a href="#anchor"> 的 text 说明它引用了一段注释（正文角标 / 注释正文段）。
+//   - 原始 id 非空的段视为「注释正文」首段（注释正文首段自带 id，如 id="ch1"）；
+//     无原始 id 的段视为「正文角标」或注释正文的后续段（[、1、] 拆分的非首段）。
+//   - 当「正文角标组的 AnchorName == 注释正文组首段的原始 id」时，二者构成一对，
+//     分配 fn-ref-<角标所在章节>_<序号>（正文角标）与 fn-note-<注释所在章节>_<序号>（注释正文），
+//     两条锚点互相指向，从而实现正文角标 ↔ 注释正文 的双向跳转。
+//
+// 非配对段保持原始 href；同一注释项拆分出的多段只有首段挂 id，避免重复 id。
+func assignFootnoteAnchors(chapters []bookChapter) {
+	type fnAnchorPos struct {
+		chapter int
+		page    int
+		lineKey float64
+		index   int
+	}
+	type fnGroup struct {
+		pos   []fnAnchorPos
+		rawID string // 该组首个带原始 id 的段（注释正文首段）
+	}
+	groups := make(map[string]*fnGroup)
+	var order []string
+	for ci, ch := range chapters {
+		for pi, pg := range ch.pages {
+			for k, line := range pg.lineContent {
+				for i, ele := range line {
+					if ele.AnchorName == "" {
+						continue
+					}
+					g, ok := groups[ele.AnchorName]
+					if !ok {
+						g = &fnGroup{}
+						groups[ele.AnchorName] = g
+						order = append(order, ele.AnchorName)
+					}
+					g.pos = append(g.pos, fnAnchorPos{chapter: ci, page: pi, lineKey: k, index: i})
+					if g.rawID == "" && ele.ID != "" {
+						g.rawID = ele.ID
+					}
+				}
+			}
+		}
+	}
+	if len(groups) == 0 {
+		return
+	}
+
+	// 以「注释正文首段的原始 id」作桥，建立 rawID -> 注释正文组 的索引
+	idToGroup := make(map[string]string)
+	for key, g := range groups {
+		if g.rawID != "" {
+			idToGroup[g.rawID] = key
+		}
+	}
+
+	// g 为要写入的组；ownID 为该组自己的锚点 id；targetHref 为该组 href 指向的锚点 id
+	write := func(g *fnGroup, ownID, targetHref string) {
+		for i, p := range g.pos {
+			if i == 0 {
+				chapters[p.chapter].pages[p.page].lineContent[p.lineKey][p.index].ID = ownID
+			}
+			chapters[p.chapter].pages[p.page].lineContent[p.lineKey][p.index].Fn.Href = "#" + targetHref
+		}
+	}
+
+	seq := 0
+	for _, key := range order {
+		g := groups[key]
+		target := groups[idToGroup[key]]
+		if target == nil || target == g {
+			// 未配对（或自引用），交给兜底
+			continue
+		}
+		seq++
+		// 角标组锚点前缀用其所在章节；注释正文组用其所在章节（两者可能不同章节）。
+		refID := fmt.Sprintf("fn-ref-%s_%d", chapters[g.pos[0].chapter].chID, seq)
+		noteID := fmt.Sprintf("fn-note-%s_%d", chapters[target.pos[0].chapter].chID, seq)
+		write(g, refID, noteID)      // 正文角标组：id=refID，href=#noteID
+		write(target, noteID, refID) // 注释正文组：id=noteID，href=#refID
+	}
+
+	// 兜底：未配对且无原始 id 的段，补一个唯一 id，避免渲染出空的 id 属性
+	for _, key := range order {
+		g := groups[key]
+		if len(g.pos) == 0 {
+			continue
+		}
+		first := g.pos[0]
+		if chapters[first.chapter].pages[first.page].lineContent[first.lineKey][first.index].ID == "" {
+			chapters[first.chapter].pages[first.page].lineContent[first.lineKey][first.index].ID = "fn-orphan-" + chapters[first.chapter].chID + "_" + key
+		}
+	}
 }
 
 func GenRectContentByElement(element *svgparser.Element) (rects []SvgRect) {
