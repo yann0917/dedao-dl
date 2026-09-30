@@ -72,7 +72,7 @@ export function PurchasedAudioPage() {
         item.is_group || item.type === 1013 ? (
           <>
             <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
-              <Rows3 className="mr-2 h-4 w-4" />
+              <Rows3 className="mr-2 size-icon-md" />
               查看合集
             </Button>
             {item.enid ? (
@@ -81,20 +81,20 @@ export function PurchasedAudioPage() {
                 onClick={() => helpers.navigate(`/audio-groups/${encodeURIComponent(item.enid)}/articles`)}
                 variant="ghost"
               >
-                <FileText className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 size-icon-md" />
                 文稿列表
               </Button>
             ) : null}
           </>
         ) : (
           <>
-            {item.in_bookrack ? <span className={getSemanticStatusBadgeClass("neutral", "inline-flex h-9 items-center rounded-xl px-3 text-sm")}>已加入书架</span> : null}
+            {item.in_bookrack ? <span className={getSemanticStatusBadgeClass("neutral", "inline-flex h-9 items-center rounded-md px-3 text-sm")}>已加入书架</span> : null}
             <Button
               className="h-9 px-3"
               disabled={!item.enid || playingEnid === item.enid}
               onClick={() => void playAudio(item)}
             >
-              {playingEnid === item.enid ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+              {playingEnid === item.enid ? <Loader2 className="mr-2 size-icon-md animate-spin" /> : <Play className="mr-2 size-icon-md" />}
               {playingEnid === item.enid ? "获取中..." : "播放"}
             </Button>
             {item.audio_detail?.alias_id ? (
@@ -107,7 +107,7 @@ export function PurchasedAudioPage() {
                 }
                 variant="outline"
               >
-                <FileText className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 size-icon-md" />
                 查看文稿
               </Button>
             ) : null}

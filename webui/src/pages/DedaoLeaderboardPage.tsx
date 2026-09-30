@@ -50,7 +50,7 @@ function RankBoardHero({ board }: { board: RankBoard | null }) {
 
   return (
     <div
-      className="overflow-hidden rounded-3xl border border-border px-6 py-6 text-white shadow-soft"
+      className="overflow-hidden rounded-lg border border-border px-6 py-6 text-white shadow-soft"
       style={{
         background: `linear-gradient(135deg, ${backgroundColor} 0%, #1f2937 100%)`,
       }}
@@ -67,11 +67,11 @@ function RankBoardHero({ board }: { board: RankBoard | null }) {
         </div>
 
         <div className="grid min-w-[14rem] grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+          <div className="rounded-lg bg-white/10 p-4 backdrop-blur">
             <p className="text-xs text-white/70">榜单条目</p>
             <p className="mt-2 text-2xl font-semibold">{board?.count || board?.list.length || 0}</p>
           </div>
-          <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+          <div className="rounded-lg bg-white/10 p-4 backdrop-blur">
             <p className="text-xs text-white/70">当前类型</p>
             <p className="mt-2 text-2xl font-semibold">{badge.label}</p>
           </div>
@@ -92,12 +92,12 @@ function RankItemCardView({ item, index }: { item: RankListItem; index: number }
       <div className="flex h-full flex-col gap-3">
         <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
           <div className="relative overflow-visible">
-            <div className="overflow-hidden rounded-2xl bg-surface-soft">
+            <div className="overflow-hidden rounded-lg bg-surface-soft">
               {cover ? (
                 <img alt={item.title || "榜单封面"} className="h-full w-full object-cover" src={cover} />
               ) : (
                 <div className="flex h-full min-h-[9rem] items-center justify-center bg-surface-soft text-text-muted">
-                  <BookOpen className="h-8 w-8" />
+                  <BookOpen className="h-9 w-9" />
                 </div>
               )}
             </div>
@@ -235,21 +235,21 @@ export function DedaoLeaderboardPage() {
       <section className={`${semanticPageSectionClass} space-y-6 p-6`}>
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/12 text-accent">
-              <Trophy className="h-5 w-5" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent/12 text-accent">
+              <Trophy className="size-icon-lg" />
             </div>
             <h1 className="text-lg font-semibold leading-none text-text-primary">得到榜单</h1>
           </div>
 
           <Button className="gap-2 self-start md:self-auto" onClick={() => void loadBaseInfo()} variant="outline">
-            <RefreshCcw className="h-4 w-4" />
+            <RefreshCcw className="size-icon-md" />
             刷新榜单
           </Button>
         </header>
 
         {baseLoading ? (
           <div className="flex min-h-[18rem] items-center justify-center gap-3 text-sm text-text-muted">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="size-icon-lg animate-spin" />
             正在加载榜单分类...
           </div>
         ) : (
@@ -287,8 +287,8 @@ export function DedaoLeaderboardPage() {
             </div>
 
             {currentRank?.sub_title ? (
-              <div className="flex items-start gap-3 rounded-2xl bg-surface-soft px-4 py-3 text-sm text-text-secondary">
-                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <div className="flex items-start gap-3 rounded-lg bg-surface-soft px-4 py-3 text-sm text-text-secondary">
+                <Sparkles className="mt-0.5 size-icon-md shrink-0 text-accent" />
                 <span>{currentRank.sub_title}</span>
               </div>
             ) : null}
@@ -316,7 +316,7 @@ export function DedaoLeaderboardPage() {
 
         {listLoading ? (
           <div className="flex min-h-[18rem] items-center justify-center gap-3 text-sm text-text-muted">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <Loader2 className="size-icon-lg animate-spin" />
             正在加载榜单内容...
           </div>
         ) : currentBoard?.list?.length ? (
@@ -326,7 +326,7 @@ export function DedaoLeaderboardPage() {
             ))}
           </div>
         ) : (
-          <div className="flex min-h-[12rem] items-center justify-center rounded-3xl bg-surface-soft text-sm text-text-muted">
+          <div className="flex min-h-[12rem] items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
             暂无榜单数据
           </div>
         )}

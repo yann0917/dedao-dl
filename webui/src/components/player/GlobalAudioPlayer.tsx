@@ -28,18 +28,18 @@ export function GlobalAudioPlayer() {
     <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-[300px]">
       <Card className="relative border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur">
         <button
-          className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-text-muted transition hover:bg-danger-soft hover:text-danger"
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-text-muted transition hover:bg-danger-soft hover:text-danger"
           onClick={clearQueue}
           type="button"
         >
-          <X className="h-4 w-4" />
+          <X className="size-icon-md" />
         </button>
 
         <div className="flex flex-col gap-4 pr-10">
           <div className="flex min-w-0 items-center gap-4">
             <img
               alt={currentTrack.title}
-              className="h-14 w-14 rounded-2xl object-cover"
+              className="h-14 w-14 rounded-lg object-cover"
               src={currentTrack.poster || "https://placehold.co/120x120/e2e8f0/334155?text=Audio"}
             />
             <div className="min-w-0">
@@ -55,21 +55,21 @@ export function GlobalAudioPlayer() {
               onClick={playPrev}
               type="button"
             >
-              <SkipBack className="h-4 w-4" />
+              <SkipBack className="size-icon-md" />
             </button>
             <button
               className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white transition hover:bg-primary/90"
               onClick={togglePlay}
               type="button"
             >
-              {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              {playing ? <Pause className="size-icon-lg" /> : <Play className="size-icon-lg" />}
             </button>
             <button
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface-soft text-text-secondary transition hover:bg-accent-soft hover:text-accent"
               onClick={playNext}
               type="button"
             >
-              <SkipForward className="h-4 w-4" />
+              <SkipForward className="size-icon-md" />
             </button>
             <button
               aria-label={showQueue ? "折叠播放列表" : "展开播放列表"}
@@ -82,12 +82,12 @@ export function GlobalAudioPlayer() {
               onClick={() => setShowQueue((value) => !value)}
               type="button"
             >
-              <ListMusic className="h-4 w-4" />
+              <ListMusic className="size-icon-md" />
             </button>
           </div>
 
           <div className="flex min-w-0 items-center gap-3">
-            <Volume2 className="h-4 w-4 text-text-muted" />
+            <Volume2 className="size-icon-md text-text-muted" />
             <span className="w-11 text-xs text-text-muted">{formatTime(currentTime)}</span>
             <input
               className="h-2 flex-1 cursor-pointer accent-primary"
@@ -109,7 +109,7 @@ export function GlobalAudioPlayer() {
               return (
                 <button
                   className={cn(
-                    "flex w-full items-center justify-between rounded-2xl px-3 py-3 text-left transition",
+                    "flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition",
                     active ? "bg-primary/10 text-primary" : "bg-surface-soft/80 text-text-secondary hover:bg-surface-soft",
                   )}
                   key={`${track.id}-${index}`}

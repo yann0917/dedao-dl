@@ -260,7 +260,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
         <section className={`${semanticPageSectionClass} p-6`}>
           <div className="flex flex-wrap items-center gap-3 text-sm text-text-muted">
             <Button onClick={exitGroup} variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 size-icon-md" />
               返回{config.title}
             </Button>
           </div>
@@ -286,7 +286,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
               )
             })}
             <Button className="ml-auto" onClick={toggleViewMode} variant="outline">
-              {viewMode === "card" ? <List className="mr-2 h-4 w-4" /> : <LayoutGrid className="mr-2 h-4 w-4" />}
+              {viewMode === "card" ? <List className="mr-2 size-icon-md" /> : <LayoutGrid className="mr-2 size-icon-md" />}
               {viewMode === "card" ? "切换列表" : "切换卡片"}
             </Button>
           </div>
@@ -307,7 +307,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
 
       {loading ? (
         <Card className="flex items-center justify-center p-8 text-text-muted">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          <Loader2 className="mr-2 size-icon-lg animate-spin" />
           {config.loadingText}
         </Card>
       ) : null}
@@ -336,7 +336,7 @@ export function PurchasedCollectionPage(config: PurchasedCollectionConfig) {
                 <div className="text-left" key={itemKey} {...interactiveProps}>
                   <Card className={`overflow-hidden transition ${isInteractive ? "hover:shadow-lg" : ""}`}>
                     <div className="flex flex-col gap-4 p-4 sm:flex-row">
-                      <div className={`relative w-full max-w-36 shrink-0 overflow-hidden rounded-xl bg-surface-soft sm:w-36 ${coverContainerClassName}`}>
+                      <div className={`relative w-full max-w-36 shrink-0 overflow-hidden rounded-md bg-surface-soft sm:w-36 ${coverContainerClassName}`}>
                         {item.icon || item.cover || item.index_img ? (
                           <img
                             alt={title}

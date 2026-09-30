@@ -65,7 +65,7 @@ export function DownloadActionsPanel({
         ))}
       </div>
       {disabled && disabledReason ? (
-        <div className="mt-5 rounded-2xl border border-warning bg-warning-soft p-4 text-sm text-warning">
+        <div className="mt-5 rounded-lg border border-warning bg-warning-soft p-4 text-sm text-warning">
           {disabledReason}
         </div>
       ) : null}

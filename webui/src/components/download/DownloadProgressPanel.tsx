@@ -55,7 +55,7 @@ export function DownloadProgressPanel() {
   }
 
   return (
-    <section className="fixed bottom-4 right-4 z-[80] w-[min(95vw,840px)] rounded-3xl border border-border bg-surface-panel p-5 shadow-soft backdrop-blur">
+    <section className="fixed bottom-4 right-4 z-[80] w-[min(95vw,840px)] rounded-lg border border-border bg-surface-panel p-5 shadow-soft backdrop-blur">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-text-muted">下载进度</p>
@@ -75,23 +75,23 @@ export function DownloadProgressPanel() {
         </div>
 
         <button
-          className="flex h-10 w-10 items-center justify-center rounded-2xl text-text-muted transition hover:bg-surface-soft hover:text-text-primary"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-text-muted transition hover:bg-surface-soft hover:text-text-primary"
           onClick={closePanel}
           type="button"
         >
-          <X className="h-5 w-5" />
+          <X className="size-icon-lg" />
         </button>
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="rounded-2xl border border-border bg-surface-page/70">
+        <div className="rounded-lg border border-border bg-surface-page/70">
           <div className="border-b border-border px-4 py-3 text-sm font-medium text-text-primary">最近会话</div>
           <div className="max-h-[28rem] space-y-2 overflow-y-auto p-3">
             {sessions.map((session) => {
               const isActive = session.sessionId === activeSession.sessionId
               return (
                 <button
-                  className={`w-full rounded-2xl border px-3 py-3 text-left transition ${
+                  className={`w-full rounded-lg border px-3 py-3 text-left transition ${
                     isActive
                       ? "border-accent bg-accent/10"
                       : "border-border bg-surface-panel hover:bg-surface-soft"
@@ -132,11 +132,11 @@ export function DownloadProgressPanel() {
             </div>
           </div>
 
-          <div className="mt-5 rounded-2xl bg-surface-soft px-4 py-3 text-sm text-text-secondary">
+          <div className="mt-5 rounded-lg bg-surface-soft px-4 py-3 text-sm text-text-secondary">
             输出目录：{activeSession.outputDir}
           </div>
 
-          <div className="mt-5 rounded-2xl border border-border bg-surface-page/80">
+          <div className="mt-5 rounded-lg border border-border bg-surface-page/80">
             <div className="border-b border-border px-4 py-3 text-sm font-medium text-text-primary">实时日志</div>
             <div className="max-h-72 space-y-2 overflow-y-auto px-4 py-3 text-sm" ref={logContainerRef}>
               {activeSession.logs.length > 0 ? (

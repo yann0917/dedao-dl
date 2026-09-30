@@ -221,7 +221,7 @@ export function AIChannelPage() {
 
       {loading ? (
         <div className="flex min-h-[18rem] items-center justify-center gap-3 text-sm text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载 AI 学习圈...
         </div>
       ) : (
@@ -234,11 +234,11 @@ export function AIChannelPage() {
                   {channelInfo.logo ? (
                     <img
                       alt={channelInfo.title}
-                      className="h-16 w-16 shrink-0 rounded-2xl border border-border object-cover"
+                      className="h-16 w-16 shrink-0 rounded-lg border border-border object-cover"
                       src={normalizeAssetUrl(channelInfo.logo)}
                     />
                   ) : (
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-surface-soft text-text-muted">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-surface-soft text-text-muted">
                       <Sparkles className="h-7 w-7" />
                     </div>
                   )}
@@ -257,16 +257,16 @@ export function AIChannelPage() {
                 </div>
 
                 <div className="grid shrink-0 grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-surface-soft p-4">
+                  <div className="rounded-lg bg-surface-soft p-4">
                     <div className="flex items-center gap-2 text-xs text-text-muted">
-                      <Users className="h-3.5 w-3.5" />
+                      <Users className="size-icon-sm" />
                       已加入
                     </div>
                     <p className="mt-2 text-2xl font-semibold text-text-primary">{formatCount(subscriberCount)}</p>
                   </div>
-                  <div className="rounded-2xl bg-surface-soft p-4">
+                  <div className="rounded-lg bg-surface-soft p-4">
                     <div className="flex items-center gap-2 text-xs text-text-muted">
-                      <Crown className="h-3.5 w-3.5" />
+                      <Crown className="size-icon-sm" />
                       VIP 状态
                     </div>
                     <p className="mt-2 text-2xl font-semibold text-text-primary">
@@ -302,7 +302,7 @@ export function AIChannelPage() {
                     {currentSubcategories.map((sub) => (
                       <button
                         className={cn(
-                          "flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition",
+                          "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition",
                           activeSubcategoryId === sub.id
                             ? "bg-accent-soft text-accent"
                             : "text-text-secondary hover:bg-surface-soft hover:text-text-primary",
@@ -340,7 +340,7 @@ export function AIChannelPage() {
 
                   {listLoading ? (
                     <div className="flex min-h-[12rem] items-center justify-center gap-3 text-sm text-text-muted">
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="size-icon-lg animate-spin" />
                       正在加载内容...
                     </div>
                   ) : currentItems.length > 0 ? (
@@ -362,7 +362,7 @@ export function AIChannelPage() {
                                   <img alt={item.title} className="h-full w-full object-cover" src={cover} />
                                 ) : (
                                   <div className="flex h-full items-center justify-center text-text-muted">
-                                    <BookOpen className="h-8 w-8" />
+                                    <BookOpen className="h-9 w-9" />
                                   </div>
                                 )}
 
@@ -390,13 +390,13 @@ export function AIChannelPage() {
                                 <div className="mt-auto flex items-center gap-3 pt-2 text-xs text-text-muted">
                                   {formatDuration(item.duration) ? (
                                     <span className="flex items-center gap-1">
-                                      <Clock className="h-3.5 w-3.5" />
+                                      <Clock className="size-icon-sm" />
                                       {formatDuration(item.duration)}
                                     </span>
                                   ) : null}
                                   {item.learn_count ? (
                                     <span className="flex items-center gap-1">
-                                      <Play className="h-3.5 w-3.5" />
+                                      <Play className="size-icon-sm" />
                                       {formatCount(item.learn_count)}
                                     </span>
                                   ) : null}
@@ -408,11 +408,11 @@ export function AIChannelPage() {
                       })}
                     </div>
                   ) : activeSubcategory ? (
-                    <div className="flex min-h-[12rem] items-center justify-center rounded-3xl bg-surface-soft text-sm text-text-muted">
+                    <div className="flex min-h-[12rem] items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
                       该分类下暂无内容
                     </div>
                   ) : (
-                    <div className="flex min-h-[12rem] items-center justify-center rounded-3xl bg-surface-soft text-sm text-text-muted">
+                    <div className="flex min-h-[12rem] items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
                       请选择左侧分类查看内容
                     </div>
                   )}
@@ -422,7 +422,7 @@ export function AIChannelPage() {
           ) : (
             <section className={`${semanticPageSectionClass} flex min-h-[18rem] items-center justify-center p-6`}>
               <div className="flex items-center gap-3 text-sm text-text-muted">
-                <RefreshCcw className="h-4 w-4" />
+                <RefreshCcw className="size-icon-md" />
                 暂无分类数据
               </div>
             </section>

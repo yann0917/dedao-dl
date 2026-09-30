@@ -23,25 +23,25 @@ export function CourseListPanel({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-semibold text-text-primary">
-              <BookOpen className="h-5 w-5 text-primary" />
+              <BookOpen className="size-icon-lg text-primary" />
               课程列表
             </h2>
             <p className={`mt-1 ${semanticMetaTextClass}`}>{selectedCategory} 分类下的已购课程</p>
           </div>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin text-text-muted" /> : null}
+          {loading ? <Loader2 className="size-icon-md animate-spin text-text-muted" /> : null}
         </div>
 
         <div className="space-y-3">
           {courses.map((course) => (
             <button
-              className="grid w-full grid-cols-[84px_1fr] gap-4 rounded-3xl border border-border p-3 text-left transition hover:border-primary hover:bg-accent-soft/40"
+              className="grid w-full grid-cols-[84px_1fr] gap-4 rounded-lg border border-border p-3 text-left transition hover:border-primary hover:bg-accent-soft/40"
               key={course.enid || course.id}
               onClick={() => course.enid && onSelectCourse(course.enid)}
               type="button"
             >
               <img
                 alt={course.title || course.name}
-                className="h-20 w-20 rounded-2xl object-cover"
+                className="h-20 w-20 rounded-lg object-cover"
                 src={course.cover || course.index_img || "https://placehold.co/160x160/e2e8f0/334155?text=DD"}
               />
               <div className="space-y-2">

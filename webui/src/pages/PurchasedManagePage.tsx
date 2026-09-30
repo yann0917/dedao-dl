@@ -636,10 +636,10 @@ export function PurchasedManagePage() {
 
           return (
             <div className="flex min-w-[320px] items-start gap-4">
-              <div className={cn("w-20 shrink-0 rounded-2xl bg-surface-soft p-2", coverClassName)}>
+              <div className={cn("w-20 shrink-0 rounded-lg bg-surface-soft p-2", coverClassName)}>
                 <img
                   alt={resolveItemTitle(item)}
-                  className="h-full w-full rounded-xl object-contain"
+                  className="h-full w-full rounded-md object-contain"
                   src={resolveItemCover(item)}
                 />
               </div>
@@ -715,7 +715,7 @@ export function PurchasedManagePage() {
             return (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="inline-flex cursor-help rounded-xl bg-surface-soft px-3 py-2 text-sm text-text-muted">
+                  <span className="inline-flex cursor-help rounded-md bg-surface-soft px-3 py-2 text-sm text-text-muted">
                     仅展示
                   </span>
                 </TooltipTrigger>
@@ -728,9 +728,9 @@ export function PurchasedManagePage() {
             <div className="flex min-w-[280px] flex-wrap items-center gap-2">
               <Button className="h-9 px-3" onClick={() => openItem(item)} variant="outline">
                 {item.is_group ? (
-                  <Rows3 className="mr-2 h-4 w-4" />
+                  <Rows3 className="mr-2 size-icon-md" />
                 ) : (
-                  <Eye className="mr-2 h-4 w-4" />
+                  <Eye className="mr-2 size-icon-md" />
                 )}
                 {item.is_group ? "进入分组" : activeTab.key === "audio" && item.type === 1013 ? "查看合集" : "查看详情"}
               </Button>
@@ -742,9 +742,9 @@ export function PurchasedManagePage() {
                   onClick={() => void handlePlayAudio(item)}
                 >
                   {playingEnid === item.enid ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 size-icon-md animate-spin" />
                   ) : (
-                    <Play className="mr-2 h-4 w-4" />
+                    <Play className="mr-2 size-icon-md" />
                   )}
                   {playingEnid === item.enid ? "获取中..." : "播放"}
                 </Button>
@@ -760,7 +760,7 @@ export function PurchasedManagePage() {
                   }
                   variant="ghost"
                 >
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FileText className="mr-2 size-icon-md" />
                   查看文稿
                 </Button>
               ) : null}
@@ -771,7 +771,7 @@ export function PurchasedManagePage() {
                   onClick={() => setDownloadTarget({ item, tab: activeTab })}
                   variant="ghost"
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 size-icon-md" />
                   下载
                 </Button>
               ) : (
@@ -779,7 +779,7 @@ export function PurchasedManagePage() {
                   <TooltipTrigger asChild>
                     <span>
                       <Button className="h-9 px-3" disabled variant="ghost">
-                        <Download className="mr-2 h-4 w-4" />
+                        <Download className="mr-2 size-icon-md" />
                         下载
                       </Button>
                     </span>
@@ -805,7 +805,7 @@ export function PurchasedManagePage() {
     <TooltipProvider delayDuration={150}>
       <main className="space-y-6">
         {groupMode.active ? (
-          <section className="rounded-3xl border border-border bg-surface-panel p-4 shadow-soft backdrop-blur">
+          <section className="rounded-lg border border-border bg-surface-panel p-4 shadow-soft backdrop-blur">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm text-text-muted">当前分组</p>
@@ -838,7 +838,7 @@ export function PurchasedManagePage() {
                   key={tab.key}
                   value={tab.key}
                 >
-                  <tab.icon className="mr-2 h-4 w-4" />
+                  <tab.icon className="mr-2 size-icon-md" />
                   {tab.label}
                 </TabsTrigger>
               ))}
@@ -863,7 +863,7 @@ export function PurchasedManagePage() {
                   }}
                   value={currentFilter}
                 >
-                  <SelectTrigger className="h-10 w-[220px] rounded-xl border-border bg-surface-panel text-text-primary">
+                  <SelectTrigger className="h-10 w-[220px] rounded-md border-border bg-surface-panel text-text-primary">
                     <SelectValue placeholder={loadingNavbar ? "加载筛选中..." : "选择筛选"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -885,7 +885,7 @@ export function PurchasedManagePage() {
                   }}
                   value={String(pageSize)}
                 >
-                  <SelectTrigger className="h-10 w-[140px] rounded-xl border-border bg-surface-panel text-text-primary">
+                  <SelectTrigger className="h-10 w-[140px] rounded-md border-border bg-surface-panel text-text-primary">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -904,7 +904,7 @@ export function PurchasedManagePage() {
         <Card className="overflow-hidden">
           {loadingItems ? (
             <div className="flex min-h-[320px] items-center justify-center gap-3 text-text-muted">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="size-icon-lg animate-spin" />
               正在加载{activeTab.label}列表...
             </div>
           ) : error ? (
@@ -1020,7 +1020,7 @@ export function PurchasedManagePage() {
           }}
           open={downloadTarget !== null}
         >
-          <DialogContent className="max-w-xl rounded-3xl border-border bg-surface-panel text-text-primary">
+          <DialogContent className="max-w-xl rounded-lg border-border bg-surface-panel text-text-primary">
             <DialogHeader>
               <DialogTitle>下载 {downloadTarget ? resolveItemTitle(downloadTarget.item) : ""}</DialogTitle>
               <DialogDescription className="text-text-muted">
@@ -1034,7 +1034,7 @@ export function PurchasedManagePage() {
               {currentDownloadOptions.map((option) => (
                 <button
                   className={cn(
-                    "flex w-full items-center justify-between rounded-2xl border border-border bg-surface-soft px-4 py-4 text-left transition hover:border-border hover:bg-surface-panel",
+                    "flex w-full items-center justify-between rounded-lg border border-border bg-surface-soft px-4 py-4 text-left transition hover:border-border hover:bg-surface-panel",
                     pendingDownloadType === option.value ? "cursor-wait opacity-70" : "",
                   )}
                   disabled={pendingDownloadType !== null}
@@ -1044,9 +1044,9 @@ export function PurchasedManagePage() {
                 >
                   <span className="flex items-center gap-3 text-sm font-medium text-text-primary">
                     {pendingDownloadType === option.value ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="size-icon-md animate-spin" />
                     ) : (
-                      <Download className="h-4 w-4" />
+                      <Download className="size-icon-md" />
                     )}
                     {option.label}
                   </span>

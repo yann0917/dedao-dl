@@ -1,4 +1,3 @@
-import { Loader2 } from "lucide-react"
 import { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { type HomeCategory, type HomeFreeResource, type HomeNavigation } from "@/api"
@@ -7,6 +6,7 @@ import { HomeCategoryMenu } from "@/components/home/HomeCategoryMenu"
 import { FreeResourceSection, LabeledShelfSection } from "@/components/home/HomePortalSections"
 import { HomePortalUserCard } from "@/components/home/HomePortalUserCard"
 import { Card } from "@/components/ui/Card"
+import { Skeleton } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { buildCategoryQuery } from "@/hooks/useCategoryExplorer"
 import { useHomePortal } from "@/hooks/useHomePortal"
@@ -104,11 +104,48 @@ export function HomePage() {
 
   if (portal.loading) {
     return (
-      <main className="flex min-h-[70vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          正在加载首页门户...
-        </div>
+      <main aria-busy="true" className="space-y-10">
+        <section className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)_280px]">
+          <Card className="h-[407px] space-y-2 p-4">
+            {Array.from({ length: 9 }).map((_, index) => (
+              <Skeleton className="h-7 w-full" key={index} />
+            ))}
+          </Card>
+          <Card className="aspect-video w-full">
+            <Skeleton className="h-full w-full" />
+          </Card>
+          <Card className="h-[407px] p-5">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-14 w-14" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-14" />
+              </div>
+            </div>
+            <div className="mt-5 grid grid-cols-2">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
+            <Skeleton className="mt-5 h-10 w-full" />
+          </Card>
+        </section>
+
+        <section className="space-y-5">
+          <div className="border-b border-border pb-3">
+            <Skeleton className="h-5 w-40" />
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index}>
+                <Skeleton className="aspect-[16/10] w-full" />
+                <div className="space-y-2 p-4">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
       </main>
     )
   }

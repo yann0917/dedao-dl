@@ -10,9 +10,20 @@ type HomeBannerCarouselProps = {
 
 export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
   const [api, setApi] = useState<CarouselApi>()
+  const [paused, setPaused] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    if (!api || banners.length <= 1) {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const update = () => setReducedMotion(mediaQuery.matches)
+    update()
+    mediaQuery.addEventListener("change", update)
+    return () => mediaQuery.removeEventListener("change", update)
+  }, [])
+
+  // 自动轮播：尊重系统减弱动态偏好，悬浮时暂停。
+  useEffect(() => {
+    if (!api || banners.length <= 1 || reducedMotion || paused) {
       return
     }
 
@@ -21,7 +32,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
     }, 5000)
 
     return () => window.clearInterval(timer)
-  }, [api, banners.length])
+  }, [api, banners.length, paused, reducedMotion])
 
   if (banners.length === 0) {
     return (
@@ -34,7 +45,12 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
   }
 
   return (
-    <Card className="relative aspect-video w-full self-start overflow-hidden">
+    <div
+      className="aspect-video w-full self-start"
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+    >
+      <Card className="relative h-full w-full overflow-hidden">
       <Carousel className="h-full w-full" opts={{ align: "start", loop: banners.length > 1 }} setApi={setApi}>
         <CarouselContent className="h-full">
           {banners.map((banner) => (
@@ -78,6 +94,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
           </>
         ) : null}
       </Carousel>
-    </Card>
+      </Card>
+    </div>
   )
 }

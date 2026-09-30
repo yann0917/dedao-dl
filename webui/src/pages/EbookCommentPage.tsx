@@ -201,7 +201,7 @@ export function EbookCommentPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载电子书书评...
         </div>
       </main>
@@ -225,17 +225,17 @@ export function EbookCommentPage() {
             <h2 className="mt-2 text-3xl font-semibold text-text-primary">{title}</h2>
           </div>
           <Button onClick={() => navigate("/purchased/ebooks")} variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 size-icon-md" />
             返回已购电子书
           </Button>
         </div>
         <div className="mt-5 flex flex-wrap gap-3 text-sm text-text-muted">
           <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="size-icon-md" />
             总评论 {data?.total || 0}
           </span>
           <span className={getSemanticStatusBadgeClass("warning", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-            <Star className="h-4 w-4" />
+            <Star className="size-icon-md" />
             平均评分 {Number(data?.ebook_score.average_score || 0).toFixed(1)}
           </span>
         </div>

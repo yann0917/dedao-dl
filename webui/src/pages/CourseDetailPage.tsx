@@ -162,7 +162,7 @@ export function CourseDetailPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载课程详情...
         </div>
       </main>
@@ -187,7 +187,7 @@ export function CourseDetailPage() {
           onClick={backAction}
           type="button"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+          <ArrowLeft className="mr-1 size-icon-md" />
           {backLabel}
         </button>
       </div>
@@ -197,7 +197,7 @@ export function CourseDetailPage() {
           <div className="flex gap-5">
             <img
               alt={title}
-              className="h-28 w-28 rounded-3xl object-cover shadow-soft"
+              className="h-28 w-28 rounded-lg object-cover shadow-soft"
               src={detail.class_info.square_img || detail.class_info.index_img || "https://placehold.co/240x240/e2e8f0/334155?text=Course"}
             />
             <div className="min-w-0">
@@ -227,7 +227,7 @@ export function CourseDetailPage() {
           <div className="flex flex-wrap gap-3">
             {access.canOpenArticles ? (
               <Button onClick={openArticles}>
-                <LibraryBig className="mr-2 h-4 w-4" />
+                <LibraryBig className="mr-2 size-icon-md" />
                 {access.actionLabel}
               </Button>
             ) : null}
@@ -282,15 +282,15 @@ export function CourseDetailPage() {
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-3">
               <span className={getSemanticStatusBadgeClass("warning", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-                <Star className="h-4 w-4" />
+                <Star className="size-icon-md" />
                 {averageScore > 0 ? `${averageScore.toFixed(1)} 分` : "暂无评分"}
               </span>
               <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-                <MessageSquareText className="h-4 w-4" />
+                <MessageSquareText className="size-icon-md" />
                 {detail.class_comment_info?.count || detail.class_reviews_count || 0} 条评价
               </span>
               <span className={getSemanticStatusBadgeClass("neutral", "inline-flex items-center gap-2 px-3 py-1.5 text-sm")}>
-                <UserRound className="h-4 w-4" />
+                <UserRound className="size-icon-md" />
                 {detail.class_info.learn_user_count || 0} 人加入学习
               </span>
             </div>
@@ -344,7 +344,7 @@ export function CourseDetailPage() {
           {detail.class_info.outline_img ? (
             <Card className="p-6">
               <h3 className="text-xl font-semibold text-text-primary">课程大纲</h3>
-              <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface-soft">
+              <div className="mt-4 overflow-hidden rounded-lg border border-border bg-surface-soft">
                 <img
                   alt={`${title} 课程大纲`}
                   className="w-full object-contain"

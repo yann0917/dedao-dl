@@ -26,7 +26,7 @@ export function CoursePage() {
       renderActions={(item, helpers) => (
         <>
           <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
-            <PanelRightOpen className="mr-2 h-4 w-4" />
+            <PanelRightOpen className="mr-2 size-icon-md" />
             详情
           </Button>
           <QuickDownloadButtons

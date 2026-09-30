@@ -1,19 +1,24 @@
 import { useEffect, useMemo, useState } from "react"
-import { Loader2, RefreshCcw, ScanLine } from "lucide-react"
+import { Loader2, RefreshCcw } from "lucide-react"
 import { toast } from "sonner"
 import { api, type QRCodeSession, type UserInfo } from "@/api"
-import { Button } from "@/components/ui/Button"
-import { Card } from "@/components/ui/Card"
-import { getSemanticStatusBadgeClass, semanticMetaTextClass } from "@/lib/semanticStyles"
 
 type QrLoginCardProps = {
   onLoginSuccess: (user?: UserInfo | null) => void | Promise<void>
 }
 
+const cropMarkPositions = [
+  "-left-2 -top-2 border-l border-t",
+  "-right-2 -top-2 border-r border-t",
+  "-bottom-2 -left-2 border-b border-l",
+  "-bottom-2 -right-2 border-b border-r",
+]
+
 export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
   const [session, setSession] = useState<QRCodeSession | null>(null)
   const [loading, setLoading] = useState(false)
   const [polling, setPolling] = useState(false)
+  const [expired, setExpired] = useState(false)
 
   const remaining = useMemo(() => {
     if (!session?.expiresAt) {
@@ -31,6 +36,7 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
     try {
       const next = await api.auth.createQRCode()
       setSession(next)
+      setExpired(false)
       setPolling(true)
     } catch (err) {
       setPolling(false)
@@ -67,6 +73,7 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
         if (result.status === 2) {
           window.clearInterval(timer)
           setPolling(false)
+          setExpired(true)
           toast.error("二维码已过期", {
             description: "请刷新后重新扫码",
           })
@@ -84,48 +91,96 @@ export function QrLoginCard({ onLoginSuccess }: QrLoginCardProps) {
     return () => window.clearInterval(timer)
   }, [onLoginSuccess, polling, session])
 
-  return (
-    <Card>
-      <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold text-text-primary">扫码登录</h2>
-            <p className={`mt-1 ${semanticMetaTextClass}`}>使用得到 App 或微信扫码登录。</p>
-          </div>
-          <span className={getSemanticStatusBadgeClass("neutral")}>{remaining ? `剩余 ${remaining}` : "待生成"}</span>
-        </div>
+  const statusText = expired
+    ? "QR EXPIRED"
+    : polling
+      ? "WAITING FOR SCAN"
+      : loading
+        ? "PREPARING"
+        : ""
 
-        <div className="rounded-3xl border border-dashed border-border bg-surface-soft p-6">
-          <div className="mx-auto flex h-64 w-64 items-center justify-center overflow-hidden rounded-3xl bg-surface-panel shadow-sm">
+  return (
+    <div className="ed-panel relative">
+      <div className="flex items-baseline justify-between border-b border-border px-7 pb-4 pt-6">
+        <h2 className="font-display text-xl font-semibold tracking-[0.06em] text-text-primary">
+          扫码登录
+        </h2>
+        <span className="font-mono text-xs tabular-nums text-text-muted">
+          {expired ? "已过期" : remaining ? `有效期 ${remaining}` : "生成中"}
+        </span>
+      </div>
+
+      <div className="px-7 pb-6 pt-7">
+        <div className="relative mx-auto w-fit">
+          <div className="relative bg-[#f7f4ed] p-4">
             {session?.qrCode ? (
-              <img alt="二维码" className="h-full w-full object-cover" src={session.qrCode} />
+              <img
+                alt="登录二维码"
+                className="block h-56 w-56"
+                src={session.qrCode}
+              />
             ) : (
-              <div className="flex flex-col items-center gap-3 text-sm text-text-muted">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                正在准备二维码
+              <div className="flex h-56 w-56 flex-col items-center justify-center gap-3 bg-[#f6f4ef] text-xs text-neutral-500">
+                <Loader2 className="size-icon-lg animate-spin" />
+                正在生成二维码
               </div>
             )}
           </div>
+          {cropMarkPositions.map((pos) => (
+            <span
+              key={pos}
+              aria-hidden="true"
+              className={`pointer-events-none absolute size-icon-sm border-text-primary/40 ${pos}`}
+            />
+          ))}
+          {expired && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-surface-page/95">
+              <p className="text-sm text-text-secondary">二维码已过期</p>
+              <button
+                className="inline-flex h-9 items-center gap-2 border border-border-strong px-4 text-sm text-text-primary transition hover:bg-surface-soft"
+                onClick={() => void loadQRCode()}
+                type="button"
+              >
+                <RefreshCcw className="size-icon-sm" />
+                重新生成
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface-soft p-4 text-text-primary">
-          <div className="flex items-center gap-2 text-sm font-medium text-text-primary">
-            <ScanLine className="h-4 w-4 text-accent" />
-            得到 App / 微信扫码
-          </div>
-          <p className={`mt-2 text-sm ${semanticMetaTextClass}`}>使用得到 App 或微信扫码，手机确认后会自动进入工作台。</p>
-        </div>
-
-        <div className="flex gap-3">
-          <Button className="flex-1" disabled={loading} onClick={() => void loadQRCode()}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
-            刷新二维码
-          </Button>
-          <Button className="flex-1" onClick={() => window.open("https://www.dedao.cn", "_blank")?.focus()} variant="outline">
-            打开官网
-          </Button>
-        </div>
+        <p className="mt-6 text-center text-sm leading-6 text-text-secondary">
+          打开得到 App 或微信「扫一扫」，确认后自动进入工作台
+        </p>
+        <p className="mt-2.5 flex h-4 items-center justify-center gap-2 font-mono text-[10px] tracking-[0.28em] text-text-muted">
+          {polling && !expired && (
+            <span
+              aria-hidden="true"
+              className="ed-pulse inline-block h-1.5 w-1.5 rounded-full bg-accent"
+            />
+          )}
+          {statusText}
+        </p>
       </div>
-    </Card>
+
+      <div className="flex items-center justify-between border-t border-border px-7 py-4">
+        <button
+          className="inline-flex h-9 items-center gap-2 border border-border-strong px-4 text-sm text-text-primary transition hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={loading}
+          onClick={() => void loadQRCode()}
+          type="button"
+        >
+          <RefreshCcw className="size-icon-sm" />
+          刷新二维码
+        </button>
+        <a
+          className="text-sm text-text-muted underline decoration-border-strong underline-offset-4 transition hover:text-accent hover:decoration-accent"
+          href="https://www.dedao.cn"
+          rel="noreferrer"
+          target="_blank"
+        >
+          打开得到官网
+        </a>
+      </div>
+    </div>
   )
 }

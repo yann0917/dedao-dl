@@ -18,13 +18,13 @@ export function PurchasedEbookPage() {
       renderActions={(item, helpers) =>
         item.is_group ? (
           <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
-            <PanelRightOpen className="mr-2 h-4 w-4" />
+            <PanelRightOpen className="mr-2 size-icon-md" />
             进入分组
           </Button>
         ) : (
           <>
             <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
-              <PanelRightOpen className="mr-2 h-4 w-4" />
+              <PanelRightOpen className="mr-2 size-icon-md" />
               查看详情
             </Button>
             <Button
@@ -36,7 +36,7 @@ export function PurchasedEbookPage() {
               }
               variant="ghost"
             >
-              <MessageSquare className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-2 size-icon-md" />
               查看书评
             </Button>
           </>

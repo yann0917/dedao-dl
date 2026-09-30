@@ -1,10 +1,7 @@
+import { ChevronDown } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { type HomeCategory } from "@/api"
-import {
-  Menubar,
-  MenubarMenu,
-  MenubarTrigger,
-} from "@/components/ui/Menubar"
+import { cn } from "@/lib/cn"
 import { semanticPageSectionClass } from "@/lib/semanticStyles"
 
 type HomeCategoryMenuProps = {
@@ -12,11 +9,15 @@ type HomeCategoryMenuProps = {
   onNavigateCategory: (category: HomeCategory, labelEnid: string) => void
 }
 
+// 面板内直接展示的分类数量，其余收进「全部分类」悬浮索引。
+const VISIBLE_COUNT = 9
+const CLOSE_DELAY_MS = 140
+
 export function HomeCategoryMenu({
   categories,
   onNavigateCategory,
 }: HomeCategoryMenuProps) {
-  const [hoveredCategoryEnid, setHoveredCategoryEnid] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
   const closeTimerRef = useRef<number | null>(null)
 
   function clearCloseTimer() {
@@ -26,17 +27,17 @@ export function HomeCategoryMenu({
     }
   }
 
-  function openCategoryMenu(categoryEnid: string) {
+  function openPanel() {
     clearCloseTimer()
-    setHoveredCategoryEnid(categoryEnid)
+    setExpanded(true)
   }
 
-  function scheduleCloseCategoryMenu(categoryEnid: string) {
+  function scheduleClosePanel() {
     clearCloseTimer()
     closeTimerRef.current = window.setTimeout(() => {
-      setHoveredCategoryEnid((current) => (current === categoryEnid ? null : current))
+      setExpanded(false)
       closeTimerRef.current = null
-    }, 120)
+    }, CLOSE_DELAY_MS)
   }
 
   useEffect(() => {
@@ -45,66 +46,86 @@ export function HomeCategoryMenu({
     }
   }, [])
 
+  const visibleCategories = categories.slice(0, VISIBLE_COUNT)
+  const hiddenCount = categories.length - visibleCategories.length
+
   return (
-    <div className={`${semanticPageSectionClass} h-full p-4`}>
-      <Menubar className="w-full justify-start border-0 bg-transparent p-0">
-        {categories.map((category) => {
-          const hasLabels = category.labelList.length > 0
-          const isHovered = hoveredCategoryEnid === category.enid
+    <div className={cn(semanticPageSectionClass, "flex h-full flex-col py-2")}>
+      <nav>
+        {visibleCategories.map((category) => (
+          <button
+            className="flex w-full items-center justify-between gap-2 px-4 py-2 text-sm text-text-secondary transition hover:bg-surface-soft hover:text-text-primary"
+            key={category.enid}
+            onClick={() => onNavigateCategory(category, "")}
+            type="button"
+          >
+            <span className="truncate">{category.name}</span>
+            {category.labelList.length > 0 ? (
+              <span className="font-mono text-[10px] tabular-nums text-text-muted">
+                {category.labelList.length}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </nav>
 
-          return (
-            <MenubarMenu key={category.enid}>
-              {/* Radix menubar 的顶层菜单不提供这里需要的受控开合，悬浮层改用局部状态管理。 */}
-              <div
-                className="relative"
-                onBlurCapture={(event) => {
-                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                    scheduleCloseCategoryMenu(category.enid)
-                  }
-                }}
-                onFocusCapture={() => {
-                  if (hasLabels) {
-                    openCategoryMenu(category.enid)
-                  }
-                }}
-                onPointerEnter={() => {
-                  if (hasLabels) {
-                    openCategoryMenu(category.enid)
-                  }
-                }}
-                onPointerLeave={() => {
-                  if (hasLabels) {
-                    scheduleCloseCategoryMenu(category.enid)
-                  }
-                }}
-              >
-                <MenubarTrigger onClick={() => onNavigateCategory(category, "")}>
-                  {category.name}
-                </MenubarTrigger>
+      {hiddenCount > 0 ? (
+        <div
+          className="relative mt-auto px-2 pb-1 pt-1"
+          onPointerEnter={openPanel}
+          onPointerLeave={scheduleClosePanel}
+        >
+          <button
+            aria-expanded={expanded}
+            className={cn(
+              "flex w-full items-center justify-center gap-1.5 border border-dashed px-3 py-2 text-xs transition",
+              expanded
+                ? "border-accent/60 text-accent"
+                : "border-border text-text-muted hover:border-accent/60 hover:text-accent",
+            )}
+            onClick={() => setExpanded((current) => !current)}
+            onFocus={openPanel}
+            type="button"
+          >
+            全部分类（{categories.length}）
+            <ChevronDown
+              className={cn("size-icon-sm transition-transform", expanded ? "rotate-180" : "")}
+            />
+          </button>
 
-                {hasLabels && isHovered ? (
-                  <div className="absolute left-0 top-full z-50 min-w-[14rem] pt-2">
-                    <div className="overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl">
-                      <div className="space-y-1">
+          {expanded ? (
+            <div className="absolute left-2 top-full z-50 mt-2 w-[560px] max-w-[calc(100vw-2rem)] border border-border-strong/60 bg-surface-panel p-5 shadow-soft">
+              <div className="max-h-[420px] space-y-4 overflow-y-auto">
+                {categories.map((category) => (
+                  <div key={category.enid}>
+                    <button
+                      className="text-sm font-medium text-text-primary transition hover:text-accent"
+                      onClick={() => onNavigateCategory(category, "")}
+                      type="button"
+                    >
+                      {category.name}
+                    </button>
+                    {category.labelList.length > 0 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
                         {category.labelList.map((label) => (
                           <button
+                            className="text-xs text-text-muted transition hover:text-accent"
                             key={label.enid}
-                            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-text-secondary transition hover:bg-surface-soft focus:bg-surface-soft focus:outline-none"
                             onClick={() => onNavigateCategory(category, label.enid)}
                             type="button"
                           >
-                            <span className="truncate">{label.name}</span>
+                            {label.name}
                           </button>
                         ))}
                       </div>
-                    </div>
+                    ) : null}
                   </div>
-                ) : null}
+                ))}
               </div>
-            </MenubarMenu>
-          )
-        })}
-      </Menubar>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }

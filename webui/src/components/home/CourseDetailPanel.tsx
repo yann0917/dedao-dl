@@ -20,7 +20,7 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
             <h2 className="text-xl font-semibold text-text-primary">课程详情</h2>
             <p className={`mt-1 ${semanticMetaTextClass}`}>点击左侧列表或搜索建议查看详情。</p>
           </div>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin text-text-muted" /> : null}
+          {loading ? <Loader2 className="size-icon-md animate-spin text-text-muted" /> : null}
         </div>
 
         {detail ? (
@@ -28,7 +28,7 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
             <div className="grid gap-4 md:grid-cols-[180px_1fr]">
               <img
                 alt={detail.class_info.name}
-                className="h-44 w-full rounded-3xl object-cover"
+                className="h-44 w-full rounded-lg object-cover"
                 src={detail.class_info.square_img || "https://placehold.co/320x320/e2e8f0/334155?text=Course"}
               />
               <div className="space-y-3">
@@ -57,7 +57,7 @@ export function CourseDetailPanel({ detail, loading }: CourseDetailPanelProps) {
             </div>
           </>
         ) : (
-          <div className="flex min-h-80 items-center justify-center rounded-3xl border border-dashed border-border text-sm text-text-muted">
+          <div className="flex min-h-80 items-center justify-center rounded-lg border border-dashed border-border text-sm text-text-muted">
             先选择一门课程，这里会展示详情。
           </div>
         )}

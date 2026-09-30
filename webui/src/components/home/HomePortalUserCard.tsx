@@ -1,8 +1,6 @@
-import { BookOpen, Clock3, UserCircle2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
-import { semanticMetaTextClass, semanticSubtlePanelClass } from "@/lib/semanticStyles"
 import { useAuth } from "@/providers/AuthProvider"
 
 export function HomePortalUserCard() {
@@ -10,48 +8,43 @@ export function HomePortalUserCard() {
   const { user } = useAuth()
 
   return (
-    <Card className="flex h-full min-h-[360px] flex-col justify-between p-6">
-      <div>
-        <div className="mt-5 flex flex-col items-center text-center">
-          <img
-            alt={user?.nickname ?? "avatar"}
-            className="h-20 w-20 rounded-3xl border-4 border-primary/10 object-cover"
-            src={user?.avatar || "https://placehold.co/120x120/e2e8f0/334155?text=DD"}
-          />
-          <h3 className="mt-4 text-xl font-semibold text-text-primary">{user?.nickname ?? "得到用户"}</h3>
-          <p className={`mt-1 ${semanticMetaTextClass}`}>{user ? "当前账号" : "欢迎登录"}</p>
+    <Card className="flex h-full flex-col p-5">
+      <div className="flex min-w-0 items-center gap-4">
+        <img
+          alt={user?.nickname ?? "avatar"}
+          className="h-14 w-14 shrink-0 rounded-md border border-border object-cover"
+          src={user?.avatar || "https://placehold.co/112x112/e2e8f0/334155?text=DD"}
+        />
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-text-primary">
+            {user?.nickname ?? "得到用户"}
+          </p>
+          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
+            {user ? "当前账号" : "欢迎登录"}
+          </p>
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3">
-        <div className="grid gap-3">
-          <div className={`${semanticSubtlePanelClass} p-4`}>
-            <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-              <Clock3 className="h-4 w-4" />
-              今日学习
-            </div>
-            <p className="mt-3 text-2xl font-semibold text-text-primary">
-              {Math.round((user?.today_study_time ?? 0) / 60)}
-              <span className="ml-1 text-xs font-normal text-text-muted">分钟</span>
-            </p>
-          </div>
-          <div className={`${semanticSubtlePanelClass} p-4`}>
-            <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-              <BookOpen className="h-4 w-4" />
-              连续学习
-            </div>
-            <p className="mt-3 text-2xl font-semibold text-text-primary">
-              {user?.study_serial_days ?? 0}
-              <span className="ml-1 text-xs font-normal text-text-muted">天</span>
-            </p>
-          </div>
+      <dl className="mt-5 grid grid-cols-2 divide-x divide-border border-y border-border">
+        <div className="py-4 pr-4">
+          <dt className="font-mono text-[10px] uppercase tracking-[0.24em] text-text-muted">今日学习</dt>
+          <dd className="mt-1.5 text-2xl font-semibold tabular-nums text-text-primary">
+            {Math.round((user?.today_study_time ?? 0) / 60)}
+            <span className="ml-1 text-xs font-normal text-text-muted">分钟</span>
+          </dd>
         </div>
+        <div className="py-4 pl-4">
+          <dt className="font-mono text-[10px] uppercase tracking-[0.24em] text-text-muted">连续学习</dt>
+          <dd className="mt-1.5 text-2xl font-semibold tabular-nums text-text-primary">
+            {user?.study_serial_days ?? 0}
+            <span className="ml-1 text-xs font-normal text-text-muted">天</span>
+          </dd>
+        </div>
+      </dl>
 
-        <Button className="w-full" onClick={() => navigate("/user")}>
-          <UserCircle2 className="mr-2 h-4 w-4" />
-          进入用户中心
-        </Button>
-      </div>
+      <Button className="mt-auto w-full" onClick={() => navigate("/user")}>
+        进入用户中心
+      </Button>
     </Card>
   )
 }

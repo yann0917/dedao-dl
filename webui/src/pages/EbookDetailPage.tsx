@@ -117,7 +117,7 @@ export function EbookDetailPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载电子书详情...
         </div>
       </main>
@@ -213,7 +213,7 @@ export function EbookDetailPage() {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-3xl border border-border bg-surface-panel p-6 shadow-soft backdrop-blur">
+      <section className="rounded-lg border border-border bg-surface-panel p-6 shadow-soft backdrop-blur">
         <p className="text-sm text-text-muted">电子书详情</p>
         <h2 className="mt-2 text-3xl font-semibold text-text-primary">{detail.title}</h2>
       </section>
@@ -222,7 +222,7 @@ export function EbookDetailPage() {
         <Card className="p-6">
           <img
             alt={detail.title}
-            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-3xl object-cover shadow-lg"
+            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-lg object-cover shadow-lg"
             src={detail.cover || "https://placehold.co/600x800/e2e8f0/334155?text=Book"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
@@ -235,11 +235,11 @@ export function EbookDetailPage() {
             ) : null}
           </div>
           <div className="mt-6 space-y-3 text-sm text-text-secondary">
-            <div className="rounded-2xl bg-surface-soft p-4">作者：{detail.book_author || detail.author_list.join(" / ") || "未知"}</div>
-            <div className="rounded-2xl bg-surface-soft p-4">出版社：{pressName}</div>
-            <div className="rounded-2xl bg-surface-soft p-4">分类：{detail.classify_name || "未分类"}</div>
-            <div className="rounded-2xl bg-surface-soft p-4">出版时间：{detail.publish_time || "未知"}</div>
-            <div className="rounded-2xl bg-surface-soft p-4">阅读时长：{detail.read_time || 0} 分钟</div>
+            <div className="rounded-lg bg-surface-soft p-4">作者：{detail.book_author || detail.author_list.join(" / ") || "未知"}</div>
+            <div className="rounded-lg bg-surface-soft p-4">出版社：{pressName}</div>
+            <div className="rounded-lg bg-surface-soft p-4">分类：{detail.classify_name || "未分类"}</div>
+            <div className="rounded-lg bg-surface-soft p-4">出版时间：{detail.publish_time || "未知"}</div>
+            <div className="rounded-lg bg-surface-soft p-4">阅读时长：{detail.read_time || 0} 分钟</div>
           </div>
         </Card>
 
@@ -253,32 +253,32 @@ export function EbookDetailPage() {
 
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="rounded-2xl bg-surface-soft p-4">
+              <div className="rounded-lg bg-surface-soft p-4">
                 <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <BookOpen className="h-4 w-4" />
+                  <BookOpen className="size-icon-md" />
                   章节数
                 </div>
                 <p className="mt-3 text-2xl font-semibold text-text-primary">{chapterCount}</p>
               </div>
-              <div className="rounded-2xl bg-surface-soft p-4">
+              <div className="rounded-lg bg-surface-soft p-4">
                 <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Star className="h-4 w-4" />
+                  <Star className="size-icon-md" />
                   评分
                 </div>
                 <p className="mt-3 text-2xl font-semibold text-text-primary">{detail.product_score || detail.douban_score || "暂无"}</p>
               </div>
-              <div className="rounded-2xl bg-surface-soft p-4">
+              <div className="rounded-lg bg-surface-soft p-4">
                 <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <Clock3 className="h-4 w-4" />
+                  <Clock3 className="size-icon-md" />
                   试读
                 </div>
                 <p className="mt-3 text-2xl font-semibold text-text-primary">
                   {detail.can_trial_read ? `${detail.trial_read_proportion || "可试读"}` : "不可试读"}
                 </p>
               </div>
-              <div className="rounded-2xl bg-surface-soft p-4">
+              <div className="rounded-lg bg-surface-soft p-4">
                 <div className="inline-flex items-center gap-2 text-sm text-text-muted">
-                  <NotebookPen className="h-4 w-4" />
+                  <NotebookPen className="size-icon-md" />
                   笔记数
                 </div>
                 <p className="mt-3 text-2xl font-semibold text-text-primary">{data.notes?.list.length ?? 0}</p>
@@ -292,7 +292,7 @@ export function EbookDetailPage() {
               {detail.book_intro || detail.author_info || "暂无简介"}
             </p>
             {pressBrief ? (
-              <div className="mt-5 rounded-2xl bg-surface-soft p-4">
+              <div className="mt-5 rounded-lg bg-surface-soft p-4">
                 <h4 className="text-sm font-medium text-text-primary">出版社简介</h4>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-text-secondary">{pressBrief}</p>
               </div>
@@ -329,7 +329,7 @@ export function EbookDetailPage() {
             <h3 className="text-xl font-semibold text-text-primary">目录</h3>
             <div className="mt-4">
               {catalogList.length > 0 ? (
-                <div className="max-h-[36rem] overflow-y-auto rounded-2xl border border-border bg-surface-soft/60">
+                <div className="max-h-[36rem] overflow-y-auto rounded-lg border border-border bg-surface-soft/60">
                   {catalogList.map((item, index) => {
                     const level = normalizeCatalogLevel(item.level)
 
@@ -360,7 +360,7 @@ export function EbookDetailPage() {
                   })}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-text-muted">
                   当前电子书暂无目录信息。
                 </div>
               )}
@@ -376,7 +376,7 @@ export function EbookDetailPage() {
             </div>
 
             {data.notesError ? (
-              <div className="mt-4 rounded-2xl border border-warning bg-warning-soft p-4 text-sm text-warning">
+              <div className="mt-4 rounded-lg border border-warning bg-warning-soft p-4 text-sm text-warning">
                 {data.notesError}
               </div>
             ) : null}
@@ -402,7 +402,7 @@ export function EbookDetailPage() {
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-text-muted">
                   当前电子书还没有可展示的笔记。
                 </div>
               )}

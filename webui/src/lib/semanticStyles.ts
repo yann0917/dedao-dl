@@ -1,9 +1,8 @@
 import { cn } from "@/lib/cn"
 
-export const semanticPageSectionClass =
-  "rounded-3xl border border-border bg-surface-panel shadow-soft backdrop-blur"
+export const semanticPageSectionClass = "border border-border-strong/60 bg-surface-panel"
 
-export const semanticSubtlePanelClass = "rounded-2xl bg-surface-soft"
+export const semanticSubtlePanelClass = "rounded-sm bg-surface-soft"
 
 export const semanticMetaTextClass = "text-sm text-text-muted"
 

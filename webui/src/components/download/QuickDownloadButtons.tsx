@@ -44,9 +44,9 @@ export function QuickDownloadButtons({ options, onDownload, disabled = false, tr
           className={cn("h-9 justify-center gap-2 px-3", triggerClassName)}
           disabled={disabled || pendingType !== null}
         >
-          {pendingType !== null ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {pendingType !== null ? <Loader2 className="size-icon-md animate-spin" /> : null}
           <span>{pendingType !== null ? "下载中..." : "下载"}</span>
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="size-icon-md" />
         </MenubarTrigger>
         <MenubarContent align="end" className="min-w-[10rem]">
           {options.map((option) => (

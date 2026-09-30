@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   api,
   type AlgoFilterRequest,
@@ -47,45 +47,96 @@ export function useCategoryExplorer(init: CategoryExplorerInit) {
   const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    setParams(baseParams)
-  }, [baseParams])
+  // 请求代际号：每次“替换式”加载（切换筛选、首次进入）递增；迟到的旧响应整体丢弃，
+  // 这是防止切换内容类型时新旧数据交错（卡片重复/不更新）的关键。
+  const requestGenRef = useRef(0)
+  // loadMore 同步锁：观察器可能在 React 状态落地前连续触发，挡掉同拍内的重复追加。
+  const loadMoreLockRef = useRef(false)
+  // params / isMore / loadingMore 的同步镜像，保证懒加载回调读到的永远是最新值，
+  // 不受闭包时序影响。
+  const paramsRef = useRef(params)
+  const isMoreRef = useRef(isMore)
+  const loadingMoreRef = useRef(loadingMore)
 
-  const loadFilter = useCallback(async (nextParams: AlgoFilterRequest) => {
-    setLoadingFilter(true)
-    try {
-      const result = await api.algo.filter(nextParams)
-      setFilter(result)
-      setTotal(result.total)
-    } finally {
-      setLoadingFilter(false)
-    }
+  const commitParams = useCallback((next: AlgoFilterRequest) => {
+    paramsRef.current = next
+    setParams(next)
   }, [])
+
+  useEffect(() => {
+    commitParams(baseParams)
+  }, [baseParams, commitParams])
+
+  const loadFilter = useCallback(
+    async (nextParams: AlgoFilterRequest) => {
+      requestGenRef.current += 1
+      const gen = requestGenRef.current
+      setLoadingFilter(true)
+      try {
+        const result = await api.algo.filter(nextParams)
+        if (gen !== requestGenRef.current) {
+          return
+        }
+        setFilter(result)
+        setTotal(result.total)
+      } finally {
+        setLoadingFilter(false)
+      }
+    },
+    [],
+  )
 
   const loadProducts = useCallback(async (nextParams: AlgoFilterRequest, append: boolean) => {
     if (append) {
+      if (loadingMoreRef.current) {
+        return
+      }
+      loadingMoreRef.current = true
       setLoadingMore(true)
     } else {
+      requestGenRef.current += 1
       setLoadingProducts(true)
     }
+    const gen = requestGenRef.current
 
     try {
       const result = await api.algo.products(nextParams)
-      setProducts((current) => (append ? [...current, ...result.product_list] : result.product_list))
+      if (gen !== requestGenRef.current) {
+        return
+      }
+      setProducts((current) => {
+        if (!append) {
+          return result.product_list
+        }
+        // 兜底去重：algo 接口的 id 字段恒为 0，只能按 id_out 识别条目；
+        // 后端翻页存在 1 条重叠、同页内也可能出现重复 id_out，统一在此过滤。
+        const seen = new Set(
+          current.map((item) => `${item.id_out}-${item.product_id}-${item.name}`),
+        )
+        return [
+          ...current,
+          ...result.product_list.filter(
+            (item) => !seen.has(`${item.id_out}-${item.product_id}-${item.name}`),
+          ),
+        ]
+      })
       setTotal(result.total)
+      isMoreRef.current = result.is_more
       setIsMore(result.is_more)
-      setParams((current) => ({
-        ...current,
-        request_id: result.request_id || current.request_id,
-      }))
+      commitParams({
+        ...paramsRef.current,
+        page: nextParams.page,
+        request_id: result.request_id || paramsRef.current.request_id,
+      })
     } finally {
       if (append) {
+        loadingMoreRef.current = false
         setLoadingMore(false)
       } else {
         setLoadingProducts(false)
       }
     }
-  }, [])
+  }, [commitParams])
 
   useEffect(() => {
     let cancelled = false
@@ -113,46 +164,53 @@ export function useCategoryExplorer(init: CategoryExplorerInit) {
     }
   }, [baseParams, loadFilter, loadProducts])
 
-  const applyParams = useCallback(async (patch: Partial<AlgoFilterRequest>, reloadFilter = false) => {
-    const nextParams: AlgoFilterRequest = {
-      ...params,
-      ...patch,
-      page: 0,
-      request_id: "",
-      page_size: PAGE_SIZE,
-    }
-
-    setParams(nextParams)
-    setError(null)
-
-    try {
-      if (reloadFilter) {
-        await loadFilter(nextParams)
+  const applyParams = useCallback(
+    async (patch: Partial<AlgoFilterRequest>, reloadFilter = false) => {
+      const nextParams: AlgoFilterRequest = {
+        ...paramsRef.current,
+        ...patch,
+        page: 0,
+        request_id: "",
+        page_size: PAGE_SIZE,
       }
-      await loadProducts(nextParams, false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "分类页刷新失败")
-    }
-  }, [loadFilter, loadProducts, params])
+
+      commitParams(nextParams)
+      setError(null)
+      // 立即清空旧列表，让骨架屏接管，也断掉与旧筛选结果的关联。
+      setProducts([])
+
+      try {
+        if (reloadFilter) {
+          await loadFilter(nextParams)
+        }
+        await loadProducts(nextParams, false)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "分类页刷新失败")
+      }
+    },
+    [commitParams, loadFilter, loadProducts],
+  )
 
   const loadMore = useCallback(async () => {
-    if (loadingMore || isMore !== 1) {
+    if (loadMoreLockRef.current || loadingMoreRef.current || isMoreRef.current !== 1) {
       return
     }
 
+    loadMoreLockRef.current = true
     const nextParams: AlgoFilterRequest = {
-      ...params,
-      page: params.page + 1,
+      ...paramsRef.current,
+      page: paramsRef.current.page + 1,
     }
-
-    setParams(nextParams)
+    commitParams(nextParams)
 
     try {
       await loadProducts(nextParams, true)
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载更多失败")
+    } finally {
+      loadMoreLockRef.current = false
     }
-  }, [isMore, loadingMore, loadProducts, params])
+  }, [commitParams, loadProducts])
 
   const productTypeOptions = filter?.filter.product_types.options ?? []
   const navigationOptions = filter?.filter.navigations.options ?? []

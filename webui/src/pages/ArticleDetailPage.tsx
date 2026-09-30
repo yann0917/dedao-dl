@@ -139,7 +139,7 @@ export function ArticleDetailPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载文稿详情...
         </div>
       </main>
@@ -164,10 +164,10 @@ export function ArticleDetailPage() {
           onClick={parentCrumb.action}
           type="button"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+          <ArrowLeft className="mr-1 size-icon-md" />
           {parentCrumb.label}
         </button>
-        <ChevronRight className="h-4 w-4 text-border" />
+        <ChevronRight className="size-icon-md text-border" />
         <span className="font-medium text-text-secondary">文稿</span>
       </div>
 
@@ -185,12 +185,12 @@ export function ArticleDetailPage() {
             <div className="flex flex-wrap gap-2">
               {audio?.mp3_play_url ? (
                 <Button onClick={handlePlay} variant="outline">
-                  <Play className="mr-2 h-4 w-4" />
+                  <Play className="mr-2 size-icon-md" />
                   播放音频
                 </Button>
               ) : null}
               <Button onClick={handleExportMarkdown} variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 size-icon-md" />
                 导出 Markdown
               </Button>
             </div>
@@ -202,7 +202,7 @@ export function ArticleDetailPage() {
             {(articleInfo.logo || classInfo?.square_img) ? (
               <img
                 alt={articleInfo.title}
-                className="mb-8 h-56 w-full rounded-3xl object-cover shadow-soft"
+                className="mb-8 h-56 w-full rounded-lg object-cover shadow-soft"
                 src={articleInfo.logo || classInfo?.square_img}
               />
             ) : null}
@@ -218,10 +218,10 @@ export function ArticleDetailPage() {
                 "[&_ul]:mb-5 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6",
                 "[&_ol]:mb-5 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6",
                 "[&_li]:pl-1",
-                "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-2xl [&_img]:shadow-soft",
+                "[&_img]:my-6 [&_img]:w-full [&_img]:rounded-lg [&_img]:shadow-soft",
                 "[&_hr]:my-8 [&_hr]:border-0 [&_hr]:border-t [&_hr]:border-border",
                 "[&_code]:rounded-md [&_code]:bg-surface-soft [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.95em]",
-                "[&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:rounded-2xl [&_pre]:bg-surface-soft [&_pre]:p-4",
+                "[&_pre]:mb-5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-surface-soft [&_pre]:p-4",
                 "[&_pre_code]:bg-transparent [&_pre_code]:p-0",
                 "[&_table]:mb-5 [&_table]:w-full [&_table]:border-collapse [&_table]:overflow-hidden",
                 "[&_thead]:bg-surface-soft",
@@ -241,7 +241,7 @@ export function ArticleDetailPage() {
                     <img
                       {...props}
                       alt={props.alt || articleInfo.title}
-                      className="my-6 w-full rounded-2xl shadow-soft"
+                      className="my-6 w-full rounded-lg shadow-soft"
                     />
                   ),
                 }}

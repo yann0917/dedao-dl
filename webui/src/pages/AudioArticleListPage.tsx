@@ -87,7 +87,7 @@ export function AudioArticleListPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载文稿列表...
         </div>
       </main>
@@ -113,7 +113,7 @@ export function AudioArticleListPage() {
 
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => setQueue(tracks, 0)}>
-          <Play className="mr-2 h-4 w-4" />
+          <Play className="mr-2 size-icon-md" />
           播放整组
         </Button>
         <Button onClick={() => navigate(`/audio-groups/${encodeURIComponent(enid)}`)} variant="outline">
@@ -129,7 +129,7 @@ export function AudioArticleListPage() {
               <div className="flex flex-col gap-4 md:flex-row md:items-start">
                 <img
                   alt={item.title}
-                  className="h-24 w-24 rounded-3xl object-cover"
+                  className="h-24 w-24 rounded-lg object-cover"
                   src={item.icon || item.extra.odob_audio_detail?.icon || "https://placehold.co/200x200/e2e8f0/334155?text=Doc"}
                 />
                 <div className="min-w-0 flex-1">
@@ -144,7 +144,7 @@ export function AudioArticleListPage() {
                 </div>
                 <div className="flex gap-3">
                   <Button onClick={() => handlePlay(articleEnid)} variant="outline">
-                    <Play className="mr-2 h-4 w-4" />
+                    <Play className="mr-2 size-icon-md" />
                     播放
                   </Button>
                   <Button
@@ -156,7 +156,7 @@ export function AudioArticleListPage() {
                       )
                     }
                   >
-                    <FileText className="mr-2 h-4 w-4" />
+                    <FileText className="mr-2 size-icon-md" />
                     查看文稿
                   </Button>
                 </div>
@@ -168,7 +168,7 @@ export function AudioArticleListPage() {
 
       {items.length === 0 ? (
         <Card className="p-10 text-center text-text-muted">
-          <Rows4 className="mx-auto h-8 w-8" />
+          <Rows4 className="mx-auto h-9 w-9" />
           <p className="mt-3">当前合集还没有可展示的文稿条目。</p>
         </Card>
       ) : null}

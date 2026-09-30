@@ -237,11 +237,11 @@ export function CourseArticleListPage() {
   const renderArticleMeta = (item: CourseArticleItem) => (
     <div className="flex flex-wrap gap-3 text-sm text-text-muted">
       <span className="inline-flex items-center gap-1">
-        <Headphones className="h-4 w-4" />
+        <Headphones className="size-icon-md" />
         {item.cur_learn_count || 0} 人学习
       </span>
       <span className="inline-flex items-center gap-1">
-        <Clock3 className="h-4 w-4" />
+        <Clock3 className="size-icon-md" />
         {formatPublishTime(item.publish_time)}
       </span>
     </div>
@@ -252,12 +252,12 @@ export function CourseArticleListPage() {
     <div className="flex flex-wrap items-center gap-3">
       {item.audio?.mp3_play_url ? (
         <Button onClick={() => playArticle(item)} variant="outline">
-          <Play className="mr-2 h-4 w-4" />
+          <Play className="mr-2 size-icon-md" />
           播放
         </Button>
       ) : null}
       <Button onClick={() => openArticleDetail(item)}>
-        <FileText className="mr-2 h-4 w-4" />
+        <FileText className="mr-2 size-icon-md" />
         查看文章
       </Button>
       <QuickDownloadButtons
@@ -280,7 +280,7 @@ export function CourseArticleListPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载课程文章列表...
         </div>
       </main>
@@ -305,7 +305,7 @@ export function CourseArticleListPage() {
           onClick={backAction}
           type="button"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
+          <ArrowLeft className="mr-1 size-icon-md" />
           {backLabel}
         </button>
       </div>
@@ -315,7 +315,7 @@ export function CourseArticleListPage() {
           <div className="flex gap-5">
             <img
               alt={courseTitle}
-              className="h-28 w-28 rounded-3xl object-cover shadow-soft"
+              className="h-28 w-28 rounded-lg object-cover shadow-soft"
               src={courseInfo.class_info.square_img || courseInfo.class_info.index_img || "https://placehold.co/240x240/e2e8f0/334155?text=Course"}
             />
             <div className="min-w-0">
@@ -340,19 +340,19 @@ export function CourseArticleListPage() {
 
           <div className="flex flex-wrap gap-3">
             <Button disabled={playerTracks.length === 0} onClick={() => setQueue(playerTracks, 0)} variant="outline">
-              <Play className="mr-2 h-4 w-4" />
+              <Play className="mr-2 size-icon-md" />
               播放全部
             </Button>
             <Button onClick={openCourseDetail} variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
+              <FileText className="mr-2 size-icon-md" />
               课程详情
             </Button>
             <Button onClick={() => setReverse((current) => !current)} variant="outline">
-              {reverse ? <SortAsc className="mr-2 h-4 w-4" /> : <SortDesc className="mr-2 h-4 w-4" />}
+              {reverse ? <SortAsc className="mr-2 size-icon-md" /> : <SortDesc className="mr-2 size-icon-md" />}
               {reverse ? "切回正序" : "切换倒序"}
             </Button>
             <Button onClick={toggleViewMode} variant="outline">
-              {viewMode === "card" ? <List className="mr-2 h-4 w-4" /> : <LayoutGrid className="mr-2 h-4 w-4" />}
+              {viewMode === "card" ? <List className="mr-2 size-icon-md" /> : <LayoutGrid className="mr-2 size-icon-md" />}
               {viewMode === "card" ? "切换列表" : "切换卡片"}
             </Button>
           </div>
@@ -366,7 +366,7 @@ export function CourseArticleListPage() {
               <div className="flex h-full flex-col gap-4">
                 <img
                   alt={item.title}
-                  className="aspect-[16/9] w-full rounded-3xl object-cover"
+                  className="aspect-[16/9] w-full rounded-lg object-cover"
                   decoding="async"
                   loading="lazy"
                   src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/640x360/e2e8f0/334155?text=Article"}
@@ -387,7 +387,7 @@ export function CourseArticleListPage() {
               <div className="flex gap-4">
                 <img
                   alt={item.title}
-                  className="h-28 w-28 shrink-0 rounded-2xl object-cover"
+                  className="h-28 w-28 shrink-0 rounded-lg object-cover"
                   decoding="async"
                   loading="lazy"
                   src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/240x240/e2e8f0/334155?text=Article"}
@@ -409,7 +409,7 @@ export function CourseArticleListPage() {
 
       {articleItems.length === 0 ? (
         <Card className="p-10 text-center text-text-muted">
-          <Rows4 className="mx-auto h-8 w-8" />
+          <Rows4 className="mx-auto h-9 w-9" />
           <p className="mt-3">当前课程还没有可展示的文章内容。</p>
         </Card>
       ) : null}

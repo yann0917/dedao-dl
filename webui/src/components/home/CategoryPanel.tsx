@@ -26,7 +26,7 @@ export function CategoryPanel({
             <p className={`mt-1 ${semanticMetaTextClass}`}>第一版先覆盖高频查询接口。</p>
           </div>
           <Button onClick={onRefresh} variant="outline">
-            <RefreshCcw className="mr-2 h-4 w-4" />
+            <RefreshCcw className="mr-2 size-icon-md" />
             刷新
           </Button>
         </div>

@@ -8,7 +8,7 @@ const Menubar = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Root>
 >(({ className, ...props }, ref) => (
   <MenubarPrimitive.Root
-    className={cn("flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface-soft/80 p-2", className)}
+    className={cn("flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface-soft/80 p-2", className)}
     ref={ref}
     {...props}
   />
@@ -29,7 +29,7 @@ const MenubarTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <MenubarPrimitive.Trigger
     className={cn(
-      "inline-flex h-9 items-center rounded-xl border border-border bg-surface-panel px-3 text-sm font-medium text-text-secondary outline-none transition hover:bg-surface-soft focus:bg-surface-soft data-[state=open]:bg-secondary data-[state=open]:text-secondary-foreground",
+      "inline-flex h-9 items-center rounded-md border border-border bg-surface-panel px-3 text-sm font-medium text-text-secondary outline-none transition hover:bg-surface-soft focus:bg-surface-soft data-[state=open]:bg-secondary data-[state=open]:text-secondary-foreground",
       className,
     )}
     ref={ref}
@@ -46,7 +46,7 @@ const MenubarSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <MenubarPrimitive.SubTrigger
     className={cn(
-      "flex cursor-default select-none items-center rounded-xl px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[state=open]:bg-surface-soft",
+      "flex cursor-default select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[state=open]:bg-surface-soft",
       inset && "pl-8",
       className,
     )}
@@ -54,7 +54,7 @@ const MenubarSubTrigger = React.forwardRef<
     {...props}
   >
     {children}
-    <ChevronRight className="ml-auto h-4 w-4 text-text-muted" />
+    <ChevronRight className="ml-auto size-icon-md text-text-muted" />
   </MenubarPrimitive.SubTrigger>
 ))
 MenubarSubTrigger.displayName = MenubarPrimitive.SubTrigger.displayName
@@ -65,7 +65,7 @@ const MenubarSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <MenubarPrimitive.SubContent
     className={cn(
-      "z-50 min-w-[12rem] overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "z-50 min-w-[12rem] overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
       className,
     )}
     ref={ref}
@@ -84,7 +84,7 @@ const MenubarContent = React.forwardRef<
       align={align}
       alignOffset={alignOffset}
       className={cn(
-        "z-50 min-w-[14rem] overflow-hidden rounded-2xl border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "z-50 min-w-[14rem] overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
         className,
       )}
       ref={ref}
@@ -103,7 +103,7 @@ const MenubarItem = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <MenubarPrimitive.Item
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-xl px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
       inset && "pl-8",
       className,
     )}
@@ -120,15 +120,15 @@ const MenubarCheckboxItem = React.forwardRef<
   <MenubarPrimitive.CheckboxItem
     checked={checked}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-xl py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     ref={ref}
     {...props}
   >
-    <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
+    <span className="absolute left-3 flex size-icon-md items-center justify-center">
       <MenubarPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
+        <Check className="size-icon-md" />
       </MenubarPrimitive.ItemIndicator>
     </span>
     {children}
@@ -142,13 +142,13 @@ const MenubarRadioItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <MenubarPrimitive.RadioItem
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-xl py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     ref={ref}
     {...props}
   >
-    <span className="absolute left-3 flex h-4 w-4 items-center justify-center">
+    <span className="absolute left-3 flex size-icon-md items-center justify-center">
       <MenubarPrimitive.ItemIndicator>
         <Circle className="h-2 w-2 fill-current" />
       </MenubarPrimitive.ItemIndicator>

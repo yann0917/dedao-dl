@@ -5,8 +5,16 @@ const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        display: ["var(--font-display)"],
+        body: ["var(--font-body)"],
+        mono: ["var(--font-mono)"],
+      },
       colors: {
-        border: "hsl(var(--border))",
+        border: {
+          DEFAULT: "hsl(var(--border))",
+          strong: "hsl(var(--border-strong))",
+        },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -65,8 +73,13 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      size: {
+        "icon-sm": "0.875rem",
+        "icon-md": "1rem",
+        "icon-lg": "1.25rem",
+      },
       boxShadow: {
-        soft: "0 24px 60px rgba(15, 23, 42, 0.12)",
+        soft: "0 1px 2px hsl(24 20% 14% / 0.05), 0 12px 32px hsl(24 20% 14% / 0.07)",
       },
     },
   },

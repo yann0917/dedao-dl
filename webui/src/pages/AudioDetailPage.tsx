@@ -73,7 +73,7 @@ export function AudioDetailPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载听书详情...
         </div>
       </main>
@@ -146,7 +146,7 @@ export function AudioDetailPage() {
         <Card className="p-6">
           <img
             alt={data.title}
-            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-3xl bg-surface-soft p-3 object-contain shadow-lg"
+            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-lg bg-surface-soft p-3 object-contain shadow-lg"
             src={data.index_img || data.icon || "https://placehold.co/600x600/e2e8f0/334155?text=Audio"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
@@ -182,11 +182,11 @@ export function AudioDetailPage() {
 
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <StatCard icon={<Clock3 className="h-4 w-4" />} label="时长" value={formatDuration(data.duration)} />
-              <StatCard icon={<Headphones className="h-4 w-4" />} label="播放次数" value={data.play_count || 0} />
-              <StatCard icon={<Radio className="h-4 w-4" />} label="权限状态" value={data.has_play_auth ? "可播放" : "需权限"} />
+              <StatCard icon={<Clock3 className="size-icon-md" />} label="时长" value={formatDuration(data.duration)} />
+              <StatCard icon={<Headphones className="size-icon-md" />} label="播放次数" value={data.play_count || 0} />
+              <StatCard icon={<Radio className="size-icon-md" />} label="权限状态" value={data.has_play_auth ? "可播放" : "需权限"} />
               <StatCard
-                icon={<Waves className="h-4 w-4" />}
+                icon={<Waves className="size-icon-md" />}
                 label="音频地址"
                 value={data.mp3_play_url ? "已获取" : "未获取"}
                 valueClassName="text-lg"

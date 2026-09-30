@@ -31,7 +31,7 @@ export function QuickAccessPanel() {
             to={item.to}
           >
             进入页面
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="size-icon-md" />
           </Link>
         </Card>
       ))}

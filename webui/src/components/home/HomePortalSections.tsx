@@ -22,12 +22,15 @@ function SectionHeader({ module, actions }: SectionHeaderProps) {
   }
 
   return (
-    <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <h3 className="text-2xl font-semibold text-text-primary">{module.title}</h3>
-        <p className={`mt-2 leading-6 ${semanticMetaTextClass}`}>{module.description}</p>
+    <div className="mb-5 border-b border-border pb-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span aria-hidden="true" className="h-4 w-[3px] shrink-0 bg-accent" />
+          <h3 className="shrink-0 text-xl font-semibold tracking-wide text-text-primary">{module.title}</h3>
+          <p className={`truncate leading-6 ${semanticMetaTextClass}`}>{module.description}</p>
+        </div>
+        {actions}
       </div>
-      {actions}
     </div>
   )
 }
@@ -133,7 +136,7 @@ export function LabeledShelfSection({
                 </button>
               ))}
               {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin text-text-muted" aria-label="正在刷新内容" />
+                <Loader2 className="size-icon-md animate-spin text-text-muted" aria-label="正在刷新内容" />
               ) : null}
             </div>
           ) : null
@@ -159,7 +162,7 @@ export function LabeledShelfSection({
                   alt={product.title}
                   className={cn(
                     "h-full w-full transition duration-500 hover:scale-105",
-                    variant === "course" ? "object-cover" : "rounded-2xl object-cover shadow-md",
+                    variant === "course" ? "object-cover" : "rounded-lg object-cover shadow-md",
                   )}
                   src={variant === "course" ? product.horizontal_image : product.index_image}
                 />
@@ -169,12 +172,12 @@ export function LabeledShelfSection({
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-text-secondary">
                   {variant === "course" ? product.intro : product.author_list.join(" / ") || "电子书内容"}
                 </p>
-                <div className="mt-4 flex items-center justify-between text-xs text-text-muted/80">
+                <div className="mt-4 flex items-center justify-between text-xs text-text-muted">
                   {variant === "course" ? (
                     <span>{product.learn_user_count} 人加入</span>
                   ) : (
                     <span className="inline-flex items-center gap-1">
-                      <BookOpen className="h-3.5 w-3.5" />
+                      <BookOpen className="size-icon-sm" />
                       {product.score ? `评分 ${product.score}` : "暂无评分"}
                     </span>
                   )}

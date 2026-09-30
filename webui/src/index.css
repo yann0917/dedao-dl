@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --bg-page: 36 42% 97%;
+  --font-display: var(--font-body);
+  --font-body: "PingFang SC", "Hiragino Sans GB", "Source Han Sans SC", "Noto Sans CJK SC", "Microsoft YaHei", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Cascadia Mono", "Liberation Mono", monospace;
+
+  --bg-page: 38 36% 96%;
   --bg-panel: 0 0% 100%;
-  --bg-soft: 34 48% 95%;
+  --bg-soft: 36 32% 93%;
   --bg-inverse: 22 18% 14%;
-  --text-primary: 24 18% 16%;
+  --text-primary: 24 20% 14%;
   --text-secondary: 24 12% 28%;
-  --text-muted: 25 8% 46%;
+  --text-muted: 25 8% 38%;
   --text-inverse: 40 33% 96%;
-  --accent: 28 88% 56%;
+  --accent: 4 72% 48%;
   --accent-foreground: 0 0% 100%;
-  --accent-soft: 32 100% 94%;
+  --accent-soft: 12 70% 97%;
   --danger: 0 72% 52%;
   --danger-foreground: 0 0% 100%;
   --danger-soft: 0 86% 95%;
@@ -23,8 +27,8 @@
   --warning: 33 86% 52%;
   --warning-foreground: 24 18% 16%;
   --warning-soft: 38 100% 94%;
-  --border-default: 32 22% 85%;
-  --border-strong: 28 28% 74%;
+  --border-default: 32 18% 84%;
+  --border-strong: 26 20% 72%;
   --background: var(--bg-page);
   --foreground: var(--text-primary);
   --card: var(--bg-panel);
@@ -38,21 +42,22 @@
   --border: var(--border-default);
   --input: var(--border-default);
   --ring: var(--accent);
-  --radius: 1.25rem;
+  --radius: 0.5rem;
+  color-scheme: light;
 }
 
 .dark {
-  --bg-page: 24 18% 8%;
-  --bg-panel: 24 16% 11%;
-  --bg-soft: 24 14% 16%;
+  --bg-page: 24 16% 8%;
+  --bg-panel: 24 14% 11%;
+  --bg-soft: 24 12% 16%;
   --bg-inverse: 30 24% 94%;
   --text-primary: 34 24% 94%;
   --text-secondary: 30 16% 82%;
   --text-muted: 28 10% 66%;
   --text-inverse: 24 20% 14%;
-  --accent: 29 84% 61%;
+  --accent: 8 78% 60%;
   --accent-foreground: 22 32% 10%;
-  --accent-soft: 28 42% 18%;
+  --accent-soft: 6 36% 15%;
   --danger: 0 76% 68%;
   --danger-foreground: 0 0% 100%;
   --danger-soft: 0 40% 19%;
@@ -62,8 +67,8 @@
   --warning: 35 88% 64%;
   --warning-foreground: 24 20% 12%;
   --warning-soft: 34 38% 18%;
-  --border-default: 24 12% 24%;
-  --border-strong: 24 14% 34%;
+  --border-default: 24 11% 20%;
+  --border-strong: 24 12% 27%;
   --background: var(--bg-page);
   --foreground: var(--text-primary);
   --card: var(--bg-panel);
@@ -93,16 +98,30 @@ body,
 body {
   margin: 0;
   background-color: hsl(var(--background));
-  background-image:
-    radial-gradient(circle at top left, rgba(251, 146, 60, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.08), transparent 26%),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(248, 244, 238, 1));
   color: hsl(var(--foreground));
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
   transition:
     background-color 0.2s ease,
-    color 0.2s ease,
-    background-image 0.2s ease;
+    color 0.2s ease;
+}
+
+/* 全局纸面颗粒：一层极低透明度的噪点，替代渐变光晕。 */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+html.dark body::after {
+  opacity: 0.06;
+  mix-blend-mode: screen;
 }
 
 button,
@@ -115,141 +134,142 @@ img {
   max-width: 100%;
 }
 
-html.dark body {
-  background-image:
-    radial-gradient(circle at top left, rgba(249, 115, 22, 0.16), transparent 26%),
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 22%),
-    linear-gradient(180deg, rgba(30, 17, 11, 0.98), rgba(23, 16, 13, 1));
+/* 键盘焦点全局可见（不可被组件默认样式悄悄移除）。 */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
-/* Centralized dark-mode overrides for the most common utility classes in the current UI. */
-html.dark .bg-white,
-html.dark .bg-white\/90 {
-  background-color: rgba(15, 23, 42, 0.9) !important;
+/* 浏览器对 button 的默认光标是箭头。 */
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
 }
 
-html.dark .bg-slate-50 {
-  background-color: rgba(15, 23, 42, 0.74) !important;
+/* ———— 启动页「书名页」设计语言 ———— */
+
+/* 视口内的细双线框，旧书封面的版式。 */
+.ed-frame {
+  position: fixed;
+  inset: 10px;
+  z-index: 30;
+  pointer-events: none;
+  border: 1px solid hsl(var(--border-strong) / 0.65);
+  outline: 1px solid hsl(var(--border-default) / 0.6);
+  outline-offset: -8px;
 }
 
-html.dark .bg-slate-100 {
-  background-color: rgba(30, 41, 59, 0.88) !important;
+@media (min-width: 640px) {
+  .ed-frame {
+    inset: 16px;
+  }
 }
 
-html.dark .bg-slate-900 {
-  background-color: rgba(15, 23, 42, 0.96) !important;
+/* 扁平印刷感面板：1px 硬边 + 极轻的落影，不用大面积弥散阴影。 */
+.ed-panel {
+  background-color: hsl(var(--bg-panel));
+  border: 1px solid hsl(var(--border-strong) / 0.85);
+  box-shadow:
+    0 1px 2px hsl(var(--text-primary) / 0.04),
+    0 16px 44px hsl(var(--text-primary) / 0.07);
 }
 
-html.dark .bg-slate-950 {
-  background-color: rgba(2, 6, 23, 0.96) !important;
+/* 竖排装饰文字。 */
+.ed-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 0.42em;
 }
 
-html.dark .border-white\/70 {
-  border-color: rgba(51, 65, 85, 0.72) !important;
+/* 朱砂印章：静态微倾，白边内框。 */
+.ed-seal {
+  transform: rotate(-8deg);
+  box-shadow:
+    inset 0 0 0 1.5px hsl(0 0% 100% / 0.35),
+    0 2px 12px hsl(4 72% 48% / 0.32);
 }
 
-html.dark .border-slate-200,
-html.dark .border-slate-100 {
-  border-color: rgba(71, 85, 105, 0.68) !important;
+/* 着重号：重点词下的红色圆点，传统印刷强调法。 */
+.ed-emphasis {
+  -webkit-text-emphasis: filled dot hsl(4 72% 48% / 0.85);
+  text-emphasis: filled dot hsl(4 72% 48% / 0.85);
+  -webkit-text-emphasis-position: under right;
+  text-emphasis-position: under right;
 }
 
-html.dark .text-slate-950,
-html.dark .text-slate-900 {
-  color: rgb(241 245 249) !important;
+@keyframes ed-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-html.dark .text-slate-700,
-html.dark .text-slate-600 {
-  color: rgb(203 213 225) !important;
+.ed-rise {
+  opacity: 0;
+  animation: ed-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-html.dark .text-slate-500 {
-  color: rgb(148 163 184) !important;
+@keyframes ed-stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-16deg) scale(1.65);
+    filter: blur(1.5px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: rotate(-6deg) scale(0.94);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+    filter: blur(0);
+  }
 }
 
-html.dark .text-slate-400 {
-  color: rgb(100 116 139) !important;
+.ed-stamp {
+  opacity: 0;
+  animation: ed-stamp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
 }
 
-html.dark .hover\:bg-slate-50:hover,
-html.dark .hover\:bg-slate-100:hover {
-  background-color: rgba(30, 41, 59, 0.88) !important;
-}
-
-html.dark .hover\:bg-slate-900:hover {
-  background-color: rgba(30, 41, 59, 0.96) !important;
-}
-
-html.dark .bg-rose-50 {
-  background-color: rgba(127, 29, 29, 0.3) !important;
-}
-
-html.dark .border-rose-200 {
-  border-color: rgba(190, 24, 93, 0.45) !important;
-}
-
-html.dark .text-rose-700 {
-  color: rgb(253 164 175) !important;
-}
-
-html.dark .bg-orange-50,
-html.dark .bg-orange-100 {
-  background-color: rgba(154, 52, 18, 0.34) !important;
-}
-
-html.dark .text-orange-700,
-html.dark .text-orange-600 {
-  color: rgb(253 186 116) !important;
-}
-
-html.dark .bg-amber-50,
-html.dark .bg-amber-100 {
-  background-color: rgba(146, 64, 14, 0.34) !important;
-}
-
-html.dark .text-amber-700 {
-  color: rgb(253 230 138) !important;
-}
-
-html.dark .bg-emerald-100 {
-  background-color: rgba(6, 95, 70, 0.34) !important;
-}
-
-html.dark .text-emerald-700 {
-  color: rgb(110 231 183) !important;
-}
-
-html.dark .bg-sky-50,
-html.dark .bg-sky-100 {
-  background-color: rgba(7, 89, 133, 0.34) !important;
-}
-
-html.dark .text-sky-700,
-html.dark .text-sky-600 {
-  color: rgb(125 211 252) !important;
-}
-
-html.dark .bg-violet-100 {
-  background-color: rgba(91, 33, 182, 0.34) !important;
-}
-
-html.dark .text-violet-700 {
-  color: rgb(196 181 253) !important;
-}
-
-@keyframes nav-fab-breathe {
+@keyframes ed-pulse {
   0%,
   100% {
-    opacity: 0.18;
-    transform: scale(0.94);
+    opacity: 0.3;
+    transform: scale(0.75);
   }
 
   50% {
-    opacity: 0.34;
-    transform: scale(1.12);
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-.nav-fab-breathe {
-  animation: nav-fab-breathe 3.2s ease-in-out infinite;
+.ed-pulse {
+  animation: ed-pulse 1.7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ed-rise,
+  .ed-stamp {
+    animation: none;
+    opacity: 1;
+  }
+
+  .ed-stamp {
+    transform: rotate(-8deg);
+    filter: none;
+  }
+
+  .ed-pulse {
+    animation: none;
+    opacity: 0.8;
+  }
 }

@@ -23,6 +23,10 @@ export function StatusBadge({ variant = "neutral", className, icon, children }: 
   )
 }
 
+export function Skeleton({ className }: { className?: string }) {
+  return <div aria-hidden="true" className={cn("animate-pulse bg-surface-soft", className)} />
+}
+
 type InfoBlockProps = PropsWithChildren<{
   className?: string
 }>

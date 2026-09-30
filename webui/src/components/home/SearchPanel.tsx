@@ -20,9 +20,9 @@ export function SearchPanel({
 }: SearchPanelProps) {
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-border bg-surface-soft px-4 py-3">
+      <div className="rounded-lg border border-border bg-surface-soft px-4 py-3">
         <div className="flex items-center gap-3">
-          <Search className="h-4 w-4 text-text-muted" />
+          <Search className="size-icon-md text-text-muted" />
           <input
             className="w-full border-0 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
             onChange={(event) => onQueryChange(event.target.value)}
@@ -54,7 +54,7 @@ export function SearchPanel({
 
           {suggestions?.list.flatMap((group) => group.list).slice(0, 5).map((item) => (
             <button
-              className="flex w-full items-center justify-between rounded-2xl border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-accent-soft/40"
+              className="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-accent-soft/40"
               key={`${item.id}-${item.title}`}
               onClick={() => item.extra?.enid && onSelectCourse(item.extra.enid)}
               type="button"

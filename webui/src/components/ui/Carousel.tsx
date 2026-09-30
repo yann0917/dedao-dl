@@ -131,7 +131,7 @@ export function CarouselPrevious({ className }: CarouselArrowProps) {
       onClick={scrollPrev}
       type="button"
     >
-      <ChevronLeft className="h-5 w-5" />
+      <ChevronLeft className="size-icon-lg" />
     </button>
   )
 }
@@ -150,7 +150,7 @@ export function CarouselNext({ className }: CarouselArrowProps) {
       onClick={scrollNext}
       type="button"
     >
-      <ChevronRight className="h-5 w-5" />
+      <ChevronRight className="size-icon-lg" />
     </button>
   )
 }

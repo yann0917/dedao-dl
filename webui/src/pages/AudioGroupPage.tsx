@@ -5,6 +5,7 @@ import { api, type AudioGroupResponse } from "@/api"
 import { InfoBlock, StatCard, StatusBadge } from "@/components/ui/Semantic"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
+import { introToText } from "@/lib/introText"
 import {
   semanticMetaTextClass,
   semanticPageSectionClass,
@@ -63,7 +64,7 @@ export function AudioGroupPage() {
     return (
       <main className="flex min-h-[70vh] items-center justify-center">
         <div className="flex items-center gap-3 text-text-muted">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-icon-lg animate-spin" />
           正在加载听书合集...
         </div>
       </main>
@@ -103,7 +104,7 @@ export function AudioGroupPage() {
         <Card className="p-6">
           <img
             alt={spu.title}
-            className="mx-auto aspect-square w-full max-w-[260px] rounded-3xl object-cover shadow-lg"
+            className="mx-auto aspect-square w-full max-w-[260px] rounded-lg object-cover shadow-lg"
             src={spu.icon || "https://placehold.co/600x600/e2e8f0/334155?text=Group"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
@@ -123,16 +124,16 @@ export function AudioGroupPage() {
         <div className="space-y-6">
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-3">
-              <StatCard icon={<Library className="h-4 w-4" />} label="合集条目" value={data.outside.count || audioList.length} />
-              <StatCard icon={<Users className="h-4 w-4" />} label="学习人数" value={spu.extra?.odob_consumer_num || 0} />
-              <StatCard icon={<Radio className="h-4 w-4" />} label="音频解析" value={audioList.length > 0 ? "已就绪" : "待补齐"} />
+              <StatCard icon={<Library className="size-icon-md" />} label="合集条目" value={data.outside.count || audioList.length} />
+              <StatCard icon={<Users className="size-icon-md" />} label="学习人数" value={spu.extra?.odob_consumer_num || 0} />
+              <StatCard icon={<Radio className="size-icon-md" />} label="音频解析" value={audioList.length > 0 ? "已就绪" : "待补齐"} />
             </div>
           </Card>
 
           <Card className="p-6">
             <h3 className="text-xl font-semibold text-text-primary">合集简介</h3>
             <p className={`mt-4 whitespace-pre-wrap text-sm leading-7 ${semanticSecondaryTextClass}`}>
-              {spu.intro || spu.extra?.intro_text || spu.summary || "暂无简介"}
+              {spu.extra?.intro_text || introToText(spu.intro) || spu.summary || "暂无简介"}
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               {tracks.length > 0 ? <Button onClick={() => setQueue(tracks, 0)}>播放整组</Button> : null}
@@ -155,7 +156,7 @@ export function AudioGroupPage() {
                     <div className="flex items-start gap-4">
                       <img
                         alt={item.title}
-                        className="h-16 w-16 rounded-2xl object-cover"
+                        className="h-16 w-16 rounded-lg object-cover"
                         src={item.index_img || item.icon || "https://placehold.co/200x200/e2e8f0/334155?text=Audio"}
                       />
                       <div className="min-w-0 flex-1">
@@ -180,7 +181,7 @@ export function AudioGroupPage() {
                   </InfoBlock>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-border p-6 text-sm text-text-muted">
+                <div className="rounded-lg border border-dashed border-border p-6 text-sm text-text-muted">
                   当前还没有可展示的音频列表。
                 </div>
               )}
