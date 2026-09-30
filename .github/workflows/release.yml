@@ -1,7 +1,20 @@
 name: Release
 
+# 手动触发发布：版本号可填可不填，留空则在最新 tag 基础上自动把 patch +1。
+# 若该版本 tag 已存在（先手动打 tag 的情形），构建与 Release 都按该 tag 的提交进行，
+# 保证发布产物与 tag 严格对应。
+# pull_request 触发仅用于构建校验与测试，不发布。
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "版本号 x.y.z（可带 v 前缀；留空 = 最新版本 patch +1）"
+        required: false
+        default: ""
+      draft:
+        description: "创建为草稿 Release（不立即公开）"
+        type: boolean
+        default: false
   pull_request:
     branches:
       - main
@@ -12,13 +25,91 @@ env:
 permissions:
   contents: write
 
+# 同一时间只允许一个发布流程，避免并发打 tag
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    name: 解析版本与测试
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+      prev_tag: ${{ steps.ver.outputs.prev_tag }}
+      commit: ${{ steps.ver.outputs.commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: 解析版本号
+        id: ver
+        env:
+          # 通过 env 传递，避免输入内容直接插入 shell 脚本
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          input="${INPUT_VERSION#v}"   # 允许填 v1.2.3
+
+          # 既有版本 tag：既用于自动递增，也用于更新日志基线（上一个 tag..本次提交）
+          latest="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)"
+
+          if [ -n "$input" ]; then
+            ver="$input"
+            echo "使用手动指定版本：$ver"
+          elif [ -z "$latest" ]; then
+            ver="0.1.0"
+            echo "未发现既有 tag，使用初始版本：$ver"
+          else
+            base="${latest#v}"
+            major="${base%%.*}"
+            rest="${base#*.}"
+            minor="${rest%%.*}"
+            patch="${rest#*.}"
+            ver="$major.$minor.$((patch + 1))"
+            echo "基于最新 tag $latest 自动递增 patch：$ver"
+          fi
+
+          if ! printf '%s' "$ver" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::版本号格式非法：'$ver'，应为 x.y.z（例如 1.2.3）"
+            exit 1
+          fi
+
+          # 构建基线：tag 已存在就按该 tag 的提交构建，产物与 tag 严格对应；
+          # 不存在则用当前提交，Release 时会把 tag 打在这个提交上。
+          tag="v$ver"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            commit="$(git rev-parse "$tag^{commit}")"
+            echo "tag $tag 已存在，按该 tag 的提交构建：$commit"
+          else
+            commit="$(git rev-parse HEAD)"
+            echo "tag $tag 将创建于当前提交：$commit"
+          fi
+
+          # 更新日志基线：除本次发布 tag 外的最新版本 tag（无则空 = 首个版本）
+          prev="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -vxF "$tag" | head -n1 || true)"
+          echo "更新日志基线 tag：${prev:-（无，取全部历史）}"
+
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "prev_tag=$prev" >> "$GITHUB_OUTPUT"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+
+      - name: Run tests
+        run: go test ./... -count=1
+
   build:
     name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
+    needs: resolve
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -54,6 +145,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          # 固定到版本解析出的提交：发布产物与 tag 严格对应
+          ref: ${{ needs.resolve.outputs.commit }}
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -92,11 +186,12 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
+          VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
           mkdir -p dist
           output="dist/${BINARY_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
-          go build -trimpath -ldflags="-s -w" -o "$output" .
+          go build -trimpath -ldflags="-s -w -X main.Version=${VERSION}" -o "$output" .
 
       - name: Compress with UPX
         if: matrix.upx
@@ -129,12 +224,13 @@ jobs:
   release:
     name: Create release
     runs-on: ubuntu-latest
-    needs: build
+    needs: [resolve, build]
     if: github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          ref: ${{ needs.resolve.outputs.commit }}
           fetch-depth: 0
 
       - name: Download build artifacts
@@ -143,34 +239,97 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Generate release metadata
-        id: meta
-        run: |
-          set -euo pipefail
-          latest_tag="$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
-          if [ -z "$latest_tag" ]; then
-            tag="v0.1.0"
-          else
-            version="${latest_tag#v}"
-            IFS='.' read -r major minor patch <<< "$version"
-            patch=$((patch + 1))
-            tag="v${major}.${minor}.${patch}"
-          fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "name=$tag" >> "$GITHUB_OUTPUT"
-
       - name: Generate checksums
         run: |
           set -euo pipefail
           cd dist
           sha256sum * > checksums.txt
 
+      # GitHub 自动生成的 Release Notes 只收录「已合并的 PR」，本仓库大量提交直接进
+      # main，自动 notes 常常只剩一行 Full Changelog 链接。改为按提交信息生成分组
+      # 更新日志。提交风格为 gitmoji（:bug: / :sparkles: / :art: ...），按 emoji 分组，
+      # 只取标题行，展示时去掉 emoji 前缀。
+      - name: Generate changelog
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          PREV_TAG: ${{ needs.resolve.outputs.prev_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PREV_TAG" ] && git merge-base --is-ancestor "$PREV_TAG" HEAD 2>/dev/null; then
+            range="$PREV_TAG..HEAD"
+            echo "更新日志范围：$range"
+          else
+            range=""
+            echo "无可用的基线 tag，更新日志取全部历史（最多 200 条）"
+          fi
+
+          # shellcheck disable=SC2086  # $range 为空时需整体省略，故意不加引号
+          git log --no-merges -n 200 --pretty=format:'%h%x09%s' $range | awk -F'\t' '
+            NF >= 2 {
+              subject = $2
+              if (subject ~ /^:bug:/)                          c = "修复"
+              else if (subject ~ /^:sparkles:/)                c = "新功能"
+              else if (subject ~ /^:zap:|^:recycle:|^:art:|^:construction:|^:goal_net:|^:children_crossing:/) c = "优化与重构"
+              else if (subject ~ /^:memo:|^:books:|^:pencil:/) c = "文档"
+              else if (subject ~ /^:green_heart:|^:rotating_light:|^:arrow_down:|^:arrow_up:|^:heavy_minus_sign:|^:heavy_plus_sign:/) c = "构建与依赖"
+              else if (subject ~ /^feat[(：:]|^feat/)          c = "新功能"
+              else if (subject ~ /^fix[(：:]|^fix/)            c = "修复"
+              else if (subject ~ /^refactor[(：:]|^refactor|^perf[(：:]|^perf|^optimize/) c = "优化与重构"
+              else if (subject ~ /^docs[(：:]|^docs/)          c = "文档"
+              else if (subject ~ /^(build|ci|chore|deps)[(：:]|^(build|ci|chore|deps)/) c = "构建与依赖"
+              else                                             c = "其他"
+              gsub(/^:[a-z0-9_+-]+:[ ]*/, "", subject)
+              gsub(/^(feat|fix|refactor|perf|docs|build|ci|chore|deps)(\([^)]*\))?[：:][ ]*/, "", subject)
+              if (subject == "") next
+              items[c] = items[c] "- " subject "（" $1 "）\n"
+              seen[c] = 1
+            }
+            END {
+              n = split("新功能 修复 优化与重构 构建与依赖 文档 其他", cats, " ")
+              for (i = 1; i <= n; i++) {
+                c = cats[i]
+                if (seen[c]) printf "### %s\n\n%s\n", c, items[c]
+              }
+            }
+          ' > changelog.md
+
+          {
+            cat changelog.md
+            printf '\n---\n\n'
+            if [ -n "$PREV_TAG" ]; then
+              printf '\n**Full Changelog**：https://github.com/%s/compare/%s...%s\n' \
+                "$GITHUB_REPOSITORY" "$PREV_TAG" "$TAG"
+            fi
+          } > release-notes.md
+
+          echo "----- release-notes.md -----"
+          cat release-notes.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: ${{ steps.meta.outputs.name }}
-          target_commitish: ${{ github.sha }}
-          generate_release_notes: true
+          tag_name: ${{ needs.resolve.outputs.tag }}
+          name: ${{ needs.resolve.outputs.tag }}
+          target_commitish: ${{ needs.resolve.outputs.commit }}
+          draft: ${{ inputs.draft }}
+          # 注意：body 与 generate_release_notes 同时给会由 body 覆盖生成内容
+          #（GitHub 语义），所以更新日志统一走 body_path。
+          body_path: release-notes.md
           files: |
             dist/*
+          fail_on_unmatched_files: true
+
+      - name: 汇总
+        run: |
+          echo "### 发布完成 :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 版本：\`${{ needs.resolve.outputs.tag }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 构建提交：\`${{ needs.resolve.outputs.commit }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 草稿：\`${{ inputs.draft }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Release：https://github.com/${GITHUB_REPOSITORY}/releases/tag/${{ needs.resolve.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 发布包 | 大小 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          for f in dist/*; do
+            echo "| \`$(basename "$f")\` | $(du -h "$f" | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
+          done
