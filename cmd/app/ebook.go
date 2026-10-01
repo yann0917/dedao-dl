@@ -201,7 +201,13 @@ func saveDebug(enid, chapterID string, content string) {
 // PKCS7Unpad 实现PKCS7去填充
 func PKCS7Unpad(data []byte) []byte {
 	length := len(data)
+	if length == 0 {
+		return data
+	}
 	unpadding := int(data[length-1])
+	if unpadding == 0 || unpadding > length {
+		return data
+	}
 	return data[:(length - unpadding)]
 }
 
@@ -222,6 +228,10 @@ func DecryptAES(contents string) string {
 	}
 
 	blockSize := block.BlockSize()
+	// CryptBlocks 要求密文长度必须是 block 大小的整数倍，否则会 panic
+	if len(ciphertext) == 0 || len(ciphertext)%blockSize != 0 {
+		return ""
+	}
 	mode := cipher.NewCBCDecrypter(block, iv[:blockSize])
 	plaintext := make([]byte, len(ciphertext))
 	mode.CryptBlocks(plaintext, ciphertext)

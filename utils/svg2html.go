@@ -146,6 +146,7 @@ func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error
 	}
 	assignFootnoteAnchors(chapters)
 
+	buf.WriteString(genPdfTocHtml(toc))
 	for k, svgContent := range svgContents {
 		chapter, coverContent, err1 := OneByOneHtml(eBookTypePdf, k, svgContent, toc, chapters[k].pages)
 		if err1 != nil {
@@ -159,10 +160,13 @@ func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error
 		buf.WriteString(`<P style="page-break-before: always">`)
 	}
 
-	// write cover into cover.html file
-	coverPath, _ := FilePath(filepath.Join(path, FileName("cover", "")), "html", false)
-	if err = WriteFileWithTrunc(coverPath, cover); err != nil {
-		return
+	// write cover into cover.html file（cover 为空时不设封面）
+	coverPath := ""
+	if cover != "" {
+		coverPath, _ = FilePath(filepath.Join(path, FileName("cover", "")), "html", false)
+		if err = WriteFileWithTrunc(coverPath, cover); err != nil {
+			return
+		}
 	}
 	pdf := PdfOption{
 		FileName:  fileName,
@@ -172,6 +176,45 @@ func Svg2Pdf(title string, svgContents []*SvgContent, toc []EbookToc) (err error
 	}
 	err = pdf.GenPdf(buf)
 	return
+}
+
+// genPdfTocHtml 生成 PDF 自绘目录页：行高与正文一致（line-height:2），
+// 小节按层级缩进、锚点可点击跳转，替代 wkhtmltopdf 内置 TOC。
+// 必须带完整文档头：拼接文档的首个 <meta charset> 决定整篇解码方式，
+// 缺失会让 QtWebKit 按 latin-1 解码，全书中文变乱码。
+func genPdfTocHtml(toc []EbookToc) string {
+	if len(toc) == 0 {
+		return ""
+	}
+	var sb strings.Builder
+	sb.WriteString(GenHeadHtml())
+	sb.WriteString(`<div id="pdf-toc">
+	<h1 style="text-align:center;font-size:24px;font-weight:bold;">目 录</h1>
+`)
+	for _, t := range toc {
+		text := html.EscapeString(t.Text)
+		entry := text
+		if t.Href != "" {
+			// 优先跳小节锚点（#frag），无锚点时跳章节首（#ChapterID）
+			target := t.Href
+			if i := strings.Index(t.Href, "#"); i >= 0 {
+				target = t.Href[i+1:]
+			}
+			entry = `<a href="#` + html.EscapeString(target) + `" style="color:#000;text-decoration:none;">` + text + `</a>`
+		}
+		bold := ""
+		if t.Level == 0 {
+			bold = "font-weight:bold;"
+		}
+		sb.WriteString(fmt.Sprintf(`<div style="line-height:2;font-size:16px;%spadding-left:%dpt;">%s</div>%s`,
+			bold, t.Level*20, entry, "\n\t"))
+	}
+	sb.WriteString(`
+</div>
+</body>
+</html>
+<P style="page-break-before: always">`)
+	return sb.String()
 }
 
 func Svg2Epub(title string, svgContents []*SvgContent, opt EpubOptions) (err error) {
@@ -307,13 +350,64 @@ func AllInOneHtml(svgContents []*SvgContent, toc []EbookToc) (result string, err
 	return
 }
 
-// locateTocAnchorID 在当前渲染行上定位 TOC 锚点
-// offset 主信号：用 TOC 的 Offset（字节偏移）匹配本行 SVG text 的最小 offset，
-// 定位到章节内标题所在行（含二级/三级目录）；匹配成功推进 offsetIdx。
-// 文本兜底：对未提供有效 Offset 的目录项，按标题文本匹配定位。
-// 返回锚点 id（TOC Href 中 # 后部分），无匹配返回空串。
-func locateTocAnchorID(items []HtmlEle, offsetEntries []EbookToc, offsetIdx *int, textEntries []EbookToc, textMatched []bool, lineText string) string {
-	// 计算本行最小的字节偏移（SVG text 的 offset 属性）
+// tocAnchorMatcher 在单章范围内把 TOC 条目定位到渲染行，产出锚点 id（TOC Href 中 # 后部分）。
+// 主信号：SVG text 自带的原书元素 id 与 TOC href 的 fragment 相同（如 sigil_toc_id_3），
+//
+//	命中即确定性定位，无需猜测；
+//
+// 次信号：TOC 的 Offset（字节偏移）匹配本行 SVG text 的最小 offset；
+// 兜底：无有效 Offset 的条目按标题文本匹配。
+// 三种信号共享一份 matched 标记，条目只会被消费一次。
+type tocAnchorMatcher struct {
+	entries     []EbookToc     // 本章含 #fragment 的目录项，按 playOrder 排列
+	frags       []string       // entries 的 fragment
+	matched     []bool         // entries 是否已被消费
+	idIndex     map[string]int // fragment -> entries 下标（首个生效，防重复 fragment）
+	offsetOrder []int          // Offset>0 的 entries 下标，按 Offset 升序
+	offsetPtr   int            // 下一个待匹配的 offset 条目位置
+	textOrder   []int          // Offset<=0 的 entries 下标，按原顺序
+}
+
+func newTocAnchorMatcher(toc []EbookToc, chapterID string) *tocAnchorMatcher {
+	m := &tocAnchorMatcher{idIndex: make(map[string]int)}
+	for _, t := range toc {
+		tagArr := strings.Split(t.Href, "#")
+		if len(tagArr) < 2 || tagArr[0] != chapterID || tagArr[1] == "" {
+			continue
+		}
+		if _, dup := m.idIndex[tagArr[1]]; !dup {
+			m.idIndex[tagArr[1]] = len(m.entries)
+		}
+		m.entries = append(m.entries, t)
+		m.frags = append(m.frags, tagArr[1])
+		m.matched = append(m.matched, false)
+		if t.Offset > 0 {
+			m.offsetOrder = append(m.offsetOrder, len(m.entries)-1)
+		} else {
+			m.textOrder = append(m.textOrder, len(m.entries)-1)
+		}
+	}
+	sort.Slice(m.offsetOrder, func(i, j int) bool {
+		return m.entries[m.offsetOrder[i]].Offset < m.entries[m.offsetOrder[j]].Offset
+	})
+	return m
+}
+
+func (m *tocAnchorMatcher) match(items []HtmlEle, lineText string) string {
+	// 主信号：本行任意元素的原生 id 等于某条目的 fragment
+	for idx, frag := range m.frags {
+		if m.matched[idx] {
+			continue
+		}
+		for _, item := range items {
+			if item.ID == frag {
+				m.matched[idx] = true
+				return frag
+			}
+		}
+	}
+
+	// 次信号：字节偏移。本行最小 offset 追上条目 Offset 时消费该条目
 	lineMinOffset := -1
 	for _, item := range items {
 		if item.Offset == "" {
@@ -325,30 +419,32 @@ func locateTocAnchorID(items []HtmlEle, offsetEntries []EbookToc, offsetIdx *int
 			}
 		}
 	}
-
-	// offset 主信号：按字节偏移定位下一个未消费的目录项
-	if *offsetIdx < len(offsetEntries) && lineMinOffset >= 0 {
-		entry := offsetEntries[*offsetIdx]
-		if lineMinOffset >= entry.Offset {
-			*offsetIdx++
-			if tagArr := strings.Split(entry.Href, "#"); len(tagArr) > 1 {
-				return tagArr[1]
+	if lineMinOffset >= 0 {
+		for m.offsetPtr < len(m.offsetOrder) {
+			idx := m.offsetOrder[m.offsetPtr]
+			if m.matched[idx] {
+				m.offsetPtr++
+				continue
 			}
+			if lineMinOffset >= m.entries[idx].Offset {
+				m.offsetPtr++
+				m.matched[idx] = true
+				return m.frags[idx]
+			}
+			break
 		}
 	}
 
-	// 文本兜底：仅对未提供有效 offset 的目录项，按标题文本匹配
+	// 兜底：按标题文本匹配（仅限无有效 Offset 的条目）
 	if len([]rune(lineText)) >= 2 {
-		for i, e := range textEntries {
-			if textMatched[i] {
+		for _, idx := range m.textOrder {
+			if m.matched[idx] {
 				continue
 			}
-			norm := strings.ReplaceAll(e.Text, " ", "")
+			norm := strings.ReplaceAll(m.entries[idx].Text, " ", "")
 			if norm != "" && strings.Contains(norm, lineText) {
-				textMatched[i] = true
-				if tagArr := strings.Split(e.Href, "#"); len(tagArr) > 1 {
-					return tagArr[1]
-				}
+				m.matched[idx] = true
+				return m.frags[idx]
 			}
 		}
 	}
@@ -373,23 +469,8 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 		result += GenHeadHtml()
 	}
 
-	// 按章节分组 TOC 项，用于在章节内定位锚点（含二级/三级目录）
-	// 有有效 Offset 的目录项走字节偏移匹配（主信号），无 Offset 的走标题文本匹配（兜底）
-	offsetEntries := make([]EbookToc, 0)
-	textEntries := make([]EbookToc, 0)
-	for _, t := range toc {
-		tagArr := strings.Split(t.Href, "#")
-		if len(tagArr) > 0 && tagArr[0] == svgContent.ChapterID {
-			if t.Offset > 0 {
-				offsetEntries = append(offsetEntries, t)
-			} else {
-				textEntries = append(textEntries, t)
-			}
-		}
-	}
-	sort.Slice(offsetEntries, func(i, j int) bool { return offsetEntries[i].Offset < offsetEntries[j].Offset })
-	offsetIdx := 0
-	textMatched := make([]bool, len(textEntries))
+	// 按章节构建锚点匹配器：id 主信号 + offset 次信号 + 文本兜底（共享消费标记）
+	tocAnchor := newTocAnchorMatcher(toc, svgContent.ChapterID)
 
 	// 视图渲染：优先使用调用方传入（已整书解析并配对）的 pages，
 	// 否则回退到单章解析（此时不做跨章节配对，仅供 PDF 等兜底）。
@@ -522,9 +603,12 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 
 					switch eType {
 					case eBookTypePdf:
-						// create cover.html
-						if index == 0 {
-							cover = GenHeadHtml() + img + `</body></html>`
+						// create cover.html：满版封面，图片拉伸铺满 A4，
+						// 配合 GenPdf 的 0 边距封面渲染去掉四周白边
+						if index == 0 && cover == "" && w >= footNoteImgW {
+							cover = `<!DOCTYPE html><html><head><meta charset="utf-8"/>` +
+								`<style>html,body{margin:0;padding:0;}img{display:block;width:210mm;height:297mm;}</style>` +
+								`</head><body><img src="` + item.Href + `"/></body></html>`
 						}
 					case eBookTypeEpub:
 						// get cover url
@@ -624,8 +708,8 @@ func OneByOneHtml(eType string, index int, svgContent *SvgContent, toc []EbookTo
 						}
 					}
 					if contWOTag != "" {
-						// 定位本行对应的 TOC 锚点（offset 主信号 + 文本兜底）
-						anchorID := locateTocAnchorID(lineContent[v], offsetEntries, &offsetIdx, textEntries, textMatched, contWOTag)
+						// 定位本行对应的 TOC 锚点（id 主信号 + offset 次信号 + 文本兜底）
+						anchorID := tocAnchor.match(lineContent[v], contWOTag)
 						// 行内已有同名 id（SVG 自带锚点）时避免生成重复 id
 						if anchorID != "" && id == anchorID {
 							anchorID = ""
@@ -784,7 +868,12 @@ func GenHeadHtml() (result string) {
 		@font-face { font-family: "DeDaoJinKai"; src:local("DeDaoJinKai"), url("https://imgcdn.umiwi.com/ttf/dedaojinkaiw03.ttf");}
 		@font-face { font-family: "Source Code Pro"; src:local("Source Code Pro"), url("https://imgcdn.umiwi.com/ttf/0315911806889993935644188722660020367983.ttf"); }
 		table, tr, td, th, tbody, thead, tfoot {page-break-inside: avoid !important;}
-		p { margin: 1.5em 0; }
+		/* 行高必须显式设置：QtWebKit 对中文字体的 normal 行高≈1.0，
+		   段内软换行会挤成 1em 行距，且页顶首行字尖超出行盒被裁掉。
+		   一个 p 对应一个自然段：段内换行只吃 line-height，
+		   段落间距靠 margin-bottom（约为行距的一半，保证段落可辨） */
+		p { margin: 0 0 1em 0; line-height: 2; }
+		h1, h2, h3, h4, h5, h6 { line-height: 1.6; }
 		img { page-break-inside: avoid; max-width: 100% !important;}
 		img.epub-footnote { margin-right:5px;display: inline;font-size: 12px;}
 		/* 脚注点击展开浮层：内容可选中复制 */
@@ -1177,13 +1266,18 @@ func assignFootnoteAnchors(chapters []bookChapter) {
 		}
 	}
 
-	// g 为要写入的组；ownID 为该组自己的锚点 id；targetHref 为该组 href 指向的锚点 id
-	write := func(g *fnGroup, ownID, targetHref string) {
+	// g 为要写入的组；ownID 为该组自己的锚点 id；targetID 为该组 href 指向的锚点 id，
+	// targetChapterID 为目标所在章节。同一章内用 #id；跨章时 EPUB 链接需带目标文件名。
+	write := func(g *fnGroup, ownID, targetID, targetChapterID string) {
 		for i, p := range g.pos {
+			href := "#" + targetID
+			if srcCh := chapters[p.chapter].chID; targetChapterID != srcCh {
+				href = targetChapterID + "#" + targetID
+			}
 			if i == 0 {
 				chapters[p.chapter].pages[p.page].lineContent[p.lineKey][p.index].ID = ownID
 			}
-			chapters[p.chapter].pages[p.page].lineContent[p.lineKey][p.index].Fn.Href = "#" + targetHref
+			chapters[p.chapter].pages[p.page].lineContent[p.lineKey][p.index].Fn.Href = href
 		}
 	}
 
@@ -1199,8 +1293,9 @@ func assignFootnoteAnchors(chapters []bookChapter) {
 		// 角标组锚点前缀用其所在章节；注释正文组用其所在章节（两者可能不同章节）。
 		refID := fmt.Sprintf("fn-ref-%s_%d", chapters[g.pos[0].chapter].chID, seq)
 		noteID := fmt.Sprintf("fn-note-%s_%d", chapters[target.pos[0].chapter].chID, seq)
-		write(g, refID, noteID)      // 正文角标组：id=refID，href=#noteID
-		write(target, noteID, refID) // 注释正文组：id=noteID，href=#refID
+		// 正文角标组：id=refID，指向注释正文；注释正文组：id=noteID，指回正文角标
+		write(g, refID, noteID, chapters[target.pos[0].chapter].chID)
+		write(target, noteID, refID, chapters[g.pos[0].chapter].chID)
 	}
 
 	// 兜底：未配对且无原始 id 的段，补一个唯一 id，避免渲染出空的 id 属性
