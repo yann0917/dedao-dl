@@ -53,7 +53,7 @@
 
 ### 使用 `go` 安装
 
-安装go，版本需大于1.23，并设置GOPATH环境变量, 并在PATH中添加$GOPATH/bin
+安装go，版本需大于1.26，并设置GOPATH环境变量, 并在PATH中添加$GOPATH/bin
 
 使用如下命令安装：
 
