@@ -105,7 +105,14 @@ jobs:
           echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
       - name: Run tests
-        run: go test ./... -count=1
+        run: |
+          set -euo pipefail
+          # webui/embed.go 通过 go:embed 嵌入 webui/dist，而 dist 由前端构建生成且被
+          # gitignore。此阶段不编译前端，先放占位文件让依赖嵌入的包可以编译，测试
+          # 才能覆盖到根包、cmd、web/server 等。
+          mkdir -p webui/dist
+          echo "placeholder" > webui/dist/index.html
+          go test ./... -count=1
 
   build:
     name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
