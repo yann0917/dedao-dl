@@ -21,11 +21,11 @@ dist/
 *_token
 downloader/*.jpg
 
-# Ignore compiled binaries
+# Ignore compiled binaries（锚定仓库根目录，避免误伤 skills/dedao-dl 等同名目录）
 # - native
-dedao-dl
+/dedao-dl
 # - gox builds
-dedao-dl_*
+/dedao-dl_*
 
 .cache/*
 

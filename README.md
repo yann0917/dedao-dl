@@ -331,17 +331,13 @@ dedao-dl clean cache
 
 ## Skills 使用说明
 
-仓库内置两个面向 agent 的技能说明文件，位于 `skills/` 目录：
+仓库内置一个面向 agent 的技能，位于 `skills/dedao-dl/`：
 
-* `skills/dedao-dl-commands/SKILL.md`：纯命令速查，适合“命令怎么写、参数怎么传、给我可复制命令”的场景
-* `skills/dedao-dl-usage/SKILL.md`：完整用法与排障，适合“从登录到下载流程”和“报错排查”的场景
+* `SKILL.md`：核心工作流、agent 使用规则（`--json`、ID 两类、URL 自动识别、`-t` 格式表）与命令地图
+* `references/commands.md`：全部子命令的 flags/位置参数/示例（由 `dedao-dl <command> -h` 真实输出整理）
+* `references/troubleshooting.md`：登录、参数/ID、依赖、下载/权限的排障指南
 
-推荐使用方式：
-
-* 只要命令：优先使用 `dedao-dl-commands`
-* 要步骤和排查：使用 `dedao-dl-usage`
-* 面向 agent 自动化时，默认使用 JSON 输出：`dedao-dl --json <command> ...`
-* 不确定参数时，先执行：`dedao-dl <command> -h`
+使用方式：把 `skills/dedao-dl/` 复制到 agent 工具的技能目录（ZCode 为 `~/.agents/skills/dedao-dl`）即可被自动触发；面向 agent 自动化时默认使用 JSON 输出 `dedao-dl --json <command> ...`，不确定参数时先执行 `dedao-dl <command> -h`。
 
 ## References
 
