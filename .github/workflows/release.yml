@@ -254,12 +254,21 @@ jobs:
         with:
           path: dist
           merge-multiple: true
+          # 排除 webui-dist：那是给 build 阶段嵌入用的中间产物，不属于发布内容
+          pattern: "!webui-dist"
 
       - name: Generate checksums
         run: |
           set -euo pipefail
           cd dist
-          sha256sum * > checksums.txt
+          # fail-fast 关闭时个别平台可能构建失败，先校验发布包数量
+          count="$(find . -maxdepth 1 -type f \( -name '*.tar.gz' -o -name '*.zip' \) | wc -l | tr -d ' ')"
+          if [ "$count" -ne 5 ]; then
+            echo "::error::发布包数量 $count，应为 5"
+            exit 1
+          fi
+          # 只对发布包文件计算校验和，避免目录或杂项文件混入
+          find . -maxdepth 1 -type f ! -name 'checksums.txt' -print0 | xargs -0 sha256sum > checksums.txt
 
       # GitHub 自动生成的 Release Notes 只收录「已合并的 PR」，本仓库大量提交直接进
       # main，自动 notes 常常只剩一行 Full Changelog 链接。改为按提交信息生成分组
