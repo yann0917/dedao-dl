@@ -527,8 +527,11 @@ func downloadEBook(detail *services.EbookDetail, d *EBookDownload) error {
 			return err
 		}
 		d.report(4, 4, title)
+	}
 
-		// Only clear cache for this specific book on successful completion
+	// 各格式成功生成后清掉本书的页面缓存：内容已写入输出文件，留着只占磁盘。
+	// 失败路径在 switch 内已 return err，走到这里即成功
+	if d.DownloadType >= 1 && d.DownloadType <= 3 {
 		if clearErr := services.ClearBookCache(detail.Enid); clearErr != nil {
 			fmt.Printf("Warning: Failed to clear book cache: %v\n", clearErr)
 		}

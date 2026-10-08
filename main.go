@@ -12,10 +12,21 @@ import (
 )
 
 func init() {
+	// clean 只删 output/.cache 目录，不依赖配置和缓存库。
+	// 库损坏时 Init 会因打开失败直接退出（log.Fatalf / badger 后台协程 panic），
+	// 若不跳过，用来救急的 clean cache 自己也起不来
+	if isCleanCommand(os.Args[1:]) {
+		return
+	}
+
 	err := config.Instance.Init()
 	if err != nil {
 		fmt.Println(err)
 	}
+}
+
+func isCleanCommand(args []string) bool {
+	return len(args) > 0 && args[0] == "clean"
 }
 
 func main() {
