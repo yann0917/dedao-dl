@@ -111,7 +111,7 @@ func TestWaitForNextRequestAfterCooldownUsesBucket(t *testing.T) {
 	antispiderMutex.Lock()
 	antispiderCooldown = true
 	// 冷却期只剩约 300ms
-	lastRequestTime = time.Now().Add(-cooldownTime*time.Second + 300*time.Millisecond)
+	lastRequestTime = time.Now().Add(-time.Duration(cooldownTime)*time.Second + 300*time.Millisecond)
 	antispiderMutex.Unlock()
 
 	start := time.Now()

@@ -130,28 +130,29 @@ func handleHTTPResponse(resp *resty.Response, err error) (io.ReadCloser, error) 
 		return nil, fmt.Errorf("request to %s failed: %w", resp.Request.URL, err)
 	}
 
+	status := resp.StatusCode()
+
+	// 403/429 常以 JSON body 出现（如 h.c=0 且 c=null），必须在内容类型判断之前拦截，
+	// 否则会被当作成功解析出空页面
+	if status == http.StatusForbidden || status == http.StatusTooManyRequests {
+		return nil, &HTTPStatusError{Code: status, URL: resp.Request.URL}
+	}
+
 	// Check content type for HTML error pages
 	contentType := resp.Header().Get("Content-Type")
-	if strings.Contains(contentType, "text/html") && resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("temporary: HTTP %d from %s - Server returned HTML error page (will retry)",
-			resp.StatusCode(), resp.Request.URL)
+	if strings.Contains(contentType, "text/html") && status != http.StatusOK {
+		return nil, &HTTPStatusError{Code: status, URL: resp.Request.URL, FromHTMLPage: true}
 	}
 
 	// Permanent errors that shouldn't be retried
-	switch resp.StatusCode() {
-	case http.StatusNotFound:
-		return nil, fmt.Errorf("404 NotFound from %s", resp.Request.URL)
-	case http.StatusBadRequest:
-		return nil, fmt.Errorf("400 BadRequest from %s", resp.Request.URL)
-	case http.StatusUnauthorized:
-		return nil, fmt.Errorf("401 Unauthorized from %s", resp.Request.URL)
-	case 496:
-		return nil, fmt.Errorf("496 NoCertificate from %s", resp.Request.URL)
+	switch status {
+	case http.StatusNotFound, http.StatusBadRequest, http.StatusUnauthorized, 496:
+		return nil, &HTTPStatusError{Code: status, URL: resp.Request.URL}
 	}
 
 	// Temporary errors that should be retried
-	if resp.StatusCode() == http.StatusBadGateway {
-		return nil, fmt.Errorf("temporary: 502 Bad Gateway from %s - Backend service error", resp.Request.URL)
+	if status == http.StatusBadGateway {
+		return nil, &HTTPStatusError{Code: status, URL: resp.Request.URL}
 	}
 
 	data := resp.Body()
@@ -203,7 +204,7 @@ func handleJSONParse(reader io.Reader, v interface{}) error {
 	}
 
 	if !result.isSuccess() {
-		return fmt.Errorf("service error: %s\nraw response: %s", result.H.E, string(rawData))
+		return &BusinessError{Code: result.H.C, Msg: result.H.E, Raw: string(rawData)}
 	}
 
 	err = utils.UnmarshalJSON(result.C, v)

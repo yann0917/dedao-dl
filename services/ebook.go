@@ -1,24 +1,28 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/yann0917/dedao-dl/utils"
 )
 
-const (
+// 重试次数、初始退避与冷却时间用变量以便测试注入更短的时间
+var (
 	maxRetries     = 3
 	initialBackoff = 3 * time.Second
+	// 触发反爬虫后的冷却时间（秒）
+	cooldownTime = 60
+)
+
+const (
 	// 缓存前缀
 	ebookPageCachePrefix = "ebook:page:"
 	// 缓存过期时间：24小时
 	ebookPageCacheTTL = 24 * time.Hour
-	// 触发反爬虫后的冷却时间（秒）
-	cooldownTime = 60
 	// 最大连续失败次数，超过此数认为触发了反爬虫
 	maxConsecutiveFailures = 3
 	// 全局请求令牌桶大小
@@ -97,13 +101,13 @@ func waitForNextRequest() {
 
 	// 如果在冷却期，检查是否已经过了冷却时间
 	if antispiderCooldown {
-		if time.Since(lastRequestTime) > cooldownTime*time.Second {
+		if time.Since(lastRequestTime) > time.Duration(cooldownTime)*time.Second {
 			antispiderCooldown = false
 			consecutiveFailures = 0
 			antispiderMutex.Unlock()
 		} else {
 			// 仍在冷却期，需要额外等待
-			waitTime := cooldownTime*time.Second - time.Since(lastRequestTime)
+			waitTime := time.Duration(cooldownTime)*time.Second - time.Since(lastRequestTime)
 			antispiderMutex.Unlock()
 			fmt.Printf("处于反爬虫冷却期，等待 %.1f 秒...\n", waitTime.Seconds())
 			time.Sleep(waitTime)
@@ -136,12 +140,15 @@ func recordRequestFailure(err error) {
 	antispiderMutex.Lock()
 	defer antispiderMutex.Unlock()
 
-	// 检查错误是否可能是反爬虫引起的
-	if strings.Contains(err.Error(), "403") ||
-		strings.Contains(err.Error(), "forbidden") ||
-		strings.Contains(err.Error(), "too many requests") ||
-		strings.Contains(err.Error(), "429") {
-		// 直接进入冷却期
+	// 账号/权限类业务错误（如 user no legal）靠重试和冷却都无法恢复，不计入连续失败
+	var be *BusinessError
+	if errors.As(err, &be) {
+		return
+	}
+
+	// HTTP 403/429 视为触发了反爬/限流，直接进入冷却期
+	var se *HTTPStatusError
+	if errors.As(err, &se) && se.antiSpider() {
 		fmt.Println("检测到可能的反爬虫限制，进入冷却期")
 		consecutiveFailures = maxConsecutiveFailures
 		antispiderCooldown = true
@@ -149,7 +156,7 @@ func recordRequestFailure(err error) {
 		return
 	}
 
-	// 增加连续失败计数
+	// 其余错误（传输失败、解析失败、页面数据为空等）累计连续失败次数
 	consecutiveFailures++
 
 	// 如果连续失败次数超过阈值，启动冷却期
@@ -238,22 +245,22 @@ func withRetry[T any](operation func() (T, error), chapterID string) (result T, 
 			return result, nil
 		}
 
-		// 检查错误是否是反爬虫相关
-		isAntiSpider := strings.Contains(err.Error(), "反爬虫") ||
-			strings.Contains(err.Error(), "403") ||
-			strings.Contains(err.Error(), "429") ||
-			strings.Contains(err.Error(), "too many requests") ||
-			strings.Contains(err.Error(), "forbidden")
+		// 重试无法恢复的错误（账号无权访问、HTTP 400/401/403/404/496）直接返回
+		if isPermanentError(err) {
+			hintAccountError(err)
+			fmt.Printf("章节 %s 请求失败（重试无法恢复，不再重试）: %v\n", chapterID, err)
+			return zero, fmt.Errorf("获取章节 %s 失败: %w", chapterID, err)
+		}
 
 		// 打印详细错误信息
 		fmt.Printf("\n尝试 %d/%d 失败，章节 %s:\n", i+1, maxRetries, chapterID)
 		fmt.Printf("错误: %v\n", err)
 
 		if i < maxRetries-1 {
-			// 如果是反爬虫错误，使用更长的退避时间
-			if isAntiSpider {
+			// 429 限流使用更长的退避时间
+			if isRateLimited(err) {
 				backoff = backoff * 3 // 更激进的退避
-				fmt.Printf("检测到可能的反爬虫限制，使用更长的等待时间\n")
+				fmt.Printf("检测到限流（429），使用更长的等待时间\n")
 			}
 
 			fmt.Printf("将在 %v 后重试...\n", backoff)
@@ -263,15 +270,10 @@ func withRetry[T any](operation func() (T, error), chapterID string) (result T, 
 			backoff = backoff * 2
 		} else {
 			fmt.Printf("达到最大重试次数 %d，章节 %s 放弃获取。\n", maxRetries, chapterID)
-
-			// 对于反爬虫错误，建议用户稍后再试
-			if isAntiSpider {
-				fmt.Printf("建议等待一段时间后再尝试下载此章节，以避免触发反爬虫机制。\n")
-			}
 		}
 	}
 
-	return zero, fmt.Errorf("获取章节 %s 失败，错误: %v", chapterID, err)
+	return zero, fmt.Errorf("获取章节 %s 失败: %w", chapterID, err)
 }
 
 // Catelog ebook catalog
@@ -660,14 +662,16 @@ func (s *Service) EbookPages(chapterID, token string, index, count, offset int) 
 			return nil, err
 		}
 
+		// h.c=0 但 c 为 null 时解出 nil：正常空章节的 c 是空数组，
+		// null 意味着响应异常（如被服务端拦截），按失败处理
+		if p == nil {
+			err := fmt.Errorf("章节 %s 返回的页面数据为空", chapterID)
+			recordRequestFailure(err)
+			return nil, err
+		}
+
 		// 请求成功，记录成功状态
 		recordRequestSuccess()
-
-		// 检查返回的页面数据是否为空
-		if p == nil || len(p.Pages) == 0 {
-			// 如果返回的页面为空，可能是触发了反爬虫
-			recordRequestFailure(fmt.Errorf("返回的页面数据为空，可能触发了反爬虫"))
-		}
 
 		return p, nil
 	}
