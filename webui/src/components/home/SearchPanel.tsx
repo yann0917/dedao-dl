@@ -24,7 +24,7 @@ export function SearchPanel({
         <div className="flex items-center gap-3">
           <Search className="size-icon-md text-text-muted" />
           <input
-            className="w-full border-0 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
+            className="w-full border-0 bg-transparent text-sm text-text-primary outline-hidden placeholder:text-text-muted"
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="试试搜课程、作者或关键字"
             value={query}

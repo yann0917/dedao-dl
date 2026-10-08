@@ -80,7 +80,7 @@ export function HomeBannerCarousel({ banners }: HomeBannerCarouselProps) {
                   className="absolute inset-0 h-full w-full object-cover opacity-[0.06]"
                   src={banner.img}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-secondary/34 via-secondary/14 to-secondary/8" />
+                <div className="absolute inset-0 bg-linear-to-t from-secondary/34 via-secondary/14 to-secondary/8" />
               </button>
             </CarouselItem>
           ))}

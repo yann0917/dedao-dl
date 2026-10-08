@@ -48,7 +48,7 @@ export function QuickDownloadButtons({ options, onDownload, disabled = false, tr
           <span>{pendingType !== null ? "下载中..." : "下载"}</span>
           <ChevronDown className="size-icon-md" />
         </MenubarTrigger>
-        <MenubarContent align="end" className="min-w-[10rem]">
+        <MenubarContent align="end" className="min-w-40">
           {options.map((option) => (
             <MenubarItem key={option.value} onClick={() => void handleDownload(option.value)}>
               {option.label}

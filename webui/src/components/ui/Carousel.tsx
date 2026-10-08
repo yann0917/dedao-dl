@@ -124,7 +124,7 @@ export function CarouselPrevious({ className }: CarouselArrowProps) {
     <button
       aria-label="上一张"
       className={cn(
-        "absolute left-4 top-1/2 z-20 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white shadow-lg backdrop-blur transition hover:bg-black/45 disabled:pointer-events-none disabled:opacity-35",
+        "absolute left-4 top-1/2 z-20 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/45 disabled:pointer-events-none disabled:opacity-35",
         className,
       )}
       disabled={!canScrollPrev}
@@ -143,7 +143,7 @@ export function CarouselNext({ className }: CarouselArrowProps) {
     <button
       aria-label="下一张"
       className={cn(
-        "absolute right-4 top-1/2 z-20 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white shadow-lg backdrop-blur transition hover:bg-black/45 disabled:pointer-events-none disabled:opacity-35",
+        "absolute right-4 top-1/2 z-20 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/45 disabled:pointer-events-none disabled:opacity-35",
         className,
       )}
       disabled={!canScrollNext}

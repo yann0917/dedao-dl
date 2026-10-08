@@ -632,7 +632,7 @@ export function PurchasedManagePage() {
           const item = row.original
           const summary = truncateText(resolveItemSummary(item))
           const badges = getBadgeLabels(item, activeTab.key)
-          const coverClassName = activeTab.key === "ebook" ? "aspect-[3/4]" : "aspect-square"
+          const coverClassName = activeTab.key === "ebook" ? "aspect-3/4" : "aspect-square"
 
           return (
             <div className="flex min-w-[320px] items-start gap-4">
@@ -805,7 +805,7 @@ export function PurchasedManagePage() {
     <TooltipProvider delayDuration={150}>
       <main className="space-y-6">
         {groupMode.active ? (
-          <section className="rounded-lg border border-border bg-surface-panel p-4 shadow-soft backdrop-blur">
+          <section className="rounded-lg border border-border bg-surface-panel p-4 shadow-soft backdrop-blur-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm text-text-muted">当前分组</p>

@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition focus:outline-hidden focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50",
         variantClass,
         className,
       )}

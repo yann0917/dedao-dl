@@ -55,7 +55,7 @@ export function DownloadProgressPanel() {
   }
 
   return (
-    <section className="fixed bottom-4 right-4 z-[80] w-[min(95vw,840px)] rounded-lg border border-border bg-surface-panel p-5 shadow-soft backdrop-blur">
+    <section className="fixed bottom-4 right-4 z-80 w-[min(95vw,840px)] rounded-lg border border-border bg-surface-panel p-5 shadow-soft backdrop-blur-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-text-muted">下载进度</p>
@@ -86,7 +86,7 @@ export function DownloadProgressPanel() {
       <div className="mt-5 grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
         <div className="rounded-lg border border-border bg-surface-page/70">
           <div className="border-b border-border px-4 py-3 text-sm font-medium text-text-primary">最近会话</div>
-          <div className="max-h-[28rem] space-y-2 overflow-y-auto p-3">
+          <div className="max-h-112 space-y-2 overflow-y-auto p-3">
             {sessions.map((session) => {
               const isActive = session.sessionId === activeSession.sessionId
               return (

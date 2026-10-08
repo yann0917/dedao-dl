@@ -366,7 +366,7 @@ export function CourseArticleListPage() {
               <div className="flex h-full flex-col gap-4">
                 <img
                   alt={item.title}
-                  className="aspect-[16/9] w-full rounded-lg object-cover"
+                  className="aspect-video w-full rounded-lg object-cover"
                   decoding="async"
                   loading="lazy"
                   src={item.logo || courseInfo.class_info.square_img || "https://placehold.co/640x360/e2e8f0/334155?text=Article"}

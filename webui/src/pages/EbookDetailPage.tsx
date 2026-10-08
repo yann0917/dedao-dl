@@ -213,7 +213,7 @@ export function EbookDetailPage() {
 
   return (
     <main className="space-y-6">
-      <section className="rounded-lg border border-border bg-surface-panel p-6 shadow-soft backdrop-blur">
+      <section className="rounded-lg border border-border bg-surface-panel p-6 shadow-soft backdrop-blur-sm">
         <p className="text-sm text-text-muted">电子书详情</p>
         <h2 className="mt-2 text-3xl font-semibold text-text-primary">{detail.title}</h2>
       </section>
@@ -222,7 +222,7 @@ export function EbookDetailPage() {
         <Card className="p-6">
           <img
             alt={detail.title}
-            className="mx-auto aspect-[3/4] w-full max-w-[260px] rounded-lg object-cover shadow-lg"
+            className="mx-auto aspect-3/4 w-full max-w-[260px] rounded-lg object-cover shadow-lg"
             src={detail.cover || "https://placehold.co/600x800/e2e8f0/334155?text=Book"}
           />
           <div className="mt-6 flex flex-wrap gap-2">
@@ -329,7 +329,7 @@ export function EbookDetailPage() {
             <h3 className="text-xl font-semibold text-text-primary">目录</h3>
             <div className="mt-4">
               {catalogList.length > 0 ? (
-                <div className="max-h-[36rem] overflow-y-auto rounded-lg border border-border bg-surface-soft/60">
+                <div className="max-h-144 overflow-y-auto rounded-lg border border-border bg-surface-soft/60">
                   {catalogList.map((item, index) => {
                     const level = normalizeCatalogLevel(item.level)
 

@@ -361,7 +361,7 @@ export function CategoryPage() {
                 <div
                   className={cn(
                     "relative ml-4 shrink-0 self-center overflow-hidden bg-surface-soft",
-                    isVerticalCover ? "aspect-[3/4] w-24 sm:w-28" : "aspect-video w-40 sm:w-44",
+                    isVerticalCover ? "aspect-3/4 w-24 sm:w-28" : "aspect-video w-40 sm:w-44",
                   )}
                 >
                   <img

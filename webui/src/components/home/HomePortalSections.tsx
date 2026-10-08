@@ -58,7 +58,7 @@ export function FreeResourceSection({ module, resources, error, onOpenResource }
         {resources.map((resource) => (
           <button className="text-left" key={resource.id} onClick={() => onOpenResource(resource)} type="button">
             <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="relative aspect-[16/10] overflow-hidden">
+              <div className="relative aspect-16/10 overflow-hidden">
                 <img
                   alt={resource.name}
                   className="h-full w-full object-cover transition duration-500 hover:scale-105"
@@ -157,7 +157,7 @@ export function LabeledShelfSection({
             type="button"
           >
             <Card className="h-full overflow-hidden transition hover:-translate-y-1 hover:shadow-lg">
-              <div className={cn("overflow-hidden bg-surface-soft", variant === "course" ? "aspect-[16/10]" : "aspect-[3/4] p-3")}>
+              <div className={cn("overflow-hidden bg-surface-soft", variant === "course" ? "aspect-16/10" : "aspect-3/4 p-3")}>
                 <img
                   alt={product.title}
                   className={cn(

@@ -230,7 +230,7 @@ export function ArticleDetailPage() {
                 "[&_h2>code]:bg-primary [&_h2>code]:text-white",
                 "[&_em]:not-italic [&_em]:text-primary",
                 "[&_strong]:font-semibold [&_strong]:text-text-primary",
-                "[&_a]:text-primary [&_a]:underline-offset-4 hover:[&_a]:underline",
+                "[&_a]:text-primary [&_a]:underline-offset-4 [&_a]:hover:underline",
               ].join(" ")}
             >
               <ReactMarkdown

@@ -220,7 +220,7 @@ export function AIChannelPage() {
       ) : null}
 
       {loading ? (
-        <div className="flex min-h-[18rem] items-center justify-center gap-3 text-sm text-text-muted">
+        <div className="flex min-h-72 items-center justify-center gap-3 text-sm text-text-muted">
           <Loader2 className="size-icon-lg animate-spin" />
           正在加载 AI 学习圈...
         </div>
@@ -339,7 +339,7 @@ export function AIChannelPage() {
                   ) : null}
 
                   {listLoading ? (
-                    <div className="flex min-h-[12rem] items-center justify-center gap-3 text-sm text-text-muted">
+                    <div className="flex min-h-48 items-center justify-center gap-3 text-sm text-text-muted">
                       <Loader2 className="size-icon-lg animate-spin" />
                       正在加载内容...
                     </div>
@@ -369,14 +369,14 @@ export function AIChannelPage() {
                                 {getDifficultyLabel(item.difficulty_level) ? (
                                   <span
                                     className={cn(
-                                      "absolute left-2 top-2 rounded-md px-2 py-0.5 text-xs text-white backdrop-blur",
+                                      "absolute left-2 top-2 rounded-md px-2 py-0.5 text-xs text-white backdrop-blur-sm",
                                       getDifficultyClass(item.difficulty_level),
                                     )}
                                   >
                                     {getDifficultyLabel(item.difficulty_level)}
                                   </span>
                                 ) : null}
-                                <span className="absolute right-2 top-2 rounded-md bg-black/55 px-2 py-0.5 text-xs text-white backdrop-blur">
+                                <span className="absolute right-2 top-2 rounded-md bg-black/55 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
                                   {getProductTypeName(item.product_type)}
                                 </span>
                               </div>
@@ -408,11 +408,11 @@ export function AIChannelPage() {
                       })}
                     </div>
                   ) : activeSubcategory ? (
-                    <div className="flex min-h-[12rem] items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
+                    <div className="flex min-h-48 items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
                       该分类下暂无内容
                     </div>
                   ) : (
-                    <div className="flex min-h-[12rem] items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
+                    <div className="flex min-h-48 items-center justify-center rounded-lg bg-surface-soft text-sm text-text-muted">
                       请选择左侧分类查看内容
                     </div>
                   )}
@@ -420,7 +420,7 @@ export function AIChannelPage() {
               </div>
             </section>
           ) : (
-            <section className={`${semanticPageSectionClass} flex min-h-[18rem] items-center justify-center p-6`}>
+            <section className={`${semanticPageSectionClass} flex min-h-72 items-center justify-center p-6`}>
               <div className="flex items-center gap-3 text-sm text-text-muted">
                 <RefreshCcw className="size-icon-md" />
                 暂无分类数据

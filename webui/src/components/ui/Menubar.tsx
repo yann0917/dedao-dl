@@ -29,7 +29,7 @@ const MenubarTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <MenubarPrimitive.Trigger
     className={cn(
-      "inline-flex h-9 items-center rounded-md border border-border bg-surface-panel px-3 text-sm font-medium text-text-secondary outline-none transition hover:bg-surface-soft focus:bg-surface-soft data-[state=open]:bg-secondary data-[state=open]:text-secondary-foreground",
+      "inline-flex h-9 items-center rounded-md border border-border bg-surface-panel px-3 text-sm font-medium text-text-secondary outline-hidden transition hover:bg-surface-soft focus:bg-surface-soft data-[state=open]:bg-secondary data-[state=open]:text-secondary-foreground",
       className,
     )}
     ref={ref}
@@ -46,7 +46,7 @@ const MenubarSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <MenubarPrimitive.SubTrigger
     className={cn(
-      "flex cursor-default select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[state=open]:bg-surface-soft",
+      "flex cursor-default select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-hidden transition focus:bg-surface-soft data-[state=open]:bg-surface-soft",
       inset && "pl-8",
       className,
     )}
@@ -65,7 +65,7 @@ const MenubarSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <MenubarPrimitive.SubContent
     className={cn(
-      "z-50 min-w-[12rem] overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "z-50 min-w-48 overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
       className,
     )}
     ref={ref}
@@ -84,7 +84,7 @@ const MenubarContent = React.forwardRef<
       align={align}
       alignOffset={alignOffset}
       className={cn(
-        "z-50 min-w-[14rem] overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "z-50 min-w-56 overflow-hidden rounded-lg border border-border bg-surface-panel p-2 text-text-primary shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out",
         className,
       )}
       ref={ref}
@@ -103,7 +103,7 @@ const MenubarItem = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <MenubarPrimitive.Item
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center rounded-md px-3 py-2 text-sm text-text-secondary outline-hidden transition focus:bg-surface-soft data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
       inset && "pl-8",
       className,
     )}
@@ -120,7 +120,7 @@ const MenubarCheckboxItem = React.forwardRef<
   <MenubarPrimitive.CheckboxItem
     checked={checked}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-hidden transition focus:bg-surface-soft data-disabled:pointer-events-none data-disabled:opacity-50",
       className,
     )}
     ref={ref}
@@ -142,7 +142,7 @@ const MenubarRadioItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <MenubarPrimitive.RadioItem
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-none transition focus:bg-surface-soft data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-md py-2 pl-8 pr-3 text-sm text-text-secondary outline-hidden transition focus:bg-surface-soft data-disabled:pointer-events-none data-disabled:opacity-50",
       className,
     )}
     ref={ref}

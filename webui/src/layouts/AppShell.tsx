@@ -549,7 +549,7 @@ export function AppShell() {
         aria-expanded={isNavOpen}
         aria-label={isNavOpen ? "关闭导航" : "打开导航"}
         className={cn(
-          "fixed z-[60] hidden h-14 w-14 touch-none items-center justify-center rounded-full border sm:flex xl:hidden",
+          "fixed z-60 hidden h-14 w-14 touch-none items-center justify-center rounded-full border sm:flex xl:hidden",
           isNavOpen
             ? "border-transparent bg-accent text-accent-foreground"
             : "border-border-strong/60 bg-surface-panel text-text-primary shadow-soft",
@@ -581,7 +581,7 @@ export function AppShell() {
           sidebarCollapsed ? "xl:pl-16" : "xl:pl-60",
         )}
       >
-        <header className="sticky top-0 z-30 border-b border-border bg-surface-page/90 backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-border bg-surface-page/90 backdrop-blur-sm">
           <div className="mx-auto flex max-w-[1500px] items-center gap-4 px-4 py-3 lg:px-6">
             <div className="xl:hidden">
               <BrandMark />

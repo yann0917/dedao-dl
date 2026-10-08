@@ -15,7 +15,7 @@ export function ThemeToggleButton({ className }: ThemeToggleButtonProps) {
     <button
       aria-label={label}
       className={cn(
-        "relative inline-flex h-10 w-10 items-center justify-center border border-border bg-transparent text-text-secondary transition-[background-color,border-color,color] duration-300 hover:bg-surface-soft hover:text-text-primary focus:outline-none focus:ring-2 focus:ring-ring/30 rounded-none",
+        "relative inline-flex h-10 w-10 items-center justify-center border border-border bg-transparent text-text-secondary transition-[background-color,border-color,color] duration-300 hover:bg-surface-soft hover:text-text-primary focus:outline-hidden focus:ring-2 focus:ring-ring/30 rounded-none",
         className,
       )}
       onClick={toggleTheme}

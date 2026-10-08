@@ -137,7 +137,7 @@ export function HomePage() {
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <Card key={index}>
-                <Skeleton className="aspect-[16/10] w-full" />
+                <Skeleton className="aspect-16/10 w-full" />
                 <div className="space-y-2 p-4">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-full" />

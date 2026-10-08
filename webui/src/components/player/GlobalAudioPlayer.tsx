@@ -26,7 +26,7 @@ export function GlobalAudioPlayer() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-[300px]">
-      <Card className="relative border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur">
+      <Card className="relative border-border/80 bg-surface-panel/95 p-4 shadow-soft backdrop-blur-sm">
         <button
           className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-text-muted transition hover:bg-danger-soft hover:text-danger"
           onClick={clearQueue}
