@@ -23,7 +23,7 @@ const (
 	maxConsecutiveFailures = 3
 	// 全局请求令牌桶大小
 	tokenBucketSize = 5
-	// 令牌产生速率（秒/个）
+	// 令牌产生速率（个/秒）
 	tokenRefillRate = 0.5
 )
 
@@ -107,7 +107,13 @@ func waitForNextRequest() {
 			antispiderMutex.Unlock()
 			fmt.Printf("处于反爬虫冷却期，等待 %.1f 秒...\n", waitTime.Seconds())
 			time.Sleep(waitTime)
-			return
+			// 冷却已结束，先清除标记再去拿令牌：
+			// 若带着标记睡醒直接放行，这批请求会绕过令牌桶集中发出，
+			// 而它们更新 lastRequestTime 后，后续进入者又会被重新判入冷却
+			antispiderMutex.Lock()
+			antispiderCooldown = false
+			consecutiveFailures = 0
+			antispiderMutex.Unlock()
 		}
 	} else {
 		antispiderMutex.Unlock()
