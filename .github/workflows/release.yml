@@ -207,7 +207,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           output="dist/${BINARY_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}"
-          go build -trimpath -ldflags="-s -w -X main.Version=${VERSION}" -o "$output" .
+          go build -trimpath -tags nomsgpack -ldflags="-s -w -X main.Version=${VERSION}" -o "$output" .
 
       - name: Compress with UPX
         if: matrix.upx

@@ -15,7 +15,7 @@ ARG TARGETPLATFORM
 
 # build and using UPX to compress
 RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then ARCHITECTURE=amd64; elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCHITECTURE=arm; elif [ "$TARGETPLATFORM" = "linux/arm64" ]; then ARCHITECTURE=arm64; else ARCHITECTURE=amd64; fi \
-    && CGO_ENABLED=0 GOARCH=${ARCHITECTURE} GOOS=linux go build -ldflags="-s -w" -a -o dedao-dl . \
+    && CGO_ENABLED=0 GOARCH=${ARCHITECTURE} GOOS=linux go build -tags nomsgpack -ldflags="-s -w" -a -o dedao-dl . \
     && wget https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-${ARCHITECTURE}_linux.tar.xz \
     && tar -xvf upx-4.2.4-${ARCHITECTURE}_linux.tar.xz \
     && cd upx-4.2.4-${ARCHITECTURE}_linux \

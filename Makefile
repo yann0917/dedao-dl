@@ -6,6 +6,8 @@ all: clean setup build-linux build-osx build-windows
 BUILD_ENV=CGO_ENABLED=0
 BUILD=`date +%FT%T%z`
 LDFLAGS=-ldflags "-w -s -X main.Version=${VERSION} -X main.Build=${BUILD}"
+# gin 只用 JSON 渲染，排除 msgpack 支持可少链入巨大的 ugorji/go/codec（二进制约小 5.6MB）
+GOTAGS=-tags nomsgpack
 
 GOCMD=go
 GOBUILD=$(GOCMD) build
@@ -18,18 +20,18 @@ setup:
 	mkdir -p Releases
 
 build-linux: setup
-	$(BUILD_ENV) GOARCH=amd64 GOOS=linux $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-linux-amd64
+	$(BUILD_ENV) GOARCH=amd64 GOOS=linux $(GOBUILD) $(GOTAGS) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-linux-amd64
 
 build-osx: setup
-	$(BUILD_ENV) GOARCH=amd64 GOOS=darwin $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-darwin-amd64
+	$(BUILD_ENV) GOARCH=amd64 GOOS=darwin $(GOBUILD) $(GOTAGS) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-darwin-amd64
 
 build-windows: setup
-	$(BUILD_ENV) GOARCH=amd64 GOOS=windows $(GOBUILD) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-windows-amd64.exe
+	$(BUILD_ENV) GOARCH=amd64 GOOS=windows $(GOBUILD) $(GOTAGS) $(LDFLAGS) -o Releases/$(TARGET_EXEC)-windows-amd64.exe
 
 default: all
 
 build:
-	$(BUILD_ENV) $(GOBUILD) $(RACE) $(LDFLAGS) -o $(TARGET_EXEC) -v .
+	$(BUILD_ENV) $(GOBUILD) $(RACE) $(GOTAGS) $(LDFLAGS) -o $(TARGET_EXEC) -v .
 
 test:
 	$(GOTEST) $(RACE) -v ./...
@@ -41,7 +43,7 @@ build-race: enable-race build
 test-race: enable-race test
 
 run:
-	$(GOBUILD) $(RACE) -o $(TARGET_EXEC) -v .
+	$(GOBUILD) $(RACE) $(GOTAGS) -o $(TARGET_EXEC) -v .
 	 ./$(TARGET_EXEC)
 
 clean:
