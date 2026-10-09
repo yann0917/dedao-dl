@@ -12,7 +12,9 @@
 ## 参数与 ID
 
 - 「参数错误」「文章ID错误」：多半把 enid 当数字 ID（或反之）传入。数字 ID 先拉列表建映射（`course`/`ebook`/`odob`），拿不到映射就用 URL 的 `id` 字符串
-- `article --aid` 必须配合课程 ID 或课程 enid；只有文章 enid 时用 `--articleEnID`
+- `dl` 报 `104000 服务异常`：多半是把 `/course/article?id=<文章enid>` 的文章 enid 当课程 enid 传给了 `dl`。文章 enid ≠ 课程 enid，需先取 `class_enid` 与 `article_info.id`（见 SKILL.md「URL 自动识别」），再 `dl <课程enid> <文章数字ID>`
+- `dl <课程enid> <articleID>` 第二个参数传错不报错但下载 0 篇：`articleID` 必须是课程文章列表里的数字 id（`dedao-dl --json article -c <课程enid>` 可列），不是 enid，也不是 `dd_article_id`
+- `article --aid` 必须配合课程 ID 或课程 enid；只有文章 enid 时用 `--articleEnID`（该输出不含 `class_enid`，不能反推课程）
 - `dlo` 推荐直接用音频 URL 的 `id`（topic_id_str），不必依赖书架命中
 - `course/odob/ebook --page --limit` 只传一个不生效，必须成对
 - search 结果里拿错字段：正确路径是 `list[].list[].extra.enid`，不是 `id/goods_id`

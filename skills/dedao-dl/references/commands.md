@@ -83,7 +83,10 @@ dedao-dl su <uid>       切换账号（位置参数恰好 1 个，切换后自�
   -o, --order              文件名前缀加序号（00x.）
 ```
 
-enid 即课程详情链接的 `id` 参数，如 `https://www.dedao.cn/course/detail?id=ZWyMAOLnR4xJ1vqse8X65QaE8YG29k`。
+enid 即**课程**详情链接的 `id` 参数，如 `https://www.dedao.cn/course/detail?id=ZWyMAOLnR4xJ1vqse8X65QaE8YG29k`。
+`/course/article?id=<文章enid>` 里的 enid 是**文章** enid，不能直接传给 `dl`（会报 `104000 服务异常`），需先取所属课程的 `class_enid` 与 `article_info.id`。
+
+`articleID`（第 2 个位置参数）是**课程文章列表里的数字 id**（如 `115529`），不是 enid，也不是 `dd_article_id` 雪花值；用 `dedao-dl --json article -c <课程enid>` 列出。传错不会退化成整课程下载（过滤条件会命中 0 篇）。
 
 示例：`dedao-dl dl 123 -t 1 -m`、`dedao-dl dl ZWy... -t 3 -m -c`、`dedao-dl dl ZWy... -t 1 67890`（只下载单篇）
 
