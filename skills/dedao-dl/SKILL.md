@@ -47,14 +47,23 @@ dedao-dl dle <ebookID|ebookEnid>   -t 1     # 电子书
   - `track_name=ebook` 或 `goods_type=2` → `dle <extra.enid>`
   - `track_name=storytell` 或 `goods_type=13` → `dlo <extra.enid>`
   - `goods_type=66`（课程类）→ `dl <extra.enid>`
-- **URL 自动识别**（用户提供 dedao.cn 链接时提取 `id` 参数直接下载）：
-  - `course/detail?id=<id>` 或 `/course/article?id=<id>` → `dl <id>`
-  - `audioBook/detail?id=<id>` → `dlo <id>`
-  - `ebook/reader?id=<id>` 或 `/ebook/detail?id=<id>` → `dle <id>`
+- **URL 自动识别**（用户提供 dedao.cn 链接时提取 `id` 参数）：
+  - `/course/detail?id=<课程enid>` → `dl <课程enid>`
+  - `/course/article?id=<文章enid>` → **不能直接 `dl <文章enid>`**（实测报 `104000 服务异常`：文章 enid 不是课程 enid）。需先取所属课程 enid 与文章数字 ID，再 `dl <课程enid> <文章数字ID>`：
+    ```bash
+    # POST /pc/bauhinia/pc/article/info   body: {"detail_id":"<文章enid>"}
+    # → c.article_info.class_enid（课程 enid）、c.article_info.id（文章数字 ID）
+    dedao-dl dl <class_enid> -t 1 <article_info.id>
+    ```
+    注意：`article --articleEnID` 只输出正文，**不含 `class_enid`**，无法用它反推所属课程
+  - `/audioBook/detail?id=<id>` → `dlo <id>`
+  - `/ebook/reader?id=<id>` 或 `/ebook/detail?id=<id>` → `dle <id>`
 - 下载格式 `-t`：
   - `dl` / `dlo`：1=mp3（默认） 2=PDF 3=markdown
   - `dle`：1=html（默认） 2=PDF 3=epub 4=markdown 笔记
-- `dl` 专属：`-m` 合并章节文稿、`-c` 下载热门留言（仅 markdown）、`-o` 文件名加序号前缀；`dl` 还可追加第 2 个位置参数只下载单篇文章：`dl <id> <articleID>`
+- `dl` 专属：`-m` 合并章节文稿、`-c` 下载热门留言（仅 markdown）、`-o` 文件名加序号前缀；`dl` 还可追加第 2 个位置参数只下载单篇文章：`dl <课程enid> <articleID>`
+  - `articleID` 是**课程文章列表里的数字 id**（如 `115529`），不是 URL 里的 enid，也不是文章详情里的 `dd_article_id` 雪花值（如 `1880700885751824556`）。用 `dedao-dl --json article -c <课程enid>` 列出
+  - 传错不会退化成整课程下载：过滤条件会命中 0 篇，结果为空
 - 列表分页：`course/odob/ebook` 的 `--page` 与 `--limit` 必须同时传；都不传则自动拉全量。`--order` 仅 course 支持 `study|buy`，odob/ebook 仅 `study`
 
 ## 命令地图
