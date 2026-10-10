@@ -66,7 +66,7 @@ dedao-dl dle <ebookID|ebookEnid>   -t 1     # 电子书
 | 详情 | `course -i <id>`、`ebook -i <id>`、`article --id <courseID>`、`article --articleEnID <enid>`、`free <enid>` |
 | 下载 | `dl`（课程）、`dlo`（听书）、`dle`（电子书） |
 | 笔记 | `ebook notes -i <ebookID>`、`dle <id> -t 4` |
-| 学习圈 | `channel info|homepage|vip --id <channelID>` |
+| 学习圈 | `channel info`、`homepage`、`vip --id <channelID>` |
 | 学习记录/VIP | `recent`、`vip-ebook`、`vip-odob` |
 | 维护 | `clean output`、`clean cache`、`web`（Web UI，默认 127.0.0.1:17878） |
 
