@@ -2,13 +2,25 @@ package cmd
 
 import (
 	"os"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/yann0917/dedao-dl/cmd/app"
 	"github.com/yann0917/dedao-dl/services"
 )
+
+// htmlTagRe 上游 title/last_info/intro 内嵌 <hl>、<h1> 等高亮标签，表格展示前剥除
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
+
+func stripHTML(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.Join(strings.Fields(htmlTagRe.ReplaceAllString(s, " ")), " ")
+}
 
 var (
 	recentUIDHazy           string
@@ -63,22 +75,29 @@ func renderRecentTable(resp *services.RecentResponse) error {
 	}
 
 	for i, item := range resp.List {
-		// The API's progress description can be inconsistent; display max_progress as percentage first.
+		// 上游 recent 接口字段语义按类型不同：课程类的 progress 恒为 0，
+		// 真实学习进度百分比放在 max_progress（与课程列表接口交叉验证过 76/50/100）；
+		// 其余类型 progress/max_progress 为真实比例（如听书 18/19）。
+		pi := item.ProgressIntro
 		progress := ""
-		if item.ProgressIntro.MaxProgress > 0 {
-			progress = strconv.Itoa(item.ProgressIntro.MaxProgress) + "%"
-		} else if item.ProgressIntro.Intro != "" {
-			progress = item.ProgressIntro.Intro
-		} else if item.ProgressIntro.Progress > 0 {
-			progress = strconv.Itoa(item.ProgressIntro.Progress)
+		switch {
+		case item.TypeName == "课程" && pi.Progress == 0 && pi.MaxProgress > 0:
+			progress = strconv.Itoa(pi.MaxProgress) + "%"
+		case pi.MaxProgress > 0:
+			percent := (pi.Progress*100 + pi.MaxProgress/2) / pi.MaxProgress
+			progress = strconv.Itoa(percent) + "%"
+		case pi.Intro != "":
+			progress = stripHTML(pi.Intro)
+		case pi.Progress > 0:
+			progress = strconv.Itoa(pi.Progress)
 		}
 		table.Append([]string{
 			strconv.Itoa(i + 1),
-			item.Title,
+			stripHTML(item.Title),
 			item.Author,
 			item.TypeName,
 			progress,
-			item.LastInfo,
+			stripHTML(item.LastInfo),
 		})
 	}
 	table.Render()

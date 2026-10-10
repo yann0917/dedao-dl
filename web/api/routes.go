@@ -17,5 +17,6 @@ func RegisterRoutes(group *gin.RouterGroup) {
 	registerCourseRoutes(authed)
 	registerSearchRoutes(authed)
 	registerRankRoutes(authed)
+	registerRecentRoutes(authed)
 	registerChannelRoutes(authed)
 }
