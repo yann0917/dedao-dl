@@ -19,6 +19,7 @@ import { PurchasedAudioPage } from "@/pages/PurchasedAudioPage"
 import { PurchasedCompassPage } from "@/pages/PurchasedCompassPage"
 import { PurchasedEbookPage } from "@/pages/PurchasedEbookPage"
 import { PurchasedManagePage } from "@/pages/PurchasedManagePage"
+import { StudyRecordPage } from "@/pages/StudyRecordPage"
 import { UserCenterPage } from "@/pages/UserCenterPage"
 
 export const router = createBrowserRouter([
@@ -45,6 +46,10 @@ export const router = createBrowserRouter([
       {
         path: "ai-channel",
         element: <AIChannelPage />,
+      },
+      {
+        path: "records",
+        element: <StudyRecordPage />,
       },
       {
         path: "courses",

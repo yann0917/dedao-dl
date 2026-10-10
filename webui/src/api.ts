@@ -1004,6 +1004,50 @@ export type UserCenterResponse = {
   accounts: AuthAccount[]
 }
 
+export type RecentProgress = {
+  intro: string
+  progress: number
+  max_progress: number
+  is_finish: number
+  uint: string
+}
+
+export type RecentItem = {
+  product_id: number
+  product_type: number
+  product_id_hazy: string
+  type_name: string
+  title: string
+  author: string
+  index_img: string
+  square_img: string
+  timestamp: number
+  last_info: string
+  progress_intro: RecentProgress
+}
+
+export type RecentResponse = {
+  list: RecentItem[]
+  has_more: boolean
+}
+
+export type RecentNameCount = {
+  name: string
+  count: number
+}
+
+export type RecentStats = {
+  total: number
+  window_days: number
+  active_days: number
+  finish_rate: number
+  top_type: string
+  truncated: boolean
+  types: RecentNameCount[]
+  daily: Array<{ date: string; count: number; types: RecentNameCount[] }>
+  hours: Array<{ hour: number; count: number; types: RecentNameCount[] }>
+}
+
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
     headers: {
@@ -1083,6 +1127,11 @@ export const api = {
   rank: {
     baseInfo: () => request<RankBaseInfoResponse>("/api/rank/base-info"),
     list: (rankType: number) => request<RankListResponse>(`/api/rank/list?rankType=${rankType}`),
+  },
+  recent: {
+    // 游标翻页：下一页 maxId 传上一页最后一条的 timestamp（毫秒）
+    list: (maxId = 0, pageSize = 20) => request<RecentResponse>(`/api/recent?maxId=${maxId}&pageSize=${pageSize}`),
+    stats: () => request<RecentStats>("/api/recent/stats"),
   },
   channel: {
     info: (channelId: number) => request<ChannelInfo>(`/api/channel/info?channelId=${channelId}`),
