@@ -27,6 +27,48 @@
 * 电子书读书笔记可导出为 markdown
 * 可切换登录账号
 
+## Web UI 使用说明
+
+项目内置了 Web UI（前端页面）和 Web API（后端 gin 服务），可通过 `web` 命令启动：
+
+```bash
+# 默认启动地址：http://127.0.0.1:17878 ，并自动打开浏览器
+dedao-dl web
+
+# 指定监听地址/端口（适合局域网访问或端口冲突时）
+dedao-dl web --host 0.0.0.0 --port 17878
+
+# 仅启动服务，不自动打开浏览器
+dedao-dl web --open=false
+```
+
+说明：
+
+* Web 服务读取当前目录下的 `config.json`（与 CLI 共用配置与登录信息）
+* 无需提前在 CLI 登录：打开 Web 页面后即可使用二维码登录；若已在 CLI 登录过，也可直接进入
+* 退出：在终端按 `Ctrl + C`，服务会进行优雅关闭
+
+Web 页面功能（随版本迭代可能略有调整）：
+
+* 扫码登录：打开页面即可扫码登录
+* 学习工作台：统一查看已购课程 / 听书 / 电子书 / 锦囊（含分组）与基础信息
+* 内容详情：课程详情与文章列表、听书详情与文稿入口、电子书详情与书评
+* 下载导出：一键发起下载任务（MP3 / PDF / Markdown / HTML / EPUB）
+* 下载进度：在页面底部查看下载队列与进度
+* 得到榜单：查看课程 / 听书 / 图书等榜单内容
+
+## Skills 使用说明（面向 AI Agent）
+
+仓库内置一个面向 agent 的技能，位于 `skills/dedao-dl/`：
+
+* `SKILL.md`：核心工作流、agent 使用规则（`--json`、ID 两类、URL 自动识别、`-t` 格式表）与命令地图
+* `references/commands.md`：全部子命令的 flags/位置参数/示例（由 `dedao-dl <command> -h` 真实输出整理）
+* `references/troubleshooting.md`：登录、参数/ID、依赖、下载/权限的排障指南
+
+安装：对 AI Agent 说一句「帮我安装这个 skill：https://github.com/yann0917/dedao-dl」（技能位于仓库 `skills/dedao-dl/` 目录），即可自动装到 agent 的技能目录并生效。
+
+面向 agent 自动化时默认使用 JSON 输出 `dedao-dl --json <command> ...`，不确定参数时先执行 `dedao-dl <command> -h`。
+
 ## 安装
 
 ### 安装依赖
@@ -127,36 +169,6 @@ Available Commands:
   web         启动 Web UI 与 API 服务
   who         查看当前登录的用户
 ```
-
-### Web UI 使用说明
-
-项目内置了 Web UI（前端页面）和 Web API（后端 gin 服务），可通过 `web` 命令启动：
-
-```bash
-# 默认启动地址：http://127.0.0.1:17878 ，并自动打开浏览器
-dedao-dl web
-
-# 指定监听地址/端口（适合局域网访问或端口冲突时）
-dedao-dl web --host 0.0.0.0 --port 17878
-
-# 仅启动服务，不自动打开浏览器
-dedao-dl web --open=false
-```
-
-说明：
-
-* Web 服务读取当前目录下的 `config.json`（与 CLI 共用配置与登录信息）
-* 无需提前在 CLI 登录：打开 Web 页面后即可使用二维码登录；若已在 CLI 登录过，也可直接进入
-* 退出：在终端按 `Ctrl + C`，服务会进行优雅关闭
-
-Web 页面功能（随版本迭代可能略有调整）：
-
-* 扫码登录：打开页面即可扫码登录
-* 学习工作台：统一查看已购课程 / 听书 / 电子书 / 锦囊（含分组）与基础信息
-* 内容详情：课程详情与文章列表、听书详情与文稿入口、电子书详情与书评
-* 下载导出：一键发起下载任务（MP3 / PDF / Markdown / HTML / EPUB）
-* 下载进度：在页面底部查看下载队列与进度
-* 得到榜单：查看课程 / 听书 / 图书等榜单内容
 
 `dedao-dl cat` 获取课程分类
 
@@ -328,16 +340,6 @@ dedao-dl clean cache
 `./dedao-dl ebook notes -i 158162` 查看电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id
 
 `./dedao-dl ebook 158162 -t4` 下载电子书id = xxx 的读书笔记, 先通过 `dedao-dl ebook` 获取要下载的电子书 id，-t4 表示下载 markdown 格式的读书笔记
-
-## Skills 使用说明
-
-仓库内置一个面向 agent 的技能，位于 `skills/dedao-dl/`：
-
-* `SKILL.md`：核心工作流、agent 使用规则（`--json`、ID 两类、URL 自动识别、`-t` 格式表）与命令地图
-* `references/commands.md`：全部子命令的 flags/位置参数/示例（由 `dedao-dl <command> -h` 真实输出整理）
-* `references/troubleshooting.md`：登录、参数/ID、依赖、下载/权限的排障指南
-
-使用方式：把 `skills/dedao-dl/` 复制到 agent 工具的技能目录（ZCode 为 `~/.agents/skills/dedao-dl`）即可被自动触发；面向 agent 自动化时默认使用 JSON 输出 `dedao-dl --json <command> ...`，不确定参数时先执行 `dedao-dl <command> -h`。
 
 ## References
 
