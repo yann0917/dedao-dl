@@ -64,7 +64,8 @@ func EbookPage(enID string) (info *services.EbookInfo, svgContent utils.SvgConte
 	var mu sync.Mutex
 	var svgContents utils.SvgContents
 
-	wgp := utils.NewWaitGroupPool(5)
+	// get_pages 已触发封号：池大小限制为 1，同一时刻只有一个章节在请求
+	wgp := utils.NewWaitGroupPool(1)
 	for i, order := range info.BookInfo.Orders {
 		wgp.Add()
 		go func(i int, order services.EbookOrders) {
