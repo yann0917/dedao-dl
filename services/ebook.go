@@ -25,10 +25,11 @@ const (
 	ebookPageCacheTTL = 24 * time.Hour
 	// 最大连续失败次数，超过此数认为触发了反爬虫
 	maxConsecutiveFailures = 3
-	// 全局请求令牌桶大小
-	tokenBucketSize = 5
-	// 令牌产生速率（个/秒）
-	tokenRefillRate = 0.5
+	// 全局请求令牌桶大小：1 表示不做开局突发，恒定按速率逐个放行
+	tokenBucketSize = 1
+	// 令牌产生速率（个/秒）：0.2 = 每 5 秒最多 1 个 get_pages 请求。
+	// 此接口已触发封号，调低前先确认服务端风控尺度
+	tokenRefillRate = 0.2
 )
 
 // requestLimiter 请求限流器

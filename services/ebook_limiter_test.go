@@ -36,7 +36,7 @@ func TestRequestLimiterEnforcesRate(t *testing.T) {
 }
 
 // 桶满闲置和刚建桶未满一个令牌周期时，第 6 次获取都需等待一个完整令牌周期。
-// 用生产速率 0.5（周期 2s），避免测试机短暂卡顿就补出一个新令牌导致结果抖动
+// 用生产常量 tokenRefillRate 构造（周期较长），避免测试机短暂卡顿就补出一个新令牌导致结果抖动
 func TestRequestLimiterBurstCapAfterIdle(t *testing.T) {
 	tests := []struct {
 		name string
@@ -79,7 +79,7 @@ func TestRequestLimiterReservesSequentially(t *testing.T) {
 		}
 	}
 
-	// 桶空：第 n 个排队者要等到第 n 个补充令牌，间隔约 2s
+	// 桶空：第 n 个排队者要等到第 n 个补充令牌，间隔约 1/tokenRefillRate
 	waits := make([]time.Duration, 3)
 	for i := 0; i < 3; i++ {
 		waits[i] = l.getToken()
@@ -118,7 +118,7 @@ func TestWaitForNextRequestAfterCooldownUsesBucket(t *testing.T) {
 	waitForNextRequest()
 	elapsed := time.Since(start)
 
-	// 修复后：冷却 ~300ms + 令牌桶排队 ~2s（含抖动）；绕过令牌桶的实现约 300ms 即放行
+	// 修复后：冷却 ~300ms + 令牌桶排队（一个令牌周期，含抖动）；绕过令牌桶的实现约 300ms 即放行
 	if elapsed < 1500*time.Millisecond {
 		t.Fatalf("冷却结束后仅 %v 即放行，说明绕过了令牌桶", elapsed)
 	}
