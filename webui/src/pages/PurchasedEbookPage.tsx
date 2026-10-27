@@ -1,4 +1,4 @@
-import { MessageSquare, PanelRightOpen } from "lucide-react"
+import { BookOpenText, MessageSquare, PanelRightOpen } from "lucide-react"
 import { type CourseListItem } from "@/api"
 import { Button } from "@/components/ui/Button"
 import { PurchasedCollectionPage } from "@/components/purchased/PurchasedCollectionPage"
@@ -23,6 +23,17 @@ export function PurchasedEbookPage() {
           </Button>
         ) : (
           <>
+            <Button
+              className="h-9 px-3"
+              onClick={() =>
+                helpers.navigate(
+                  `/ebooks/${encodeURIComponent(item.enid)}/read?title=${encodeURIComponent(item.title || item.name || "电子书阅读")}`,
+                )
+              }
+            >
+              <BookOpenText className="mr-2 size-icon-md" />
+              阅读
+            </Button>
             <Button className="h-9 px-3" onClick={() => helpers.openItem(item)} variant="outline">
               <PanelRightOpen className="mr-2 size-icon-md" />
               查看详情

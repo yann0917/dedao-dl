@@ -24,6 +24,7 @@ func registerEbookRoutes(group *gin.RouterGroup) {
 	ebook.GET("/comments", listEbookComments)
 	ebook.POST("/bookshelf/add", addEbookToShelf)
 	ebook.POST("/bookshelf/remove", removeEbookFromShelf)
+	registerEbookReaderRoutes(group)
 }
 
 func getEbookDetail(c *gin.Context) {

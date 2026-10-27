@@ -327,8 +327,51 @@ func (s *Service) reqEbookInfo(token string) (io.ReadCloser, error) {
 	return handleHTTPResponse(resp, err)
 }
 
-// reqEbookPages 获取页面详情
+// 默认页面布局：超大虚拟画布，一次请求可携带整章内容，供下载后重排。
+// 阅读器按浏览器实际宽高请求，不走这套默认值
+const (
+	defaultEbookPageWidth  = 60000
+	defaultEbookPageHeight = 200000
+)
+
+// EbookPageLayout get_pages 排版布局：宽高决定画布与分页，
+// 字号/行距/字体影响排版密度。零值字段回落到下载用默认布局
+type EbookPageLayout struct {
+	Width      int
+	Height     int
+	FontSize   int     // px，默认 16
+	LineHeight float64 // em，默认 2
+	FontFamily string  // 默认 pingfang
+}
+
+func (l EbookPageLayout) withDefaults() EbookPageLayout {
+	if l.Width <= 0 {
+		l.Width = defaultEbookPageWidth
+	}
+	if l.Height <= 0 {
+		l.Height = defaultEbookPageHeight
+	}
+	if l.FontSize <= 0 {
+		l.FontSize = 16
+	}
+	if l.LineHeight <= 0 {
+		l.LineHeight = 2
+	}
+	if l.FontFamily == "" {
+		l.FontFamily = "pingfang"
+	}
+	return l
+}
+
+// reqEbookPages 获取页面详情（下载用默认大画布布局）
 func (s *Service) reqEbookPages(chapterID, token string, index, count, offset int) (io.ReadCloser, error) {
+	return s.reqEbookPagesSized(chapterID, token, index, count, offset, EbookPageLayout{})
+}
+
+// reqEbookPagesSized 获取页面详情。服务端按布局参数排版分页，
+// 阅读器传浏览器可视区尺寸与阅读器设置即可得到对应版式的整屏页面
+func (s *Service) reqEbookPagesSized(chapterID, token string, index, count, offset int, layout EbookPageLayout) (io.ReadCloser, error) {
+	layout = layout.withDefaults()
 	resp, err := s.client.R().
 		SetBody(map[string]interface{}{
 			"chapter_id":  chapterID,
@@ -339,18 +382,18 @@ func (s *Service) reqEbookPages(chapterID, token string, index, count, offset in
 			"config": map[string]interface{}{
 				"density":         1,
 				"direction":       0,
-				"font_name":       "pingfang",
+				"font_name":       layout.FontFamily,
 				"font_scale":      1,
-				"font_size":       16,
-				"height":          200000,
-				"line_height":     "2em",
+				"font_size":       layout.FontSize,
+				"height":          layout.Height,
+				"line_height":     fmt.Sprintf("%gem", layout.LineHeight),
 				"margin_bottom":   20,
 				"margin_left":     20,
 				"margin_right":    20,
 				"margin_top":      0,
 				"paragraph_space": "1em",
 				"platform":        1,
-				"width":           60000,
+				"width":           layout.Width,
 			},
 			"token": token,
 		}).

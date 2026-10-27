@@ -213,6 +213,48 @@ func SaveToCache(enid, chapterID string, pages []string) error {
 	return db.SetWithTTL(cacheKey, pages, ebookPageCacheTTL)
 }
 
+// 阅读器分片缓存：与下载整章缓存分开键空间，
+// 且必须把布局（宽高/字号/行距/字体）编进 key——任一参数变了分页都不同
+const ebookReaderChunkPrefix = "ebook:rchunk:"
+
+// ReaderChunk 阅读器单次分片请求的内容
+type ReaderChunk struct {
+	Pages []string `json:"pages"`
+	IsEnd bool     `json:"isEnd"`
+}
+
+func readerChunkCacheKey(enid, chapterID string, index, count int, layout EbookPageLayout) string {
+	l := layout.withDefaults()
+	return fmt.Sprintf("%s%s:%s:%dx%d:f%d:l%.2f:%s:%d:%d",
+		ebookReaderChunkPrefix, enid, chapterID, l.Width, l.Height, l.FontSize, l.LineHeight, l.FontFamily, count, index)
+}
+
+// LoadReaderChunk 读取阅读器分片缓存
+func LoadReaderChunk(enid, chapterID string, index, count int, layout EbookPageLayout) (*ReaderChunk, bool) {
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
+	if err != nil {
+		return nil, false
+	}
+
+	var chunk ReaderChunk
+	cacheKey := readerChunkCacheKey(enid, chapterID, index, count, layout)
+	if err := db.Get(cacheKey, &chunk); err != nil {
+		return nil, false
+	}
+	return &chunk, true
+}
+
+// SaveReaderChunk 写入阅读器分片缓存
+func SaveReaderChunk(enid, chapterID string, index, count int, layout EbookPageLayout, chunk *ReaderChunk) error {
+	db, err := utils.GetBadgerDB(utils.GetDefaultBadgerDBPath())
+	if err != nil {
+		return err
+	}
+
+	cacheKey := readerChunkCacheKey(enid, chapterID, index, count, layout)
+	return db.SetWithTTL(cacheKey, chunk, ebookPageCacheTTL)
+}
+
 // ClearBookCache 清除指定电子书的所有缓存
 func ClearBookCache(enid string) error {
 	// 获取 BadgerDB 实例
@@ -640,15 +682,21 @@ type EbookScore struct {
 	BookStatus   int      `json:"book_status"`
 }
 
-// EbookPages 使用默认选项的 EbookPages
+// EbookPages 使用默认选项的 EbookPages（下载用大画布布局）
 func (s *Service) EbookPages(chapterID, token string, index, count, offset int) (pages *EbookPage, err error) {
+	return s.EbookPagesSized(chapterID, token, index, count, offset, EbookPageLayout{})
+}
+
+// EbookPagesSized 按指定布局获取页面（阅读器传浏览器尺寸与排版设置，
+// 零值回落到下载默认布局）；限流、退避与下载路径完全一致
+func (s *Service) EbookPagesSized(chapterID, token string, index, count, offset int, layout EbookPageLayout) (pages *EbookPage, err error) {
 	operation := func() (*EbookPage, error) {
 		// 在请求之前检查并等待合适的时间间隔
 		// 使用全局令牌桶限流器来平衡并发请求速率
 		waitForNextRequest()
 
 		// 请求API获取数据
-		body, err := s.reqEbookPages(chapterID, token, index, count, offset)
+		body, err := s.reqEbookPagesSized(chapterID, token, index, count, offset, layout)
 		if err != nil {
 			// 记录请求失败
 			recordRequestFailure(err)

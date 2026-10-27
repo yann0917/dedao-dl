@@ -801,6 +801,43 @@ export type ShelfActionResponse = {
   }
 }
 
+export type EbookReaderChapter = {
+  chapterId: string
+  title: string
+  orderIndex: number
+}
+
+export type EbookReaderInfoResponse = {
+  chapters: EbookReaderChapter[]
+}
+
+// 阅读器版式：宽高为浏览器可视区，fs/fl/ff 为字号/行距/字体，服务端据此分页
+export type EbookReaderLayout = {
+  width: number
+  height: number
+  fontSize: number
+  lineHeight: number
+  fontFamily: string
+}
+
+// 单页原始 SVG（解密后）。width/height 是服务端算好的内容包围盒：
+// 渲染时用它做 viewBox，既不裁内容也不留画布空白
+export type EbookReaderPageData = {
+  svg: string
+  width: number
+  height: number
+}
+
+export type EbookReaderChunkResponse = {
+  chapterId: string
+  index: number
+  layout: EbookReaderLayout
+  isEnd: boolean
+  nextIndex: number
+  pages: EbookReaderPageData[]
+  cached: boolean
+}
+
 export type DownloadSessionResponse = {
   sessionId: string
   target: string
@@ -1162,6 +1199,21 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ enids }),
       }),
+    // 在线阅读：目录 + 按 offset 分批取页。chunk 每次只发一次 get_pages（20 页），
+    // 浏览器可视区 + 阅读器设置（字号/行距/字体）决定服务端分页，返回整屏 SVG 页；
+    // 前端把最多 5 次请求作为一批，接近已加载末尾时再取下一批
+    readerInfo: (enid: string) =>
+      request<EbookReaderInfoResponse>(`/api/ebook/reader/info?enid=${encodeURIComponent(enid)}`),
+    readerChunk: (
+      enid: string,
+      chapterId: string,
+      index: number,
+      layout: Pick<EbookReaderLayout, "width" | "height" | "fontSize" | "lineHeight" | "fontFamily">,
+    ) =>
+      request<EbookReaderChunkResponse>(
+        `/api/ebook/reader/chunk?enid=${encodeURIComponent(enid)}&chapterId=${encodeURIComponent(chapterId)}&index=${index}` +
+          `&w=${layout.width}&h=${layout.height}&fs=${layout.fontSize}&fl=${layout.lineHeight}&ff=${encodeURIComponent(layout.fontFamily)}`,
+      ),
   },
   audio: {
     detail: (enid: string) => request<AudioDetailResponse>(`/api/audio/detail?enid=${encodeURIComponent(enid)}`),

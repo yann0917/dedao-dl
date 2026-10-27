@@ -13,6 +13,7 @@ import { DedaoLeaderboardPage } from "@/pages/DedaoLeaderboardPage"
 import { AIChannelPage } from "@/pages/AIChannelPage"
 import { EbookCommentPage } from "@/pages/EbookCommentPage"
 import { EbookDetailPage } from "@/pages/EbookDetailPage"
+import { EbookReaderPage } from "@/pages/EbookReaderPage"
 import { HomePage } from "@/pages/HomePage"
 import { LoginPage } from "@/pages/LoginPage"
 import { PurchasedAudioPage } from "@/pages/PurchasedAudioPage"
@@ -94,6 +95,10 @@ export const router = createBrowserRouter([
       {
         path: "ebooks/:enid",
         element: <EbookDetailPage />,
+      },
+      {
+        path: "ebooks/:enid/read",
+        element: <EbookReaderPage />,
       },
       {
         path: "ebooks/:enid/comments",

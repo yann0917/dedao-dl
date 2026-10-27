@@ -1,4 +1,4 @@
-import { BookOpen, Clock3, Loader2, NotebookPen, Star } from "lucide-react"
+import { BookOpen, BookOpenText, Clock3, Loader2, NotebookPen, Star } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { toast } from "sonner"
@@ -311,6 +311,16 @@ export function EbookDetailPage() {
                   {shelfLoading ? "处理中..." : "加入书架"}
                 </Button>
               )}
+              <Button
+                onClick={() =>
+                  navigate(
+                    `/ebooks/${encodeURIComponent(enid)}/read?title=${encodeURIComponent(detail.title || "电子书阅读")}`,
+                  )
+                }
+              >
+                <BookOpenText className="mr-2 size-icon-md" />
+                阅读
+              </Button>
               <Button
                 onClick={() => navigate(`/ebooks/${encodeURIComponent(enid)}/comments?title=${encodeURIComponent(detail.title || "电子书书评")}`)}
                 variant="outline"

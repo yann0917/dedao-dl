@@ -356,3 +356,50 @@ button:not(:disabled),
     opacity: 0.8;
   }
 }
+
+/* 在线阅读：按浏览器宽高+排版设置分页的整屏 SVG 页直渲染。
+   页面文字 fill 由服务端排版（默认黑字），主题只换页面底色；
+   夜间主题用反色滤镜把黑字变白字，内嵌图片再反色还原 */
+.reader-page {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.reader-page-svg > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.reader-theme-light .reader-page {
+  background: #ffffff;
+}
+
+.reader-theme-green .reader-page {
+  background: #cce8cf;
+}
+
+.reader-theme-paper .reader-page {
+  background: #f3e9d2;
+}
+
+.reader-theme-dark .reader-page {
+  background: #16181d;
+  box-shadow: none;
+}
+
+.reader-theme-dark .reader-page-svg {
+  filter: invert(0.92) hue-rotate(180deg);
+}
+
+/* SVG 内嵌图片（插图/脚注图标）被外层反色会失真，再反一次还原 */
+.reader-theme-dark .reader-page-svg image {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.reader-theme-dark.reader-page-host {
+  background: #16181d;
+}
