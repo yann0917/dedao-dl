@@ -170,54 +170,57 @@ func downloadAudio(c *gin.Context) {
 }
 
 func downloadEbook(c *gin.Context) {
-	var req ebookDownloadRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		fail(c, http.StatusBadRequest, "电子书下载参数无效")
-		return
-	}
+	// 为保护账号临时停用：get_pages 已触发风控，恢复时还原以下实现
+	// var req ebookDownloadRequest
+	// if err := c.ShouldBindJSON(&req); err != nil {
+	// 	fail(c, http.StatusBadRequest, "电子书下载参数无效")
+	// 	return
+	// }
+	//
+	// req.EnID = strings.TrimSpace(req.EnID)
+	// if req.ID <= 0 && req.EnID == "" {
+	// 	fail(c, http.StatusBadRequest, "电子书下载缺少 id 或 enid")
+	// 	return
+	// }
+	// if !isValidDownloadType(req.DownloadType) {
+	// 	fail(c, http.StatusBadRequest, "电子书下载类型无效")
+	// 	return
+	// }
+	//
+	// title := resolveDownloadTitle(req.Title, "电子书下载")
+	// outputDir, err := prepareDownloadOutputDir()
+	// if err != nil {
+	// 	fail(c, http.StatusInternalServerError, err.Error())
+	// 	return
+	// }
+	//
+	// session := downloadSessions.Create("ebook", title, outputDir)
+	// downloader := dedaoapp.EBookDownload{
+	// 	ID:           req.ID,
+	// 	EnID:         req.EnID,
+	// 	DownloadType: req.DownloadType,
+	// 	Title:        title,
+	// 	ProgressCB: func(total, current, pct int, currentName string) {
+	// 		session.publish(downloadEvent{
+	// 			Type:        "progress",
+	// 			Progress:    pct,
+	// 			Current:     current,
+	// 			Total:       total,
+	// 			CurrentName: currentName,
+	// 		})
+	// 	},
+	// 	LogCB: func(level, message string) {
+	// 		session.publish(downloadEvent{
+	// 			Type:    "log",
+	// 			Level:   level,
+	// 			Message: message,
+	// 		})
+	// 	},
+	// }
+	// startDownloadAsync(session, outputDir, &downloader)
+	// ok(c, buildDownloadStartResponse(session, req.DownloadType))
 
-	req.EnID = strings.TrimSpace(req.EnID)
-	if req.ID <= 0 && req.EnID == "" {
-		fail(c, http.StatusBadRequest, "电子书下载缺少 id 或 enid")
-		return
-	}
-	if !isValidDownloadType(req.DownloadType) {
-		fail(c, http.StatusBadRequest, "电子书下载类型无效")
-		return
-	}
-
-	title := resolveDownloadTitle(req.Title, "电子书下载")
-	outputDir, err := prepareDownloadOutputDir()
-	if err != nil {
-		fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	session := downloadSessions.Create("ebook", title, outputDir)
-	downloader := dedaoapp.EBookDownload{
-		ID:           req.ID,
-		EnID:         req.EnID,
-		DownloadType: req.DownloadType,
-		Title:        title,
-		ProgressCB: func(total, current, pct int, currentName string) {
-			session.publish(downloadEvent{
-				Type:        "progress",
-				Progress:    pct,
-				Current:     current,
-				Total:       total,
-				CurrentName: currentName,
-			})
-		},
-		LogCB: func(level, message string) {
-			session.publish(downloadEvent{
-				Type:    "log",
-				Level:   level,
-				Message: message,
-			})
-		},
-	}
-	startDownloadAsync(session, outputDir, &downloader)
-	ok(c, buildDownloadStartResponse(session, req.DownloadType))
+	fail(c, http.StatusForbidden, "电子书下载已临时停用（账号风控保护），请使用在线阅读")
 }
 
 func streamDownloadSession(c *gin.Context) {

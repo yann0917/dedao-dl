@@ -91,55 +91,57 @@ https://www.dedao.cn/audioBook/detail?id=ZV1po7jlgBdObqZXy0GNR4wLzxya5v`,
 
 var dlEbookCmd = &cobra.Command{
 	Use:   "dle",
-	Short: "下载电子书",
+	Short: "下载电子书（已临时停用）",
 	Long: `使用 dedao-dl dle 下载电子书
 -t 指定下载格式, 1:html, 2:PDF文档, 3:epub, 4:markdown笔记, 默认 html
 参数支持:
 1) 电子书ID（数字）
 2) enid（字符串）
-其中 enid 为阅读链接里的 id 参数，例如:
+其中 enid 为阅读链接里的 id 参数, 例如:
 https://www.dedao.cn/ebook/reader?id=N5lDqb9b47pXZxGn1kBzPlMyQArYv0qQOL0qe85E2aVKdo9jNgOLRmDJ6nXLm16K`,
 	Example: "dedao-dl dle 123 -t 1\ndedao-dl dle N5lDqb9b47pXZxGn1kBzPlMyQArYv0qQOL0qe85E2aVKdo9jNgOLRmDJ6nXLm16K -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// 为保护账号临时停用：get_pages 已触发风控，恢复时还原以下实现
+		// if len(args) > 1 {
+		// 	return errors.New("参数错误")
+		// }
+		//
+		// id, err := strconv.Atoi(args[0])
+		// var d app.DeDaoDownloader
+		//
+		// if downloadType == 4 {
+		// 	// 笔记下载格式
+		// 	if err != nil {
+		// 		// args[0] is not an integer, treat as EnID
+		// 		d = &app.EBookNotesDownload{
+		// 			DownloadType: downloadType,
+		// 			EnID:         args[0],
+		// 		}
+		// 	} else {
+		// 		// args[0] is an integer ID
+		// 		d = &app.EBookNotesDownload{
+		// 			DownloadType: downloadType,
+		// 			ID:           id,
+		// 		}
+		// 	}
+		// } else {
+		// 	if err != nil {
+		// 		d = &app.EBookDownload{
+		// 			DownloadType: downloadType,
+		// 			EnID:         args[0],
+		// 		}
+		// 	} else {
+		// 		d = &app.EBookDownload{
+		// 			DownloadType: downloadType,
+		// 			ID:           id,
+		// 		}
+		// 	}
+		// }
+		// err = app.Download(d)
+		// return err
 
-		if len(args) > 1 {
-			return errors.New("参数错误")
-		}
-
-		id, err := strconv.Atoi(args[0])
-		var d app.DeDaoDownloader
-
-		if downloadType == 4 {
-			// 笔记下载格式
-			if err != nil {
-				// args[0] is not an integer, treat as EnID
-				d = &app.EBookNotesDownload{
-					DownloadType: downloadType,
-					EnID:         args[0],
-				}
-			} else {
-				// args[0] is an integer ID
-				d = &app.EBookNotesDownload{
-					DownloadType: downloadType,
-					ID:           id,
-				}
-			}
-		} else {
-			if err != nil {
-				d = &app.EBookDownload{
-					DownloadType: downloadType,
-					EnID:         args[0],
-				}
-			} else {
-				d = &app.EBookDownload{
-					DownloadType: downloadType,
-					ID:           id,
-				}
-			}
-		}
-		err = app.Download(d)
-		return err
+		return errors.New("电子书下载已临时停用（账号风控保护），请使用 Web 端在线阅读")
 	},
 }
 
