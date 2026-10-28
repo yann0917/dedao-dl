@@ -22,7 +22,9 @@ func resetRetryTestState(t *testing.T) {
 	antispiderCooldown = false
 	lastRequestTime = time.Time{}
 	antispiderMutex.Unlock()
-	globalLimiter = newRequestLimiter(tokenBucketSize, tokenRefillRate)
+	// 这组用例验证重试/冷却语义，与限流无关：
+	// 生产令牌桶 1 个/0.2s 会让多次 EbookPages 调用各排队 5 秒，拖挂快速失败断言
+	globalLimiter = newRequestLimiter(100, 1000)
 
 	oldMaxRetries, oldBackoff := maxRetries, initialBackoff
 	oldCooldown := cooldownTime
