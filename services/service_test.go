@@ -118,31 +118,32 @@ func TestArticleInfo(t *testing.T) {
 	}
 	fmt.Printf("result:=%v \n", result)
 }
-func TestEbookDetail(t *testing.T) {
-	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
-	result, err := service.EbookDetail(enid)
-	if err != nil {
-		fmt.Printf("err:=%#v \n", err)
-	}
-	fmt.Printf("result:=%v \n", result)
-}
-
-func TestEbookReadToken(t *testing.T) {
-	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
-	result, err := service.EbookReadToken(enid)
-	if err != nil {
-		fmt.Printf("err:=%#v \n", err)
-	}
-	fmt.Printf("result:=%v \n", result)
-}
-
-func TestEbookVIPInfo(t *testing.T) {
-	result, err := service.EbookVIPInfo()
-	if err != nil {
-		fmt.Printf("err:=%#v \n", err)
-	}
-	fmt.Printf("result:=%v \n", result)
-}
+// 电子书用例需真实登录态请求得到接口，账号风控期间已停用，恢复时取消注释
+// func TestEbookDetail(t *testing.T) {
+// 	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
+// 	result, err := service.EbookDetail(enid)
+// 	if err != nil {
+// 		fmt.Printf("err:=%#v \n", err)
+// 	}
+// 	fmt.Printf("result:=%v \n", result)
+// }
+//
+// func TestEbookReadToken(t *testing.T) {
+// 	enid := "DLnMGAEG7gKLyYmkAbPaEXxD8BM4J0LMedWROrpdZn19VNzv2o5e6lqjQQ1poxqy"
+// 	result, err := service.EbookReadToken(enid)
+// 	if err != nil {
+// 		fmt.Printf("err:=%#v \n", err)
+// 	}
+// 	fmt.Printf("result:=%v \n", result)
+// }
+//
+// func TestEbookVIPInfo(t *testing.T) {
+// 	result, err := service.EbookVIPInfo()
+// 	if err != nil {
+// 		fmt.Printf("err:=%#v \n", err)
+// 	}
+// 	fmt.Printf("result:=%v \n", result)
+// }
 
 func TestTopicAll(t *testing.T) {
 	result, err := service.TopicAll(0, 10, false)
