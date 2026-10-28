@@ -91,7 +91,7 @@ https://www.dedao.cn/audioBook/detail?id=ZV1po7jlgBdObqZXy0GNR4wLzxya5v`,
 
 var dlEbookCmd = &cobra.Command{
 	Use:   "dle",
-	Short: "下载电子书（已临时停用）",
+	Short: "下载电子书（已停用）",
 	Long: `使用 dedao-dl dle 下载电子书
 -t 指定下载格式, 1:html, 2:PDF文档, 3:epub, 4:markdown笔记, 默认 html
 参数支持:
@@ -102,7 +102,7 @@ https://www.dedao.cn/ebook/reader?id=N5lDqb9b47pXZxGn1kBzPlMyQArYv0qQOL0qe85E2aV
 	Example: "dedao-dl dle 123 -t 1\ndedao-dl dle N5lDqb9b47pXZxGn1kBzPlMyQArYv0qQOL0qe85E2aVKdo9jNgOLRmDJ6nXLm16K -t 1",
 	PreRunE: AuthFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// 为保护账号临时停用：get_pages 已触发风控，恢复时还原以下实现
+		// 为保护账号已停用：get_pages 已触发风控，恢复时还原以下实现
 		// if len(args) > 1 {
 		// 	return errors.New("参数错误")
 		// }
@@ -141,7 +141,7 @@ https://www.dedao.cn/ebook/reader?id=N5lDqb9b47pXZxGn1kBzPlMyQArYv0qQOL0qe85E2aV
 		// err = app.Download(d)
 		// return err
 
-		return errors.New("电子书下载已临时停用（账号风控保护），请使用 Web 端在线阅读")
+		return errors.New("电子书下载已停用（账号风控保护），请使用 Web 端在线阅读")
 	},
 }
 

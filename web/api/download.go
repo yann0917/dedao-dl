@@ -170,7 +170,7 @@ func downloadAudio(c *gin.Context) {
 }
 
 func downloadEbook(c *gin.Context) {
-	// 为保护账号临时停用：get_pages 已触发风控，恢复时还原以下实现
+	// 为保护账号已停用：get_pages 已触发风控，恢复时还原以下实现
 	// var req ebookDownloadRequest
 	// if err := c.ShouldBindJSON(&req); err != nil {
 	// 	fail(c, http.StatusBadRequest, "电子书下载参数无效")
@@ -220,7 +220,7 @@ func downloadEbook(c *gin.Context) {
 	// startDownloadAsync(session, outputDir, &downloader)
 	// ok(c, buildDownloadStartResponse(session, req.DownloadType))
 
-	fail(c, http.StatusForbidden, "电子书下载已临时停用（账号风控保护），请使用在线阅读")
+	fail(c, http.StatusForbidden, "电子书下载已停用（账号风控保护），请使用在线阅读")
 }
 
 func streamDownloadSession(c *gin.Context) {
