@@ -2,16 +2,27 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func runMergeCmd(cmd *exec.Cmd, paths []string, mergeFilePath string) error {
+	return runMergeCmdContext(context.Background(), cmd, paths, mergeFilePath)
+}
+
+func runMergeCmdContext(ctx context.Context, cmd *exec.Cmd, paths []string, mergeFilePath string) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return fmt.Errorf("%w\n%s", ctxErr, stderr.String())
+		}
 		return fmt.Errorf("%s\n%s", err, stderr.String())
 	}
 
@@ -27,6 +38,12 @@ func runMergeCmd(cmd *exec.Cmd, paths []string, mergeFilePath string) error {
 
 // MergeAudio merge audio
 func MergeAudio(paths []string, mergedFilePath string) error {
+	return MergeAudioContext(context.Background(), paths, mergedFilePath)
+}
+
+// MergeAudioContext merge audio with a deadline/cancellation.
+// ffmpeg 读 m3u8 时可能长时间卡在某个分片，调用方应传入带超时的 context。
+func MergeAudioContext(ctx context.Context, paths []string, mergedFilePath string) error {
 	cmds := []string{
 		"-y",
 	}
@@ -34,7 +51,7 @@ func MergeAudio(paths []string, mergedFilePath string) error {
 		cmds = append(cmds, "-i", path)
 	}
 	cmds = append(cmds, "-c:v", "copy", mergedFilePath)
-	return runMergeCmd(exec.Command("ffmpeg", cmds...), paths, "")
+	return runMergeCmdContext(ctx, exec.CommandContext(ctx, "ffmpeg", cmds...), paths, "")
 }
 
 // MergeAudioAndVideo merge audio and video
@@ -67,4 +84,35 @@ func MergeToMP4(paths []string, mergedFilePath string, filename string) error {
 		"-i", mergeFilePath, "-c", "copy", "-bsf:a", "aac_adtstoasc", mergedFilePath,
 	)
 	return runMergeCmd(cmd, paths, mergeFilePath)
+}
+
+// ProbeDuration returns the media duration in seconds using ffprobe.
+func ProbeDuration(filePath string) (float64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	out, err := exec.CommandContext(
+		ctx,
+		"ffprobe",
+		"-v", "error",
+		"-show_entries", "format=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1",
+		filePath,
+	).Output()
+	if err != nil {
+		if ctxErr := ctx.Err(); ctxErr != nil {
+			return 0, fmt.Errorf("ffprobe timed out: %w", ctxErr)
+		}
+		return 0, err
+	}
+
+	raw := strings.TrimSpace(string(out))
+	if raw == "" || raw == "N/A" {
+		return 0, fmt.Errorf("ffprobe returned no duration")
+	}
+	duration, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse ffprobe duration %q: %w", raw, err)
+	}
+	return duration, nil
 }

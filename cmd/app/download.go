@@ -37,6 +37,7 @@ type CourseDownload struct {
 	IsComment    bool
 	IsOrder      bool
 	ClassName    string
+	Force        bool
 	ProgressCB   DownloadProgressFunc
 	LogCB        DownloadLogFunc
 }
@@ -46,6 +47,7 @@ type OdobDownload struct {
 	ID           int
 	EnID         string
 	Title        string
+	Force        bool
 	ProgressCB   DownloadProgressFunc
 	LogCB        DownloadLogFunc
 }
@@ -174,7 +176,23 @@ func (d *CourseDownload) Download() error {
 		}
 		d.log("info", "课程音频输出目录已创建："+path)
 
+		progressName := course.ClassInfo.Enid
+		if progressName == "" {
+			progressName = utils.FileName(course.ClassInfo.Name, "")
+		}
+		progress, err := downloader.NewProgressStore(filepath.Dir(path), progressName)
+		if err != nil {
+			return err
+		}
+		done, failedBefore := progress.Count()
+		d.log("info", fmt.Sprintf("进度记录：%s（已完成 %d，失败 %d）", progress.Path(), done, failedBefore))
+		for i := range downloadData.Data {
+			downloadData.Data[i].Progress = progress
+			downloadData.Data[i].Force = d.Force
+		}
+
 		current := 0
+		completed, skipped, failed := 0, 0, 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
 				d.log("warning", "跳过不可下载内容："+datum.Title)
@@ -182,17 +200,26 @@ func (d *CourseDownload) Download() error {
 			}
 			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
-			if err := downloader.Download(datum, stream, path); err != nil {
+			wasSkipped, err := downloader.Download(datum, stream, path)
+			if err != nil {
+				failed++
 				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
 				continue
 			}
 			current++
+			if wasSkipped {
+				skipped++
+				d.log("info", "已存在，跳过："+datum.Title)
+			} else {
+				completed++
+				d.log("info", "下载完成："+datum.Title)
+			}
 			d.report(total, current, datum.Title)
-			d.log("info", "下载完成："+datum.Title)
 		}
+		d.log("info", fmt.Sprintf("课程下载汇总：完成 %d，跳过 %d，失败 %d", completed, skipped, failed))
 		if len(errs) > 0 {
-			return errs[0]
+			return fmt.Errorf("有 %d 个内容下载失败，首个错误: %w", len(errs), errs[0])
 		}
 	case 2:
 		// 下载 PDF
@@ -256,7 +283,30 @@ func (d *OdobDownload) Download() error {
 			return err
 		}
 		d.log("info", "听书音频输出目录已创建："+path)
+
+		progressName := ""
+		if article != nil {
+			progressName = article.Enid
+		}
+		if progressName == "" {
+			progressName = d.EnID
+		}
+		if progressName == "" {
+			progressName = utils.FileName(fileName, "")
+		}
+		progress, err := downloader.NewProgressStore(filepath.Dir(path), progressName)
+		if err != nil {
+			return err
+		}
+		done, failedBefore := progress.Count()
+		d.log("info", fmt.Sprintf("进度记录：%s（已完成 %d，失败 %d）", progress.Path(), done, failedBefore))
+		for i := range downloadData.Data {
+			downloadData.Data[i].Progress = progress
+			downloadData.Data[i].Force = d.Force
+		}
+
 		current := 0
+		completed, skipped, failed := 0, 0, 0
 		for _, datum := range downloadData.Data {
 			if !datum.IsCanDL {
 				d.log("warning", "跳过不可下载内容："+datum.Title)
@@ -264,17 +314,26 @@ func (d *OdobDownload) Download() error {
 			}
 			d.log("info", "开始下载："+datum.Title)
 			stream := datum.Enid
-			if err := downloader.Download(datum, stream, path); err != nil {
+			wasSkipped, err := downloader.Download(datum, stream, path)
+			if err != nil {
+				failed++
 				d.log("error", "下载失败："+datum.Title+"，"+err.Error())
 				errs = append(errs, err)
 				continue
 			}
 			current++
+			if wasSkipped {
+				skipped++
+				d.log("info", "已存在，跳过："+datum.Title)
+			} else {
+				completed++
+				d.log("info", "下载完成："+datum.Title)
+			}
 			d.report(total, current, datum.Title)
-			d.log("info", "下载完成："+datum.Title)
 		}
+		d.log("info", fmt.Sprintf("听书下载汇总：完成 %d，跳过 %d，失败 %d", completed, skipped, failed))
 		if len(errs) > 0 {
-			return errs[0]
+			return fmt.Errorf("有 %d 个内容下载失败，首个错误: %w", len(errs), errs[0])
 		}
 	case 2:
 		path, err := utils.Mkdir(OutputDir, utils.FileName(fileName, ""), "PDF")
@@ -601,6 +660,7 @@ func extractCourseDownloadData(articles *services.ArticleList, aid int, flag int
 				M3U8URL:   article.Audio.MP3PlayURL,
 				Streams:   streams,
 				Type:      "audio",
+				Duration:  article.Audio.Duration,
 			}
 
 			audioData = append(audioData, datum)
@@ -638,8 +698,10 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 			key = aliasID
 		}
 		audioSize := 0
+		audioDuration := 0
 		if article.AudioDetail != nil {
 			audioSize = article.AudioDetail.Size
+			audioDuration = article.AudioDetail.Duration
 		}
 		streams := map[string]downloader.Stream{
 			key: {
@@ -663,6 +725,9 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 				return nil
 			}
 			m3u8URL = detail.MP3PlayURL
+			if audioDuration == 0 {
+				audioDuration = detail.Duration
+			}
 			if aliasID == "" {
 				aliasID = detail.AudioID
 				if aliasID == "" {
@@ -675,14 +740,15 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 			isCanDL = isCanDL && detail.HasPlayAuth
 		}
 		datum := &downloader.Datum{
-			ID:      aid,
-			Enid:    key,
-			ClassID: article.ClassID,
-			Title:   article.Title,
-			IsCanDL: isCanDL,
-			M3U8URL: m3u8URL,
-			Streams: streams,
-			Type:    "audio",
+			ID:       aid,
+			Enid:     key,
+			ClassID:  article.ClassID,
+			Title:    article.Title,
+			IsCanDL:  isCanDL,
+			M3U8URL:  m3u8URL,
+			Streams:  streams,
+			Type:     "audio",
+			Duration: audioDuration,
 		}
 
 		audioData = append(audioData, datum)
@@ -739,14 +805,15 @@ func extractOdobDownloadData(aid int, article *services.Course) []downloader.Dat
 			title = fmt.Sprintf("%s%03d.%s", audio.PackageTitle, orderNum, title)
 
 			datum := &downloader.Datum{
-				ID:      audioID,
-				Enid:    key,
-				ClassID: article.ClassID,
-				Title:   title,
-				IsCanDL: isCanDL,
-				M3U8URL: audio.MP3PlayURL,
-				Streams: streams,
-				Type:    "audio",
+				ID:       audioID,
+				Enid:     key,
+				ClassID:  article.ClassID,
+				Title:    title,
+				IsCanDL:  isCanDL,
+				M3U8URL:  audio.MP3PlayURL,
+				Streams:  streams,
+				Type:     "audio",
+				Duration: audio.Duration,
 			}
 
 			audioData = append(audioData, datum)

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/yann0917/dedao-dl/utils"
@@ -114,6 +115,7 @@ func NewService(co *CookieOptions) *Service {
 	})
 	client := resty.New()
 	client.SetDebug(false)
+	client.SetTimeout(60 * time.Second)
 	client.SetBaseURL(baseURL).
 		SetCookies(cookies).
 		SetHeader("User-Agent", UserAgent)

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -23,14 +24,16 @@ type HTTPClient struct {
 
 // NewClient new HTTPClient
 func NewClient(baseURL string) *resty.Client {
-	c := resty.New().SetBaseURL(baseURL)
+	c := resty.New().
+		SetBaseURL(baseURL).
+		SetTimeout(60 * time.Second)
 	// c = c.SetBaseURL(baseURL)
 	return c
 }
 
 // HTTPGet http get request
 func HTTPGet(url string) (body []byte, err error) {
-	r, err := resty.New().R().Get(url)
+	r, err := resty.New().SetTimeout(60 * time.Second).R().Get(url)
 	if err != nil {
 		return
 	}
