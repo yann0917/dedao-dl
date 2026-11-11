@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,10 +18,22 @@ import (
 // Download download data.
 // 返回的 bool 表示该文件已存在且校验通过、本次被跳过。
 func Download(v Datum, stream, path string) (bool, error) {
+	title := utils.FileName(v.Title, "")
+	filePreName := filepath.Join(path, title)
+	fileName, err := utils.FilePath(filePreName, "mp3", false)
+	if err != nil {
+		return false, err
+	}
+
+	// 音频只看本地文件和 m3u8 地址，不依赖 handleStreams 预拉的结果；
+	// 这样播放地址预检失败时，已完成的讲仍然可以跳过。
+	if v.Type == "audio" {
+		return downloadAudio(v, fileName)
+	}
+
 	// 按大到小排序
 	v.genSortedStreams()
 
-	title := utils.FileName(v.Title, "")
 	if stream == "" {
 		if len(v.sortedStreams) == 0 {
 			return false, fmt.Errorf("没有可下载的流")
@@ -35,16 +48,6 @@ func Download(v Datum, stream, path string) (bool, error) {
 	// 判断下载连接是否存在
 	if len(data.URLs) == 0 {
 		return false, nil
-	}
-
-	filePreName := filepath.Join(path, title)
-	fileName, err := utils.FilePath(filePreName, "mp3", false)
-	if err != nil {
-		return false, err
-	}
-
-	if v.Type == "audio" {
-		return downloadAudio(v, fileName)
 	}
 
 	_, mergedFileExists, err := utils.FileSize(fileName)
@@ -126,15 +129,12 @@ var (
 )
 
 func downloadAudio(v Datum, fileName string) (bool, error) {
+	if v.Duration > 0 && !audioProbeAvailable {
+		return false, fmt.Errorf("未找到 ffprobe，无法校验音频完整性；请安装 ffmpeg（含 ffprobe）")
+	}
+
 	if v.Force {
-		if _, exists, err := utils.FileSize(fileName); err != nil {
-			return false, err
-		} else if exists {
-			fmt.Printf("%s: 强制重新下载\n", fileName)
-			if err := os.Remove(fileName); err != nil {
-				return false, err
-			}
-		}
+		fmt.Printf("%s: 强制重新下载\n", fileName)
 	} else {
 		complete, err := isAudioComplete(fileName, v.Duration)
 		if err != nil {
@@ -150,28 +150,31 @@ func downloadAudio(v Datum, fileName string) (bool, error) {
 			return false, err
 		} else if exists {
 			fmt.Printf("%s: 文件不完整，重新下载\n", fileName)
-			if err := os.Remove(fileName); err != nil {
-				return false, err
-			}
 		}
 	}
 
-	// ffmpeg 直接写最终文件时，进程中断会留下看起来完整的残缺文件；
-	// 先写 .part.mp3，成功后再原子改名。
-	partFile := fileName + ".part.mp3"
+	// 只有确实需要下载时才要求播放地址；已完成文件即使地址不可用也能跳过。
+	if strings.TrimSpace(v.M3U8URL) == "" {
+		return false, fmt.Errorf("音频地址为空")
+	}
+
 	var lastErr error
 
 	for attempt := 1; attempt <= audioDownloadAttempts; attempt++ {
-		if err := os.Remove(partFile); err != nil && !os.IsNotExist(err) {
-			return false, fmt.Errorf("清理临时文件失败: %w", err)
+		partFile, err := newPartFile(filepath.Dir(fileName))
+		if err != nil {
+			return false, fmt.Errorf("创建临时文件失败: %w", err)
 		}
 		if attempt > 1 {
 			fmt.Printf("重试第 %d/%d 次：%s\n", attempt, audioDownloadAttempts, fileName)
 		}
 
-		err := downloadAudioOnce(v.M3U8URL, partFile, v.Duration)
+		err = downloadAudioOnce(v.M3U8URL, partFile, v.Duration)
 		if err == nil {
+			// os.Rename 同目录覆盖已有最终文件（Windows 使用 MOVEFILE_REPLACE_EXISTING）；
+			// 下载或校验失败时旧文件保持不变。
 			if renameErr := os.Rename(partFile, fileName); renameErr != nil {
+				_ = os.Remove(partFile)
 				markAudioFailed(v, fileName, renameErr)
 				return false, fmt.Errorf("重命名临时文件失败: %w", renameErr)
 			}
@@ -189,6 +192,43 @@ func downloadAudio(v Datum, fileName string) (bool, error) {
 
 	markAudioFailed(v, fileName, lastErr)
 	return false, lastErr
+}
+
+// newPartFile 每次下载使用唯一的临时文件，避免并发的两个会话互相删除/覆盖同一个 .part。
+// 中断遗留的临时文件超过 1 小时会被清理（单讲超时是 15 分钟）。
+func newPartFile(dir string) (string, error) {
+	cleanupStaleParts(dir)
+
+	f, err := os.CreateTemp(dir, ".dedao-*.part.mp3")
+	if err != nil {
+		return "", err
+	}
+	name := f.Name()
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+func cleanupStaleParts(dir string) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	cutoff := time.Now().Add(-time.Hour)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasPrefix(name, ".dedao-") || !strings.HasSuffix(name, ".part.mp3") {
+			continue
+		}
+		info, err := entry.Info()
+		if err == nil && info.ModTime().Before(cutoff) {
+			_ = os.Remove(filepath.Join(dir, name))
+		}
+	}
 }
 
 func markAudioDone(v Datum, fileName string) {
@@ -231,12 +271,10 @@ func downloadAudioOnce(m3u8, partFile string, expectedDuration int) error {
 		return err
 	}
 
-	if expectedDuration > 0 && audioProbeAvailable {
+	if expectedDuration > 0 {
 		actual, err := utils.ProbeDuration(partFile)
 		if err != nil {
-			// ffmpeg 已成功；这里只做额外校验，ffprobe 读不出来不当作失败
-			fmt.Printf("警告：无法校验音频时长（%v），按下载成功处理\n", err)
-			return nil
+			return fmt.Errorf("校验音频时长失败: %w", err)
 		}
 		if actual+audioDurationTolerance(expectedDuration) < float64(expectedDuration) {
 			return fmt.Errorf("音频时长异常：期望 %ds，实际 %.0fs", expectedDuration, actual)
@@ -255,8 +293,11 @@ func isAudioComplete(fileName string, expectedDuration int) (bool, error) {
 	if !exists || size == 0 {
 		return false, nil
 	}
-	if expectedDuration <= 0 || !audioProbeAvailable {
+	if expectedDuration <= 0 {
 		return true, nil
+	}
+	if !audioProbeAvailable {
+		return false, fmt.Errorf("未找到 ffprobe，无法校验音频完整性；请安装 ffmpeg（含 ffprobe）")
 	}
 
 	actual, err := utils.ProbeDuration(fileName)

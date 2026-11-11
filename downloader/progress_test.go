@@ -2,9 +2,11 @@ package downloader
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -69,5 +71,43 @@ func TestProgressStorePersistsRecords(t *testing.T) {
 	}
 	if _, err := os.Stat(again.Path()); err != nil {
 		t.Fatalf("进度清单不存在: %v", err)
+	}
+}
+
+// 多个 store 同时写同一份清单时，不能互相覆盖记录。
+func TestProgressStoreConcurrentWriters(t *testing.T) {
+	dir := t.TempDir()
+	const total = 20
+
+	stores := make([]*ProgressStore, total)
+	for i := 0; i < total; i++ {
+		store, err := NewProgressStore(dir, "course-enid")
+		if err != nil {
+			t.Fatalf("创建 store 失败: %v", err)
+		}
+		stores[i] = store
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < total; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			item := Datum{ID: i + 1, Title: fmt.Sprintf("lesson-%d", i+1)}
+			file := filepath.Join(dir, "MP3", fmt.Sprintf("%03d.mp3", i+1))
+			if err := stores[i].MarkDone(progressKey(item), item, file, 1, 60); err != nil {
+				t.Errorf("写入第 %d 条失败: %v", i+1, err)
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	reloaded, err := NewProgressStore(dir, "course-enid")
+	if err != nil {
+		t.Fatalf("重新加载失败: %v", err)
+	}
+	done, failed := reloaded.Count()
+	if done != total || failed != 0 {
+		t.Fatalf("并发写入后 count = %d/%d, want %d/0", done, failed, total)
 	}
 }

@@ -42,10 +42,22 @@ type progressFile struct {
 // 不依赖 .cache（clean cache 不会丢进度）。
 type ProgressStore struct {
 	dir  string
+	name string
 	path string
+
+	// fileMu 按清单路径共享：同一进程里可能同时存在多个 store（例如两个 Web 下载会话），
+	// 写入前必须串行并合并磁盘上的最新记录，避免旧 map 覆盖别人的更新。
+	fileMu *sync.Mutex
 
 	mu   sync.Mutex
 	data progressFile
+}
+
+var progressFileLocks sync.Map // map[string]*sync.Mutex
+
+func lockForProgressFile(path string) *sync.Mutex {
+	value, _ := progressFileLocks.LoadOrStore(path, &sync.Mutex{})
+	return value.(*sync.Mutex)
 }
 
 // NewProgressStore 创建或加载进度清单。name 建议用课程/听书的 enid。
@@ -55,9 +67,16 @@ func NewProgressStore(courseDir, name string) (*ProgressStore, error) {
 		name = "progress"
 	}
 
+	path := filepath.Join(courseDir, "progress", name+".json")
+	fileMu := lockForProgressFile(path)
+	fileMu.Lock()
+	defer fileMu.Unlock()
+
 	store := &ProgressStore{
-		dir:  courseDir,
-		path: filepath.Join(courseDir, "progress", name+".json"),
+		dir:    courseDir,
+		name:   name,
+		path:   path,
+		fileMu: fileMu,
 		data: progressFile{
 			Enid:  name,
 			Items: map[string]ProgressRecord{},
@@ -68,7 +87,7 @@ func NewProgressStore(courseDir, name string) (*ProgressStore, error) {
 		return nil, fmt.Errorf("创建进度目录失败: %w", err)
 	}
 
-	raw, err := os.ReadFile(store.path)
+	raw, err := readFileRetry(store.path)
 	if err == nil {
 		var loaded progressFile
 		if unmarshalErr := json.Unmarshal(raw, &loaded); unmarshalErr == nil {
@@ -151,12 +170,40 @@ func (p *ProgressStore) MarkFailed(key string, v Datum, fileName string, err err
 }
 
 func (p *ProgressStore) mark(key string, record ProgressRecord) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.fileMu.Lock()
+	defer p.fileMu.Unlock()
 
+	// 合并磁盘上的最新记录，避免并发 store 用旧 map 覆盖。
+	if latest, err := p.loadFromDisk(); err == nil {
+		if latest.Enid == "" {
+			latest.Enid = p.name
+		}
+		p.mu.Lock()
+		p.data = latest
+		p.mu.Unlock()
+	}
+
+	p.mu.Lock()
 	p.data.Items[key] = record
 	p.data.UpdatedAt = record.UpdatedAt
-	return p.saveLocked()
+	err := p.saveLocked()
+	p.mu.Unlock()
+	return err
+}
+
+func (p *ProgressStore) loadFromDisk() (progressFile, error) {
+	raw, err := readFileRetry(p.path)
+	if err != nil {
+		return progressFile{}, err
+	}
+	var loaded progressFile
+	if err := json.Unmarshal(raw, &loaded); err != nil {
+		return progressFile{}, err
+	}
+	if loaded.Items == nil {
+		loaded.Items = map[string]ProgressRecord{}
+	}
+	return loaded, nil
 }
 
 func (p *ProgressStore) saveLocked() error {
@@ -165,18 +212,53 @@ func (p *ProgressStore) saveLocked() error {
 		return fmt.Errorf("序列化进度失败: %w", err)
 	}
 
-	tmp := p.path + ".tmp"
-	if err := os.WriteFile(tmp, raw, 0644); err != nil {
+	// 每次写唯一临时文件，避免不同进程共用同一个 .tmp；os.Rename 会替换旧清单。
+	f, err := os.CreateTemp(filepath.Dir(p.path), filepath.Base(p.path)+".*.tmp")
+	if err != nil {
+		return fmt.Errorf("创建进度临时文件失败: %w", err)
+	}
+	tmp := f.Name()
+	if _, err := f.Write(raw); err != nil {
+		_ = f.Close()
+		_ = os.Remove(tmp)
 		return fmt.Errorf("写入进度临时文件失败: %w", err)
 	}
-	// Windows 下 Rename 不能覆盖已存在文件
-	if err := os.Remove(p.path); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("替换进度文件失败: %w", err)
+	if err := f.Close(); err != nil {
+		_ = os.Remove(tmp)
+		return fmt.Errorf("关闭进度临时文件失败: %w", err)
 	}
-	if err := os.Rename(tmp, p.path); err != nil {
+	if err := renameWithRetry(tmp, p.path); err != nil {
+		_ = os.Remove(tmp)
 		return fmt.Errorf("更新进度文件失败: %w", err)
 	}
 	return nil
+}
+
+// Windows 上其他进程/goroutine 短暂持有清单时，读取或替换可能返回共享冲突；
+// 清单很小，短暂重试即可。
+func readFileRetry(path string) ([]byte, error) {
+	var err error
+	for i := 0; i < 5; i++ {
+		var raw []byte
+		raw, err = os.ReadFile(path)
+		if err == nil || os.IsNotExist(err) {
+			return raw, err
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return nil, err
+}
+
+func renameWithRetry(oldPath, newPath string) error {
+	var err error
+	for i := 0; i < 5; i++ {
+		err = os.Rename(oldPath, newPath)
+		if err == nil {
+			return nil
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	return err
 }
 
 func (p *ProgressStore) rel(fileName string) string {

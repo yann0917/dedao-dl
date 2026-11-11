@@ -87,8 +87,8 @@ Web 页面功能（随版本迭代可能略有调整）：
 
 #### 音频下载
 
-* ffmpeg
-  > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成
+* ffmpeg（含 ffprobe）
+  > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成；断点续传/完整性校验会调用 ffprobe（通常随 ffmpeg 一起安装）
 
 #### markdown文本下载
 
