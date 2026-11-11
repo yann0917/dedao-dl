@@ -72,6 +72,11 @@ func TestIsAudioComplete(t *testing.T) {
 		t.Fatalf("实际 %.2fs 对 %d 秒期望应超出容差: ok=%v err=%v", actual, outside, ok, err)
 	}
 
+	ok, err = isAudioComplete(file, 0)
+	if err != nil || ok {
+		t.Fatalf("没有期望时长时应视为未验证: ok=%v err=%v", ok, err)
+	}
+
 	ok, err = isAudioComplete(file, 60)
 	if err != nil || ok {
 		t.Fatalf("2 秒文件对 60 秒期望应为不完整: ok=%v err=%v", ok, err)

@@ -129,15 +129,23 @@ var (
 )
 
 func downloadAudio(v Datum, fileName string) (bool, error) {
-	if v.Duration > 0 && !audioProbeAvailable {
+	expectedDuration := v.Duration
+	if expectedDuration <= 0 && v.Progress != nil {
+		if record, ok := v.Progress.Get(progressKey(v)); ok && record.Status == progressStatusDone && record.Duration > 0 {
+			expectedDuration = record.Duration
+		}
+	}
+
+	if expectedDuration > 0 && !audioProbeAvailable {
 		return false, fmt.Errorf("未找到 ffprobe，无法校验音频完整性；请安装 ffmpeg（含 ffprobe）")
 	}
 
 	if v.Force {
 		fmt.Printf("%s: 强制重新下载\n", fileName)
 	} else {
-		complete, err := isAudioComplete(fileName, v.Duration)
+		complete, err := isAudioComplete(fileName, expectedDuration)
 		if err != nil {
+			markAudioFailed(v, fileName, err)
 			return false, err
 		}
 		if complete {
@@ -147,15 +155,18 @@ func downloadAudio(v Datum, fileName string) (bool, error) {
 		}
 
 		if _, exists, err := utils.FileSize(fileName); err != nil {
+			markAudioFailed(v, fileName, err)
 			return false, err
 		} else if exists {
-			fmt.Printf("%s: 文件不完整，重新下载\n", fileName)
+			fmt.Printf("%s: 未通过完整性校验，重新下载\n", fileName)
 		}
 	}
 
 	// 只有确实需要下载时才要求播放地址；已完成文件即使地址不可用也能跳过。
 	if strings.TrimSpace(v.M3U8URL) == "" {
-		return false, fmt.Errorf("音频地址为空")
+		err := fmt.Errorf("音频地址为空")
+		markAudioFailed(v, fileName, err)
+		return false, err
 	}
 
 	var lastErr error
@@ -163,13 +174,15 @@ func downloadAudio(v Datum, fileName string) (bool, error) {
 	for attempt := 1; attempt <= audioDownloadAttempts; attempt++ {
 		partFile, err := newPartFile(filepath.Dir(fileName))
 		if err != nil {
-			return false, fmt.Errorf("创建临时文件失败: %w", err)
+			err = fmt.Errorf("创建临时文件失败: %w", err)
+			markAudioFailed(v, fileName, err)
+			return false, err
 		}
 		if attempt > 1 {
 			fmt.Printf("重试第 %d/%d 次：%s\n", attempt, audioDownloadAttempts, fileName)
 		}
 
-		err = downloadAudioOnce(v.M3U8URL, partFile, v.Duration)
+		err = downloadAudioOnce(v.M3U8URL, partFile, expectedDuration)
 		if err == nil {
 			// os.Rename 同目录覆盖已有最终文件（Windows 使用 MOVEFILE_REPLACE_EXISTING）；
 			// 下载或校验失败时旧文件保持不变。
@@ -294,7 +307,8 @@ func isAudioComplete(fileName string, expectedDuration int) (bool, error) {
 		return false, nil
 	}
 	if expectedDuration <= 0 {
-		return true, nil
+		// 没有可信的期望时长，不能仅凭“文件非空”判定为已完成。
+		return false, nil
 	}
 	if !audioProbeAvailable {
 		return false, fmt.Errorf("未找到 ffprobe，无法校验音频完整性；请安装 ffmpeg（含 ffprobe）")

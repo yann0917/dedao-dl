@@ -23,7 +23,6 @@ type courseDownloadRequest struct {
 	IsMerge      bool   `json:"isMerge"`
 	IsComment    bool   `json:"isComment"`
 	IsOrder      bool   `json:"isOrder"`
-	Force        bool   `json:"force"`
 }
 
 type audioDownloadRequest struct {
@@ -31,7 +30,6 @@ type audioDownloadRequest struct {
 	EnID         string `json:"enid"`
 	DownloadType int    `json:"downloadType"`
 	Title        string `json:"title"`
-	Force        bool   `json:"force"`
 }
 
 type ebookDownloadRequest struct {
@@ -99,7 +97,6 @@ func downloadCourse(c *gin.Context) {
 		IsMerge:      req.IsMerge,
 		IsComment:    req.IsComment,
 		IsOrder:      req.IsOrder,
-		Force:        req.Force,
 		ProgressCB: func(total, current, pct int, currentName string) {
 			session.publish(downloadEvent{
 				Type:        "progress",
@@ -151,7 +148,6 @@ func downloadAudio(c *gin.Context) {
 		EnID:         req.EnID,
 		DownloadType: req.DownloadType,
 		Title:        title,
-		Force:        req.Force,
 		ProgressCB: func(total, current, pct int, currentName string) {
 			session.publish(downloadEvent{
 				Type:        "progress",

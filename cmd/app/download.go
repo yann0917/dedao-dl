@@ -37,9 +37,10 @@ type CourseDownload struct {
 	IsComment    bool
 	IsOrder      bool
 	ClassName    string
-	Force        bool
-	ProgressCB   DownloadProgressFunc
-	LogCB        DownloadLogFunc
+	// Force 强制重新下载音频，忽略已有文件。
+	Force      bool
+	ProgressCB DownloadProgressFunc
+	LogCB      DownloadLogFunc
 }
 
 type OdobDownload struct {
@@ -47,9 +48,10 @@ type OdobDownload struct {
 	ID           int
 	EnID         string
 	Title        string
-	Force        bool
-	ProgressCB   DownloadProgressFunc
-	LogCB        DownloadLogFunc
+	// Force 强制重新下载音频，忽略已有文件。
+	Force      bool
+	ProgressCB DownloadProgressFunc
+	LogCB      DownloadLogFunc
 }
 
 type EBookDownload struct {

@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,6 +17,11 @@ import (
 const (
 	progressStatusDone   = "done"
 	progressStatusFailed = "failed"
+)
+
+var (
+	errProgressNotExist  = errors.New("progress manifest not found")
+	errProgressMalformed = errors.New("progress manifest malformed")
 )
 
 // ProgressRecord 单讲下载进度。File 是相对课程目录的路径，例如 MP3/001.xxx.mp3。
@@ -87,27 +93,25 @@ func NewProgressStore(courseDir, name string) (*ProgressStore, error) {
 		return nil, fmt.Errorf("创建进度目录失败: %w", err)
 	}
 
-	raw, err := readFileRetry(store.path)
-	if err == nil {
-		var loaded progressFile
-		if unmarshalErr := json.Unmarshal(raw, &loaded); unmarshalErr == nil {
-			if loaded.Items == nil {
-				loaded.Items = map[string]ProgressRecord{}
-			}
-			store.data = loaded
-			if store.data.Enid == "" {
-				store.data.Enid = name
-			}
-		} else {
-			fmt.Printf("警告：进度文件 %s 解析失败，将重新记录：%v\n", store.path, unmarshalErr)
+	loaded, err := store.loadFromDisk()
+	switch {
+	case err == nil:
+		store.data = loaded
+		if store.data.Enid == "" {
+			store.data.Enid = name
 		}
-	} else if !os.IsNotExist(err) {
+	case errors.Is(err, errProgressNotExist):
+		// 首次运行，保持空清单
+	case errors.Is(err, errProgressMalformed):
+		fmt.Printf("警告：进度文件 %s 解析失败，将重新记录\n", store.path)
+	default:
 		return nil, fmt.Errorf("读取进度文件失败: %w", err)
 	}
 
 	return store, nil
 }
 
+// Path 返回进度清单的路径。
 func (p *ProgressStore) Path() string {
 	return p.path
 }
@@ -137,6 +141,7 @@ func (p *ProgressStore) Get(key string) (ProgressRecord, bool) {
 	return item, ok
 }
 
+// MarkDone 记录一讲已下载完成。
 func (p *ProgressStore) MarkDone(key string, v Datum, fileName string, size int64, duration int) error {
 	return p.mark(key, ProgressRecord{
 		ID:        v.ID,
@@ -150,6 +155,7 @@ func (p *ProgressStore) MarkDone(key string, v Datum, fileName string, size int6
 	})
 }
 
+// MarkFailed 记录一讲下载失败。
 func (p *ProgressStore) MarkFailed(key string, v Datum, fileName string, err error) error {
 	message := ""
 	if err != nil {
@@ -174,19 +180,26 @@ func (p *ProgressStore) mark(key string, record ProgressRecord) error {
 	defer p.fileMu.Unlock()
 
 	// 合并磁盘上的最新记录，避免并发 store 用旧 map 覆盖。
-	if latest, err := p.loadFromDisk(); err == nil {
+	latest, err := p.loadFromDisk()
+	switch {
+	case err == nil:
 		if latest.Enid == "" {
 			latest.Enid = p.name
 		}
 		p.mu.Lock()
 		p.data = latest
 		p.mu.Unlock()
+	case errors.Is(err, errProgressNotExist), errors.Is(err, errProgressMalformed):
+		// 首次运行或清单损坏：保留内存数据，本次写入重建清单。
+	default:
+		// 读失败时不要用旧内存覆盖磁盘上可能更新的记录。
+		return fmt.Errorf("读取进度文件失败: %w", err)
 	}
 
 	p.mu.Lock()
 	p.data.Items[key] = record
 	p.data.UpdatedAt = record.UpdatedAt
-	err := p.saveLocked()
+	err = p.saveLocked()
 	p.mu.Unlock()
 	return err
 }
@@ -194,11 +207,14 @@ func (p *ProgressStore) mark(key string, record ProgressRecord) error {
 func (p *ProgressStore) loadFromDisk() (progressFile, error) {
 	raw, err := readFileRetry(p.path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return progressFile{}, errProgressNotExist
+		}
 		return progressFile{}, err
 	}
 	var loaded progressFile
 	if err := json.Unmarshal(raw, &loaded); err != nil {
-		return progressFile{}, err
+		return progressFile{}, errProgressMalformed
 	}
 	if loaded.Items == nil {
 		loaded.Items = map[string]ProgressRecord{}
