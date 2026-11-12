@@ -87,8 +87,8 @@ Web 页面功能（随版本迭代可能略有调整）：
 
 #### 音频下载
 
-* ffmpeg
-  > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成
+* ffmpeg（含 ffprobe）
+  > 音频需要借助 [ffmpeg](https://ffmpeg.org/) 合成；断点续传/完整性校验会调用 ffprobe（通常随 ffmpeg 一起安装）
 
 #### markdown文本下载
 
@@ -335,6 +335,8 @@ dedao-dl clean cache
 * -m 是否合并课程内容（针对markdown文档），默认不合并
 * -c 是否下载热门留言（针对markdown文档），默认不下载
 * -o 是否按顺序展示, 如果为true, 则文件名前缀会加上序号, 如 `00x.`
+* 断点续传：音频按讲续传。已完成且时长校验通过的音频会跳过；中断后重跑只补缺失/损坏的讲，进度记录在 `<课程目录>/progress/<enid>.json`
+* `--force` 强制重新下载音频，忽略已有文件与进度记录；`--resume=false` 效果相同（`--resume` 默认开启）
 
 注意：生成 PDF 的时候，操作过于频繁会触发 `496 NoCertificate` , 因此每次生成一次PDF sleep 0~5秒, 尽管如此，还是有极大可能触发操作频繁图形验证。
 

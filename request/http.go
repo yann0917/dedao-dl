@@ -7,8 +7,16 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-resty/resty/v2"
+)
+
+const (
+	// resty 的 SetTimeout 是整次传输（含读 body）的总时限。
+	// m3u8 很小，用短超时；分片/媒体文件给更宽裕的时限，避免慢速传输被误杀。
+	metadataTimeout = 60 * time.Second
+	mediaTimeout    = 5 * time.Minute
 )
 
 var (
@@ -23,14 +31,16 @@ type HTTPClient struct {
 
 // NewClient new HTTPClient
 func NewClient(baseURL string) *resty.Client {
-	c := resty.New().SetBaseURL(baseURL)
+	c := resty.New().
+		SetBaseURL(baseURL).
+		SetTimeout(mediaTimeout)
 	// c = c.SetBaseURL(baseURL)
 	return c
 }
 
 // HTTPGet http get request
 func HTTPGet(url string) (body []byte, err error) {
-	r, err := resty.New().R().Get(url)
+	r, err := resty.New().SetTimeout(metadataTimeout).R().Get(url)
 	if err != nil {
 		return
 	}

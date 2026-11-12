@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -9,6 +10,7 @@ import (
 )
 
 var downloadType, courseMerge, courseComment, courseOrder = 1, false, false, false
+var downloadResume, downloadForce = true, false
 
 var downloadCmd = &cobra.Command{
 	Use:   "dl",
@@ -48,6 +50,10 @@ https://www.dedao.cn/course/detail?id=ZWyMAOLnR4xJ1vqse8X65QaE8YG29k`,
 			IsMerge:      courseMerge,
 			IsComment:    courseComment,
 			IsOrder:      courseOrder,
+			Force:        downloadForce || !downloadResume,
+			LogCB: func(level, message string) {
+				fmt.Printf("[%s] %s\n", level, message)
+			},
 		}
 		err = app.Download(d)
 
@@ -83,6 +89,10 @@ https://www.dedao.cn/audioBook/detail?id=ZV1po7jlgBdObqZXy0GNR4wLzxya5v`,
 			DownloadType: downloadType,
 			ID:           id,
 			EnID:         enid,
+			Force:        downloadForce || !downloadResume,
+			LogCB: func(level, message string) {
+				fmt.Printf("[%s] %s\n", level, message)
+			},
 		}
 		err = app.Download(d)
 		return err
@@ -153,7 +163,11 @@ func init() {
 	downloadCmd.PersistentFlags().BoolVarP(&courseMerge, "merge", "m", false, "是否合并课程章节")
 	downloadCmd.PersistentFlags().BoolVarP(&courseComment, "comment", "c", false, "是否下载课程热门留言, 仅针对 markdown 文档")
 	downloadCmd.PersistentFlags().BoolVarP(&courseOrder, "order", "o", false, "是否按顺序展示, 如果为true, 则文件名前缀会加上序号, 如 00x.")
+	downloadCmd.PersistentFlags().BoolVar(&downloadResume, "resume", true, "断点续传：跳过已完成且时长校验通过的音频（默认开启）")
+	downloadCmd.PersistentFlags().BoolVar(&downloadForce, "force", false, "强制重新下载音频，忽略已有文件与进度记录")
 
 	dlOdobCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:mp3, 2:PDF文档, 3:markdown文档")
+	dlOdobCmd.PersistentFlags().BoolVar(&downloadResume, "resume", true, "断点续传：跳过已完成且时长校验通过的音频（默认开启）")
+	dlOdobCmd.PersistentFlags().BoolVar(&downloadForce, "force", false, "强制重新下载音频，忽略已有文件与进度记录")
 	dlEbookCmd.PersistentFlags().IntVarP(&downloadType, "downloadType", "t", 1, "下载格式, 1:html, 2:PDF文档, 3:epub, 4:markdown笔记")
 }

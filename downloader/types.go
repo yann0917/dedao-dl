@@ -29,9 +29,14 @@ type Datum struct {
 	Type      string `json:"type"`
 	IsCanDL   bool   `json:"is_can_dl"`
 	M3U8URL   string `json:"m3u8_url"`
+	Duration  int    `json:"duration"` // 接口返回的音频时长（秒），用于校验已有文件
 
 	Streams       map[string]Stream `json:"streams"`
 	sortedStreams []Stream
+
+	// Progress 为本次运行共享的进度清单；Force 为 true 时忽略已有文件重新下载。
+	Progress *ProgressStore `json:"-"`
+	Force    bool           `json:"-"`
 }
 
 // Data 课程信息
