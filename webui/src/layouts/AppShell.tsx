@@ -1,4 +1,4 @@
-import { BookMarked, Compass, GraduationCap, Headphones, History, Home, Loader2, Menu, PanelLeftClose, PanelLeftOpen, Rows3, Search, Sparkles, Trophy, UserCircle2, X } from "lucide-react"
+import { BookMarked, Compass, GraduationCap, Headphones, History, Home, Loader2, Menu, PanelLeftClose, PanelLeftOpen, Rows3, Sparkles, Trophy, UserCircle2, X } from "lucide-react"
 import type { ComponentType, ReactNode } from "react"
 import { useEffect, useRef, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
@@ -134,9 +134,6 @@ function BrandMark({ collapsed = false }: { collapsed?: boolean }) {
       </span>
       <div className="leading-tight">
         <p className="text-base font-semibold tracking-wide text-text-primary">dedao-dl</p>
-        <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.3em] text-text-muted">
-          cli tool · web ui
-        </p>
       </div>
     </div>
   )
@@ -586,11 +583,6 @@ export function AppShell() {
           <div className="mx-auto flex max-w-[1500px] items-center gap-4 px-4 py-3 lg:px-6">
             <div className="xl:hidden">
               <BrandMark />
-            </div>
-
-            <div className="flex min-w-0 flex-1 items-center gap-2.5 border-b border-border pb-1.5 text-sm text-text-muted xl:max-w-md">
-              <Search className="size-icon-md shrink-0" />
-              <span className="truncate">全局搜索建设中</span>
             </div>
 
             <div className="ml-auto flex shrink-0 items-center gap-3">

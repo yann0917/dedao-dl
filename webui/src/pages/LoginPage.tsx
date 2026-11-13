@@ -42,17 +42,9 @@ export function LoginPage() {
             <p className="font-display text-lg font-semibold tracking-[0.08em] text-text-primary">
               dedao-dl
             </p>
-            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.32em] text-text-muted">
-              cli tool · web ui
-            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="hidden font-mono text-[11px] tracking-[0.18em] text-text-muted sm:block">
-            127.0.0.1:17878
-          </span>
-          <ThemeToggleButton className="rounded-none" />
-        </div>
+        <ThemeToggleButton className="rounded-none" />
       </header>
 
       <div className="relative z-10 grid flex-1 items-center gap-14 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:py-6">
@@ -116,8 +108,7 @@ export function LoginPage() {
         </section>
       </div>
 
-      <footer className="relative z-10 flex items-center justify-between border-t border-border pt-4 font-mono text-[11px] tracking-[0.14em] text-text-muted">
-        <span>dedao-dl · web</span>
+      <footer className="relative z-10 flex items-center justify-end border-t border-border pt-4 font-mono text-[11px] tracking-[0.14em] text-text-muted">
         <span className="hidden sm:block">下载内容仅供个人学习</span>
       </footer>
     </main>
